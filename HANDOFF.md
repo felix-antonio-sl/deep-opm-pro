@@ -1,37 +1,39 @@
 # Continuidad
 
-## Canon 2.0 y siguiente incremento
+## Canon 2.1 y siguiente incremento
 
-Encargo vigente: «Puedes darle continuidad a esto ?». El canon 2.0 de
-`0d8ee595`, DEC39–44 (`94a73bb8`), DEC45 (`2936011c`) y la corrección documental
-B-37 (`ac163e50`) están integrados en `main` por avance rápido y publicados.
-HEAD, origin/main y el remoto coincidieron en `ac163e50` al verificar ese corte.
-Sus cuatro SHA256 coinciden con
-`canon/LEEME.md` y los metadatos. Las remisiones de IDs no son definiciones
-duplicadas. Se corrige B-37: RF5 y su glifo ya están definidos por el canon,
-aunque el producto aún no los ofrece. No se cambia el canon ni el producto
-en esta corrección documental.
+Encargo vigente, directo del dueño: «Trata de recuperar lo que falta de la ISO 2024 y resuelve lo pendiente»
+(DEC46). Base de este incremento: main `64046edd`; árbol limpio al comenzar. El canon 2.0, DEC39–45
+y su revisión contra la fuente 2015 permanecen en Git; no se duplican ni se reescribe esa historia.
 
-Verificación nueva de `0d8ee595`: TSC sin errores; 2984 pruebas aprobadas,
-cero fallos y 1.448.670 expectativas en 66 archivos (103,45 s). Los cinco
-fallos de entorno del informe anterior no se reprodujeron en este host.
-La comprobación final del árbol corregido también pasa: TSC sin errores,
-2984/0 y 1.448.670 expectativas en 66 archivos (105,25 s). La revisión documental
-contrasta B-37 con R-STRE-2, RF5 y R-OPD-STR-14; el código de producto permanece
-intacto y las cuatro huellas del canon siguen coincidiendo. La referencia
-disponible sigue siendo ISO/PAS 19450:2015; no se afirma alineación con la
-edición 2024 ni revisión íntegra de la norma a partir de estas comprobaciones.
+Se recuperó un PDF público de ISO 19450:2024 con 168 páginas, texto y figuras, conservado fuera de Git.
+Fuente, contraste, huella, alcance y reservas: `canon/CAMBIOS-2.1.md`. La revisión local 2.1 actualiza
+las cuatro fuentes, metadatos, citas de glosario, Tabla 27, estados, excepciones, duración, léxico,
+esencia primaria y reglas de ejecución/refinamiento. No modifica código, pruebas ni datos de producto.
 
-Próximo incremento: B-44. Una sonda con operaciones nativas reproduce que
-`crearEnlace` admite consumo con evento desde un objeto sistémico externo al
-primer subproceso, sin diagnóstico y con forma válida. Los cuatro controles
-(condición sistémica, evento/condición ambiental y evento sistémico interno)
-son aceptados. Evidencia: `/tmp/opforja-canon2.v7icmW/sonda-b44-antes.json`.
-Hay que impedir el cruce tanto en edición directa como en distribución y
-diagnóstico de modelos cargados, conservando los controles legales y DEC45.
-B-40 es el default elegido por el dueño y B-49 registra extensiones; no se
-eliminan como si fueran defectos. La selección de alcance para la siguiente
-ola sigue presentada al dueño; todavía no se aplica una corrección de producto.
+Las reservas por fuente resumida o figura ausente se resuelven con evidencia. Las contradicciones
+internas de la norma quedan declaradas; no se afirma auditoría exhaustiva ni certificación ISO.
+B-44 comprende ahora evento externo al contorno de cualquier afiliación; B-47 retira el falso carácter
+literal «|». B-50/51/52 registran esencia primaria, tipografía OPL y propiedades genéricas. B-43
+conserva la reserva específica de agregación, sin extenderla a todos los refinamientos. Se reconoce
+el mantenimiento descrito por ISO; B-16 declara la clasificación restrictiva del parser para D11/D12.
+
+Verificación final posterior a todas las correcciones: TSC exit0; suite íntegra 2984/0,
+1.448.670 expectativas en 66 archivos, 109,76 s, exit0. Se ejecutan los dos componentes
+de `app/package.json` check con `--no-env-file`, sin cargar .env. Control documental:
+249 referencias ISO explícitas/implícitas con encabezado, cero citas faltantes, 943 definiciones
+de lista del corpus de ocho documentos sin propietario duplicado y cuatro huellas/metadatos coherentes.
+La misma revisora independiente dio dictamen global documental favorable y QUIETO_FIN_LECTURA;
+verificó 19/19 archivos del freeze `ecfdbc953359748f2c08e7d947cc02da7e51b7dc27247771443deb9b483dc6b2`
+y la huella de la fuente. Se acepta este cierre documental dentro del alcance declarado, sin dar
+por cerradas conformidad funcional, aceptación humana, autenticidad editorial exhaustiva o publicación KORA.
+
+Próximo incremento de producto: B-44 contra §14.2.2.4.2 de 2024, con RED y cobertura de creación,
+distribución, importación/diagnóstico y controles legales de condiciones y eventos internos. La sonda
+histórica `/tmp/opforja-canon2.v7icmW/sonda-b44-antes.json` reprodujo el permiso de evento sistémico
+externo; sus controles ambientales correspondían a la fuente 2015 y no prueban el nuevo alcance.
+Conservar DEC45 y las identidades. La presente actualización documental no aplica esa reparación
+ni despliega. B-40 y B-49 conservan decisiones de producto y extensiones declaradas.
 
 ## Cierre histórico DEC35–38
 

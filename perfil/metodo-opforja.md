@@ -1,5 +1,7 @@
 # Perfil OpForja — método (`metodo-opforja`)
 
+Autoridad vigente: canon 2.1.0, ISO 19450:2024; véase `canon/LEEME.md`. Las versiones 2.0/1.x citadas como origen se conservan como historia.
+
 Qué es: reglas propias de OpForja sobre el *método* de modelar: flujo de producto (Taller,
 Apunte/Modelo, Bocetos), catálogo de lecciones forja (Parte B, LF-nn), heurísticas tomadas de casos
 externos, lentes ICAS, capacidades observadas en OPCloud, la realización en el formato de intercambio
@@ -278,7 +280,7 @@ Los IDs «§9.n» del manual se reemplazan por A5.n (A5.1–A5.23 en el canon; A
 
 - **A5.1b** [extensión] (origen: canon v1.7.0 A5 (fila manual §9.1)): El proceso persistente que **sí** sobrevive se realiza como cambio con **entrada=salida** (`*P* cambia **A** de \`s\` a \`s\``), no con verbo especial.
 
-> **Corrección 2.0:** «proceso persistente» no es término ISO: la perseverancia dinámica define al proceso (ISO §3.50); A.4.4.2 sólo da la oración «is persistent/transient» sin más semántica. El caso sin transformación se modela como en canon metodología A5.1a.
+> **Corrección 2.1:** ISO §7.2.1 NOTA 2 y su ejemplo describen procesos persistentes para mantenimiento de estado; §7.3.3 NOTA los reconoce como casos límite. La representación explícita entrada=salida de A5.1b es política del producto, no una nueva clase ni un verbo ISO adicional. A5.1a distingue esa actividad de una relación estática y ya no descarta todo mantenimiento sin cambio neto.
 
 
 ### A5.15 Sinónimos/homónimos (origen: canon v1.7.0 A5, fila manual §9.15)
@@ -452,10 +454,10 @@ Dependencias: **LF-02 presupone LF-01** (primero decides los ejes, luego los rea
 ### LF-02 — Exhibición-caracterización como mecanismo de propiedad · Estado: consolidada · usa: LF-01
 1. **Olor/gatillo** — tentación de crear procesos *Tener/Poseer/Asignar* para una propiedad; o colapsar una propiedad ortogonal en estado conjuntivo.
 2. **Principio** — una propiedad de una cosa es un **atributo exhibido** (objeto-rasgo con su state set), no un proceso ni un estado conjuntivo.
-3. **Mecanismo OPM** — realiza A5.6 (exhibición admite obj-exhibe-atributo, obj-exhibe-operación, proc-exhibe-atributo, proc-exhibe-operación), A5.8 (caracterización con estado especificado), A5.1 (proceso persistente → enlace estructural).
+3. **Mecanismo OPM** — realiza A5.6 (exhibición admite obj-exhibe-atributo, obj-exhibe-operación, proc-exhibe-atributo, proc-exhibe-operación), A5.8 (caracterización con estado especificado), A5.1 (relación estática sin actividad temporal relevante → enlace estructural; mantenimiento de estado puede conservar un proceso).
 4. **Cuándo NO aplica** — **presupone LF-01**: si hay un solo eje relevante, usar **estados directos** (A5.12), no atributo. No promover a operación (proceso): la dimensión es rasgo, no acción. **Test de operación encapsulada**: un proceso es *operación* (rasgo procedimental "propio") de un objeto B **solo si** no tiene efecto sobre ni requiere ningún objeto fuera de B (solo afecta partes/rasgos/especializaciones de B); si toca algo externo, es un proceso de pleno derecho, no una operación encapsulada.
 
-> **Corrección 2.0:** el test de operación encapsulada es `[endurecimiento]`: ISO no limita los enlaces de una operación (ISO §3.46, §14.2.1.3).
+> **Corrección 2.0:** el test de operación encapsulada es `[endurecimiento]`: ISO no limita los enlaces de una operación (ISO §3.47, §14.2.1.3).
 
 5. **Liftea a** — `opd-es` exhibición-caracterización; `opl-es` (sentencias `exhibe` + `puede estar`).
 6. **Realización opforja** — helper `atributo` (value slot libre) o `atributoEstados` (estados discretos); enlace `exhibicion`; unfold `modo:"exhibicion"` aloja los atributos con estados completos. OPL: `**Obj** exhibe **Attr**.` + `**Attr** de **Obj** puede estar \`v1\`, \`v2\` o \`v3\`.`
@@ -702,7 +704,7 @@ El intercambio con la herramienta usa el documento JSON `{ "formato": "deep-opm-
 - **entidades** — `{id, tipo: objeto|proceso, nombre, esencia: fisica|informacional, afiliacion: sistemica|ambiental, descripcion?, esAtributo?, valorSlot?, refinamientos?}`. Atributo discreto: `esAtributo:true` **sin** `valorSlot` + estados.
 - **estados** — `{id, entidadId, nombre, esInicial?, esFinal?, designaciones?, suprimido?}`. La app no acepta un único estado (≥2). Supresión **global** vía `suprimido`; supresión **per-aparición** vía `Apariencia.estadosSuprimidos[]` (LF-03).
 
-> **Corrección 2.0:** «La app no acepta un único estado (≥2)» es `[endurecimiento]` del producto: ISO define objeto con estados sin mínimo (ISO §3.66).
+> **Corrección 2.0:** «La app no acepta un único estado (≥2)» es `[endurecimiento]` del producto: ISO define objeto con estados sin mínimo (ISO §3.67).
 
 - **enlaces** — `{id, tipo, origenId, destinoId, etiqueta?, estadoEntradaId?, estadoSalidaId?, multiplicidadDestino?}`. Tipos: `exhibicion`, `agregacion`, `agente`, `instrumento`, `efecto`, `resultado`, `consumo`, `invocacion`, `etiquetado`, etc.
 - **refinamientos** (en la entidad) — `descomposicion: {opdId}` (in-zoom, contorno) | `despliegue: {opdId, modo: agregacion|exhibicion|generalizacion|clasificacion}` (unfold).
@@ -715,7 +717,7 @@ El intercambio con la herramienta usa el documento JSON `{ "formato": "deep-opm-
 
 **Auto-normalización verificada.** La app normaliza al hidratar (omitir campos opcionales antes que inventarlos). Esencia: conectar un objeto como atributo (exhibición-caracterización) tiende a coaccionarlo a **informacional**; el enlace de **agente** solo se ofrece desde cosas físicas (humanas) — dejar que la UI normalice en vez de pelear con ella. *(Verificar el alcance exacto de la coerción en la versión vigente de opforja.)*
 
-> **Corrección 2.0:** esencia física no equivale a humano: un robot es físico y es instrumento (ISO §3.30); el filtro por esencia física es una aproximación del producto.
+> **Corrección 2.0:** esencia física no equivale a humano: un robot es físico y es instrumento (ISO §3.31); el filtro por esencia física es una aproximación del producto.
 
 
 ## F.1 Capacidades-objetivo (OPCloud — ⚠ NO verificadas en opforja v0)

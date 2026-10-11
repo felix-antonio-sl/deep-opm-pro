@@ -160,6 +160,15 @@ que tenemos» (ISO/PAS 19450:2015; no se versiona en el repositorio). Se cita la
     NOTE 2 informativa de esa cláusula (defaults de herramienta que el modelador modifica). El consumo sigue al
     primero. Confirma la conducta vigente (T-070).
 
+46. **Recuperación y actualización documental a ISO 19450:2024.** Instrucción directa vigente,
+    role=user: «Trata de recuperar lo que falta de la ISO 2024 y resuelve lo pendiente».
+    ID y fecha del mensaje no expuestos por el mecanismo disponible; no se infieren.
+    Se recupera texto con figuras, se actualizan citas y se resuelven las reservas que dependían de
+    la fuente incompleta, con trazabilidad en `canon/CAMBIOS-2.1.md`. DEC44 conserva su historia;
+    la Tabla 27 ya observada sustituye la matriz provisional documental, sin cambiar la matriz
+    temporal del producto ni DEC31–32. Las nuevas diferencias del producto se declaran en
+    conformidad; esta resolución documental no despliega ni altera modelos o políticas de producto.
+
 ## Resoluciones directas posteriores — vigentes
 
 Frases role=user recibidas textualmente; ID y fecha originales no observables.

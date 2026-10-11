@@ -1,4 +1,4 @@
-Derivada de `canon/` 1.x (reglas OPM 1.5.0, spec-OPD 1.4.0, spec-OPL 1.4.1, metodología 1.7.0). Desde el canon 2.0.0 (sólo ISO/PAS 19450:2015) lo propio de OpForja vive en `perfil/`, con los mismos IDs y números de sección; «reglas §n» y sus pares designan la sección homónima del canon y, si se repartió, su parte del perfil, y «perfil <documento> §n» apunta a una sección que pasó entera al perfil ([canon/CAMBIOS-2.0.md](../canon/CAMBIOS-2.0.md)). Ante conflicto manda `canon/` y luego `perfil/`, con precedencia reglas > spec-OPD/spec-OPL > método; donde un requisito T-NNN difiere del canon 2.0, la diferencia está declarada en [conformidad.md](conformidad.md) (B-39 en adelante). Las decisiones del dueño y DS se conservan en [decisiones.md](decisiones.md); los incumplimientos, en [conformidad.md](conformidad.md). El cuerpo que sigue reproduce íntegro CANON.md derivado del diseño; sus menciones al análisis histórico no añaden autoridad.
+Derivada de `canon/` 1.x (reglas OPM 1.5.0, spec-OPD 1.4.0, spec-OPL 1.4.1, metodología 1.7.0). Desde el canon 2.0.0 (ISO/PAS 19450:2015) y su revisión 2.1.0 (ISO 19450:2024, [alcance y reservas](../canon/CAMBIOS-2.1.md)) lo propio de OpForja vive en `perfil/`, con los mismos IDs y números de sección; «reglas §n» y sus pares designan la sección homónima del canon y, si se repartió, su parte del perfil, y «perfil <documento> §n» apunta a una sección que pasó entera al perfil ([canon/CAMBIOS-2.0.md](../canon/CAMBIOS-2.0.md)). Ante conflicto manda `canon/` y luego `perfil/`, con precedencia reglas > spec-OPD/spec-OPL > método; donde un requisito T-NNN difiere del canon vigente, la diferencia está declarada en [conformidad.md](conformidad.md) (B-39 en adelante). Las decisiones del dueño y DS se conservan en [decisiones.md](decisiones.md); los incumplimientos, en [conformidad.md](conformidad.md). El cuerpo que sigue reproduce íntegro CANON.md derivado del diseño; sus menciones al análisis histórico no añaden autoridad.
 
 # CANON — Especificación del producto opforja derivada del canon (ni más ni menos)
 
@@ -466,13 +466,13 @@ evento > sin control > condición
 | 11 | Instrumento |
 | 12 | Condición de instrumento |
 
-Matriz de precedencia transformadora (reglas §6.6, textual):
+Matriz temporal de precedencia transformadora (canon reglas §6.6, ISO 19450:2024 Tabla 27; P1 anterior a P2, DEC31). La continuidad de identidad exigida por el perfil para R↔C se conserva:
 
-| B↔P1 \ B↔P2 | Efecto | Resultado | Consumo |
+| P1 (primero) \ P2 (después) | Efecto | Resultado | Consumo |
 |---|---|---|---|
-| **Efecto** | Efecto | Resultado | Consumo |
+| **Efecto** | Efecto | **Inválido** | Consumo |
 | **Resultado** | Resultado | **Inválido** | Efecto |
-| **Consumo** | Consumo | Efecto | **Inválido** |
+| **Consumo** | **Inválido** | Efecto | **Inválido** |
 
 Resolución mínima: «Inválido» ⇒ diagnóstico error AP-30 («Corregir el nivel hijo»); Resultado+Consumo ⇒ se muestran ambos y se emite diagnóstico de conflicto R-PREC-3 (no se colapsa sin evidencia, R-PREC-4).
 

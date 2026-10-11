@@ -1,5 +1,7 @@
 # Reglas OpForja (perfil de reglas-opm-estrictas-es)
 
+Autoridad vigente: canon 2.1.0, ISO 19450:2024; véase `canon/LEEME.md`. Las versiones 2.0/1.x citadas como origen se conservan como historia.
+
 Este perfil reúne las reglas propias de OpForja que salieron de `reglas-opm-estrictas-es` v1.5.0 al publicar el canon 2.0.0: gobernanza documental, reglas de herramienta (edición, importación, exportación, persistencia, simulación, interfaz), extensiones y endurecimientos.
 
 - **Subordinación**: este perfil no contradice el canon. Cuando una regla es más estricta que ISO 19450 se marca `[endurecimiento]` y su brecha se declara en `docs/conformidad.md`; cuando extiende la norma, `[extensión]`. Las referencias a reglas que quedaron en el canon se escriben `canon reglas §n` o por ID.
@@ -122,16 +124,16 @@ R-CONF-1 a R-CONF-5 siguen en canon reglas, «Conformidad OPM».
 
 ### 2.2 Objetos
 
-> [extensión] No consta en ISO/PAS 19450:2015 (ISO §7.3.3–§7.3.4 resumidas); verificar con la IS 2024; no altera el canon.
+> [extensión] Las cláusulas recuperadas de ISO 19450:2024 §7.3.3–§7.3.4 no prescriben esta herencia de afiliación; no se atribuye a ellas ni altera el canon.
 
 - **R-OBJ-6** (`SSOT-iso §Propiedades genéricas`): los atributos de objetos ambientales DEBEN ser ambientales.
 - **R-OBJ-7**: los procesos ejecutados por cosas ambientales DEBEN modelarse como procesos ambientales.
 
-- Fragmento retirado de R-OBJ-5 (canon reglas §2.2), política de herramienta: una herramienta PUEDE derivar la esencia por defecto desde el perfil, preset de creación o tipo de sistema declarado; ese default NO DEBE sobrescribir esencia explícita de una cosa.
+- (R-OBJ-5, parte de producto): un preset conserva la esencia explícita de cada cosa. El defecto fijo informacional del producto no realiza todavía el defecto contextual de ISO §7.3.4; se declara en B-50, sin convertir el preset en permiso para contradecir la esencia primaria.
 
 ### 2.3 Procesos
 
-> [extensión] «Proceso persistente» designa en OpForja un proceso que sostiene una condición. No es la perseverancia de ISO §3.50 (canon R-COSA-2: todo proceso es dinámico) y no exime a ningún proceso de R-PROC-2.
+> [política de producto] ISO §7.2.1 NOTA 2 y §7.3.3 NOTA describen procesos persistentes que mantienen un estado. El perfil exige hacer explícitos el objeto y el mantenimiento mediante las reglas siguientes; su realización entrada=salida es política del producto. No añade una clase de cosa ni exime de R-PROC-2. La diferencia de vocabulario sobre perseverancia se conserva en canon R-COSA-2.
 
 - **R-PROC-2A**: un proceso persistente solo satisface cierre canónico si declara objeto afectado e invariancia neta, atributo o condición mantenida conforme a R-PROC-5..7.
 - **R-PROC-5** (`SSOT-iso §Procesos`): un proceso persistente solo es canónico si la temporalidad, el esfuerzo sostenido o la condición mantenida forman parte del hecho de modelo.
@@ -154,7 +156,7 @@ R-CONF-1 a R-CONF-5 siguen en canon reglas, «Conformidad OPM».
 
 ### 2.6 Estados
 
-> [extensión] `Current` no es designación de estado en ISO (ISO §7.3.5.3; «current state» es noción de ejecución, ISO §3.69).
+> [extensión] `Current` no es designación de estado en ISO (ISO §7.3.5.3; «current state» es noción de ejecución, ISO §3.70).
 
 | Designación | Marca canónica | Restricción de cardinalidad |
 |---|---|---|
@@ -255,7 +257,7 @@ R-CONF-1 a R-CONF-5 siguen en canon reglas, «Conformidad OPM».
 
 ### 4.4 Plantillas — cosas
 
-> [extensión] D13 y el «proceso persistente» no constan en ISO; D11/D12 siguen en el canon como oraciones literales de ISO A.4.4.2.
+> [extensión] D13 no consta en ISO. Los procesos persistentes sí se describen en §7.2.1 NOTA 2 y §7.3.3 NOTA; la realización TS3 entrada=salida de este perfil es política del producto. D11/D12 siguen en el canon como alternativas de ISO A.4.4.2, con su reserva de perseverancia.
 
 | ID | Plantilla OPL-ES |
 |---|---|
@@ -312,7 +314,7 @@ R-CONF-1 a R-CONF-5 siguen en canon reglas, «Conformidad OPM».
 - **R-OPL-EBNF-2**: cualquier divergencia entre `SSOT-opl §17` y Apéndice A DEBE resolverse a favor del Apéndice A.
 - **R-OPL-EBNF-3**: los no terminales normativos del Apéndice A DEBEN escribirse en `snake_case`; nombres con espacios de §17 son explicativos.
 
-- Fragmento retirado de R-OPL-LEX-2 (canon reglas §4.14) [extensión]: `caracter_de_cadena` admite `_` (guion bajo).
+- Remisión a R-OPL-LEX-2 (canon reglas §4.14): `_` (guion bajo) está admitido en ISO 19450:2024 A.3.2; no es una extensión de producto. `|` no pertenece a esa producción.
 - Fragmento retirado de R-OPL-PART-1 (canon reglas §4.14) [extensión]: las restricciones de participación PUEDEN usar `exactamente un/una` y `dos o más`.
 - Fragmento retirado de R-OPL-RANGO-1 (canon reglas §4.14) [extensión]: intervalos `[..]`/`(..)` para límites parseables y `*` como límite abierto (ISO §11.1 exige rangos cerrados).
 - Fragmento retirado de R-OPL-RANGO-3 (canon reglas §4.14): los símbolos Unicode equivalentes DEBEN normalizarse o declararse como extensión de visualización.

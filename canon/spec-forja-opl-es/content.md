@@ -1,10 +1,10 @@
 ---
 urn: urn:fxsl:kb:spec-forja-opl-es
 nombre: spec-forja-opl-es
-version: 2.0.0
-estado: publicado
+version: 2.1.0
+estado: local
 descripcion: "Especificación OPL-ES: realización en español de la OPL de ISO 19450 (vocabulario reservado, plantillas de oración por construcción y gramática EBNF traducida del Anexo A)."
-fuente: "ISO/PAS 19450:2015, revisión cláusula por cláusula (2026-10-10); sustituye la sincronización KB previa"
+fuente: "ISO 19450:2024, texto y figuras recuperados; alcance y reservas en canon/CAMBIOS-2.1.md (2026-10-11)"
 autor: FS
 creado: 2026-05-26
 lang: es
@@ -21,19 +21,19 @@ cita: [urn:fxsl:kb:spec-forja-opd-es, urn:fxsl:kb:metodologia-forja-opm-es]
 
 Esta especificación fija la realización en español (OPL-ES) del lenguaje OPL de ISO 19450: el vocabulario reservado (spec-OPL §1), las oraciones de descripción de cosas y estados (spec-OPL §2), la plantilla de cada clase de enlace (spec-OPL §3–§6), las oraciones de gestión de contexto (spec-OPL §7), la composición de abanicos, modificadores de control, probabilidades y rutas (spec-OPL §8), la composición AND en una sola oración (spec-OPL §9), la multiplicidad de objetos (spec-OPL §10), las etiquetas de ruta (spec-OPL §11), la OPL por OPD (spec-OPL §12) y la gramática EBNF de OPL-ES (spec-OPL §18), que traduce el Anexo A de la norma.
 
-Su alcance es sólo lo que ISO 19450 funda. La validez de los modelos y sus reglas semánticas pertenecen a `reglas-opm-estrictas-es`; la notación gráfica, a `spec-forja-opd-es`; el método, a `metodologia-forja-opm-es`. El catálogo de plantillas por ID vive en reglas §4; este documento desarrolla cada plantilla con el mismo texto, carácter a carácter, y fija su gramática (spec-OPL §18). Los demás documentos las citan por ID.
+Su alcance es sólo lo que ISO 19450 funda. La validez de los modelos y sus reglas semánticas pertenecen a `reglas-opm-estrictas-es`; la notación gráfica, a `spec-forja-opd-es`; el método, a `metodologia-forja-opm-es`. El catálogo de plantillas por ID vive en este documento (§2–§12), que fija su gramática (§18). Reglas §4 y los demás documentos las citan por ID.
 
 ## Precedencia
 
-reglas > spec-OPD / spec-OPL > metodología. Ante duda manda la norma (ISO/PAS 19450:2015). El perfil OpForja (`perfil/opl-opforja`) se subordina a este documento: puede endurecerlo o extenderlo de forma declarada, nunca contradecirlo.
+reglas > spec-OPD / spec-OPL > metodología. Ante duda manda la norma (ISO 19450:2024). El perfil OpForja (`perfil/opl-opforja`) se subordina a este documento: puede endurecerlo o extenderlo de forma declarada, nunca contradecirlo.
 
 ## Convenciones
 
-- Cita: `ISO §x.y` remite a ISO/PAS 19450:2015 con su numeración. «ISO Tabla n» y «ISO Figura n» remiten a sus tablas y figuras. El Anexo A es normativo; los Anexos B, C y D, las NOTE y los EXAMPLE son informativos.
+- Cita: `ISO §x.y` remite a ISO 19450:2024 con su numeración. «ISO Tabla n» y «ISO Figura n» remiten a sus tablas y figuras. El Anexo A es normativo; los Anexos B, C y D, las NOTE y los EXAMPLE son informativos.
 - Modalidad: shall → DEBE; shall not → NO DEBE; should → DEBERÍA; should not → NO DEBERÍA; may → PUEDE. Sin palabra modal en mayúsculas, el texto describe.
-- Marcas: `[informativo]` = lo funda sólo un anexo informativo, una NOTE, un EXAMPLE o una figura (nunca DEBE); `[localización]` = decisión de la realización española que no cambia el hecho expresado; `[guía]` = orientación no normativa; «no verificable» = la fuente local está resumida o falta la figura que lo decide.
+- Marcas: `[informativo]` = lo funda sólo un anexo informativo, una NOTE, un EXAMPLE o una figura (nunca DEBE); `[localización]` = decisión de la realización española que no cambia el hecho expresado; `[guía]` = orientación no normativa; las reservas de fuente e interpretación se registran en `canon/CAMBIOS-2.1.md`.
 - Formato de regla: `- **ID** (ISO §x.y): enunciado.` Una plantilla se identifica por su ID (D*, T*, TS*, H*, HS*, E*, C*, EX*, IV*, RF*, RX*, RH*, SE*, SSE*, CX*).
-- Notación de los ejemplos: el objeto va en negrita, el proceso en cursiva y el estado entre comillas invertidas. Es notación de lectura de este documento y no forma parte de la gramática (spec-OPL §18), que opera sobre el texto sin marcas (ISO §A.3.3). ISO sólo pide que el valor de atributo vaya destacado y sin mayúscula (ISO §11.3).
+- Notación de los ejemplos: el objeto va en negrita, el proceso en cursiva y el estado entre comillas invertidas. Es notación de lectura de este documento y no forma parte de la gramática (spec-OPL §18), que opera sobre el texto sin marcas (ISO §A.3.3). La norma prescribe nombres de objetos y procesos en negrita y capitalizados (§7.1.2, §7.2.2), estados en negrita y minúsculas (§7.3.5.2) y valores de atributo en negrita y sin mayúscula (§11.3); la cursiva y las comillas invertidas de estos ejemplos son convenciones de lectura, no requisitos ISO.
 - Cuando una oración de ejemplo en inglés fija una equivalencia, se cita entre comillas angulares y con su cláusula.
 - Términos: los del contrato terminológico del canon (cosa, objeto, proceso, estado, enlace, abanico, refinado, despliegue, plegado, descomposición, recomposición…).
 
@@ -43,12 +43,12 @@ Secciones trasladadas al perfil: §13, §14, §15, §16, §17, §19, §20, §22,
 
 | Término | Definición |
 | --- | --- |
-| Hecho del modelo | Relación entre dos cosas o estados del modelo (ISO §3.38). Una oración OPL expresa uno o más hechos. |
+| Hecho del modelo | Relación entre dos cosas o estados del modelo (ISO §3.39). Una oración OPL expresa uno o más hechos. |
 | Párrafo OPL | Secuencia de oraciones OPL separadas por salto de línea; cada OPD tiene el suyo (ISO §6.2.1, §A.4.1). |
-| Esencia | Propiedad genérica de una cosa: física o informacional; por defecto, informacional (ISO §7.3.3, §A.4.4.2). |
+| Esencia | Propiedad genérica física o informacional; dentro del sistema el defecto es su esencia primaria (ISO §7.3.4; reserva sobre el comentario de A.4.4.2 en R-OBJ-5). |
 | Afiliación | Propiedad genérica de una cosa: sistémica o ambiental; por defecto, sistémica (ISO §7.3.4, §A.4.4.2). |
-| Perseverancia | Propiedad genérica: estática (objeto) o dinámica (proceso) (ISO §3.50); su oración es «persistente» o «transitoria», por defecto persistente (ISO §A.4.4.2). |
-| Plegado | Abstracción inversa del despliegue: oculta los refinados (partes, rasgos, especializaciones o instancias) de un refinable desplegado (ISO §3.22, §14.2.1.2, §A.4.7.3). |
+| Perseverancia | §3.51 distingue estática (objeto) y dinámica (proceso); §7.3.3 incluye persistente y casos límite. A.4.4.2 ofrece «persistente/transitoria», con defecto persistente; diferencia de vocabulario conservada como reserva. |
+| Plegado | Abstracción inversa del despliegue: oculta los refinados (partes, rasgos, especializaciones o instancias) de un refinable desplegado (ISO §3.23, §14.2.1.2, §A.4.7.3). |
 
 ## §1 Vocabulario reservado
 
@@ -84,11 +84,11 @@ Los verbos van en tercera persona del presente de indicativo: en singular con su
 | es de tipo | el objeto declara su tipo de dato | D18 | ISO §A.4.4.3 |
 | puede estar | el objeto enumera sus estados posibles | D5, D6 | ISO §7.3.5, §A.4.4.4 |
 | está en | el objeto está en un estado (objeto de un solo estado; condición con estado) | D14, CS* | ISO §A.4.4.4, §9.5.3.3 |
-| se descompone en | la cosa (proceso u objeto) se descompone (in-zooming) en sus partes | CX1, CX2, CX11, CX12, CX13 | ISO §3.34, §3.35, §14.2.1.3, §A.4.7.4 |
+| se descompone en | la cosa (proceso u objeto) se descompone (in-zooming) en sus partes | CX1, CX2, CX11, CX12, CX13 | ISO §3.35, §3.36, §14.2.1.3, §A.4.7.4 |
 | se despliega en / se despliega por partes, por rasgos, por especialización, por instancias en | despliegue de la cosa en sus refinados | CX3, CX10 | ISO §14.2.1.2, §A.4.7.2 |
 | se refina por descomposición de / se refina por despliegue de | refinamiento entre OPD del árbol de procesos | CX4, CX9 | ISO §14.2.2.6 |
-| es plegado de | la cosa es el plegado de su OPD hijo (contorno grueso) | CX5, CX6 | ISO §3.22, §A.4.7.3 |
-| se recompone desde | recomposición (out-zooming) de la cosa desde su OPD hijo | CX7, CX8 | ISO §3.48, §3.49, §A.4.7.5 |
+| es plegado de | la cosa es el plegado de su OPD hijo (contorno grueso) | CX5, CX6 | ISO §3.23, §A.4.7.3 |
+| se recompone desde | recomposición (out-zooming) de la cosa desde su OPD hijo | CX7, CX8 | ISO §3.49, §3.50, §A.4.7.5 |
 
 «existe», «se omite» y «se consume» sólo aparecen dentro de oraciones de condición (ISO §A.4.5.4).
 
@@ -156,16 +156,16 @@ Esta sección fija las oraciones de descripción de cosas (ISO §A.4.4): propied
 
 - **R-ENT-1** = R-COSA-1.
 - **D19** (ISO §A.4.4.2): **Cosa** es física, ambiental y transitoria.
-- **R-ENT-3** (ISO §A.4.4.2, §7.3.3, §7.3.4): las propiedades genéricas de una cosa (esencia, afiliación y perseverancia) DEBEN expresarse en una sola oración de propiedades genéricas (D19), con a lo sumo un valor de cada propiedad y en cualquier orden. Los valores por defecto (informacional, sistémica, persistente) PUEDEN omitirse; D1–D4, D11 y D12 son sus formas de una sola propiedad. El adjetivo concuerda en género con el nombre de la cosa (R-OPL-1; `**Sensor** es físico`, `**Prueba** es física`).
+- **R-ENT-3** (ISO §A.4.4.2, §7.3.3, §7.3.4): las propiedades genéricas DEBEN expresarse en una sola oración (D19), con a lo sumo un valor por propiedad. Los defectos no DEBEN aparecer en OPL salvo para una cosa aún sin conexiones; al enlazarla, las propiedades se integran en las frases de enlace según corresponda (§7.3.4). La esencia por defecto depende del sistema (R-OBJ-5), la afiliación es sistémica y A.4.4.2 declara perseverancia persistente. El adjetivo concuerda con el nombre [localización]. El orden de la EBNF es esencia, afiliación, perseverancia; el ejemplo de la Figura 11 invierte las dos primeras. Esta discrepancia de la fuente se conserva como reserva, sin afirmar que la EBNF admite cualquier orden.
 
-  Correcto: `**Prueba** es ambiental y física.` (ISO §A.4.4.2: «Testing is environmental and physical»)
+  Ejemplo de la fuente: `**Prueba** es ambiental y física.` (ISO Figura 11, §9.3.3.2); su orden no coincide con A.4.4.2, como registra R-ENT-3.
   Incorrecto: `**Prueba** es ambiental.` seguido de `**Prueba** es física.` cuando ambas propiedades describen la misma cosa en el mismo párrafo.
 
 ### §2.1 Objeto
 
 **ID**: ENT-OBJ.
 
-**Nombre**: sintagma nominal singular con mayúscula inicial (ISO §A.3.3); en plural cuando la multiplicidad admite más de una instancia (ISO §11.1, §A.4.2). [localización] Cada palabra del nombre DEBERÍA llevar mayúscula inicial, salvo artículos y preposiciones breves (ISO §B.6.5 [informativo]): `**Conjunto de Platos**`.
+**Nombre**: sintagma nominal singular con mayúscula inicial (ISO §A.3.3, §7.1.2); en plural cuando la multiplicidad admite más de una instancia (ISO §11.1, §A.4.2). [localización] Cada palabra del nombre DEBERÍA llevar mayúscula inicial, salvo artículos y preposiciones breves: `**Conjunto de Platos**`. No se atribuye esta adaptación española a un §B.6.5, que no existe en la edición 2024.
 
 **Oraciones**: el objeto aparece como sujeto o complemento de las oraciones de enlace; su descripción propia la dan la oración de propiedades genéricas (R-ENT-3), la de tipo (D18) y las de estado (spec-OPL §2.3, §2.4). Un objeto cuyas propiedades genéricas son las por defecto, sin estados ni enlaces en el OPD, carece de otra oración; PUEDE enunciar sus valores por defecto para constar en el párrafo de ese OPD (ISO §6.2.1, §A.4.4.2).
 
@@ -175,7 +175,7 @@ Esta sección fija las oraciones de descripción de cosas (ISO §A.4.4): propied
 
 **Nombre**: ISO nombra el proceso con un gerundio o un sintagma nominal con mayúscula inicial (ISO §A.3.3, §B.6.3 [informativo]). [localización] OPL-ES DEBERÍA nombrarlo con infinitivo o sustantivo deverbal (`*Despachar*`, `*Despacho*`); el criterio de nombre es R-NOM-PROC-1 (reglas).
 
-**Oraciones**: el proceso es sujeto o complemento de las oraciones de transformación, habilitación, control y gestión de contexto. Un proceso no tiene estados (ISO §3.68): sus fases se modelan como subprocesos y no como estados del proceso.
+**Oraciones**: el proceso es sujeto o complemento de las oraciones de transformación, habilitación, control y gestión de contexto. Un proceso no tiene estados (ISO §3.69): sus fases se modelan como subprocesos y no como estados del proceso.
 
 ### §2.3 Estados y enumeración de estados
 
@@ -226,9 +226,9 @@ La unidad de medida de un atributo se escribe en su identificador, tras el nombr
 
 **ID**: ENT-INS.
 
-**Oraciones**: una instancia es una cosa distinta de su clase, nombrada como cualquier cosa; su clase se declara con la oración de clasificación-instanciación RF4/RF4b (`**Jack Robinson** es una instancia de **Adulto**.`, ISO §10.3.5.1, §A.4.6.6). La forma «Instancia : Clase» no es OPL: ISO §10.3.5.1 la muestra sólo como rótulo del OPD (no verificable: aparece en la descripción de figuras).
+**Oraciones**: una instancia es una cosa distinta de su clase, nombrada como cualquier cosa; su clase se declara con la oración de clasificación-instanciación RF4/RF4b (`**Jack Robinson** es una instancia de **Adulto**.`, ISO §10.3.5.1, §A.4.6.6). Las Figuras 26–27 muestran el nombre de la instancia y, en la segunda, su clase en otra línea; no fijan el separador «:» ni una nueva oración OPL. El «#» de un rótulo del ejemplo tampoco amplía el léxico de A.3.2.
 
-- **R-ENT-INS-1** (ISO §10.3.5, §3.28, §3.29, §B.5 [informativo]): la oración «es una instancia de» DEBE expresar sólo la clasificación-instanciación entre cosas distintas (ISO §10.3.5). La instancia operacional es de ejecución y no tiene oración (ISO §3.29). La aparición de una misma cosa en otro OPD es una copia de esa cosa, no una instancia (ISO §B.5 [informativo]): no emite oración de instanciación, y sus hechos se expresan en el párrafo de cada OPD donde aparecen (ISO §6.2.1, §14.2.3).
+- **R-ENT-INS-1** (ISO §10.3.5, §3.29, §3.30, §B.5 [informativo]): la oración «es una instancia de» DEBE expresar sólo la clasificación-instanciación entre cosas distintas (ISO §10.3.5). La instancia operacional es de ejecución y no tiene oración (ISO §3.30). La aparición de una misma cosa en otro OPD es una copia de esa cosa, no una instancia (ISO §B.5 [informativo]): no emite oración de instanciación, y sus hechos se expresan en el párrafo de cada OPD donde aparecen (ISO §6.2.1, §14.2.3).
 
 ### §2.7 Esencia (física / informacional)
 
@@ -237,7 +237,7 @@ La unidad de medida de un atributo se escribe en su identificador, tras el nombr
 - **D1** (ISO §A.4.4.2, §7.3.3): **Cosa** es física.
 - **D2** (ISO §A.4.4.2, §7.3.3): **Cosa** es informacional.
 
-**Oraciones**: D1 y D2 son la oración de propiedades genéricas con una sola propiedad (R-ENT-3). La esencia por defecto es informacional (ISO §A.4.4.2); un valor explícito prevalece sobre el defecto.
+**Oraciones**: D1 y D2 son formas de una sola propiedad de R-ENT-3. Dentro del sistema el defecto de esencia es su esencia primaria (§7.3.4, R-OBJ-5); un valor explícito conserva el hecho. El comentario informacional de A.4.4.2 y la diferencia entre su orden EBNF y el ejemplo se registran como reservas de fuente.
 
 ### §2.8 Afiliación (sistémica / ambiental)
 
@@ -255,7 +255,7 @@ La unidad de medida de un atributo se escribe en su identificador, tras el nombr
 - **D11** (ISO §A.4.4.2): **Cosa** es persistente.
 - **D12** (ISO §A.4.4.2): **Cosa** es transitoria.
 
-**Oraciones**: son la oración literal de ISO §A.4.4.2 y forman parte de la oración de propiedades genéricas (R-ENT-3); el valor por defecto es persistente. La PAS no define la semántica de estos valores más allá de ISO §3.50 (perseverancia estática = objeto, dinámica = proceso).
+**Oraciones**: son las alternativas de ISO §A.4.4.2 y forman parte de la oración de propiedades genéricas (R-ENT-3); el comentario declara persistente por defecto y la producción no las restringe a una clase. §3.51 distingue objeto estático y proceso dinámico; §7.3.3 incluye persistente y casos límite, y §7.2.1 NOTA 2 describe mantenimiento de estado. La correspondencia de esos vocabularios queda como reserva de fuente, sin inventar otra clase ni descartar el mantenimiento.
 
 ### §2.10 Tipo de dato
 
@@ -303,7 +303,7 @@ Un enlace transformador conecta un proceso con el objeto que transforma: consumo
 - Con multiplicidad (ISO §11.1): `*Proceso* afecta 3 **Objetos**.`
 - Con varios afectados (ISO §12.1, §A.4.5.2): `*Proceso* afecta **A**, **B** y **C**.`
 
-**Oración**: el efecto sin estados especificados se expresa con «afecta»; el objeto afectado tiene estados (ISO §3.2; R-EFE-1, reglas) aunque la oración no los nombre. Entre el inicio y el fin del proceso el afectado está en transición (ISO §9.3.3.2 NOTE 1 [informativo]). Si el efecto especifica estados, se emite TS3, TS4 o TS5 en lugar de T3 (ISO §9.3.3.1).
+**Oración**: el efecto sin estados especificados se expresa con «afecta»; el objeto afectado tiene estados (ISO §3.3; R-EFE-1, reglas) aunque la oración no los nombre. Entre el inicio y el fin del proceso el afectado está en transición (ISO §9.3.3.2 NOTE 1 [informativo]). Si el efecto especifica estados, se emite TS3, TS4 o TS5 en lugar de T3 (ISO §9.3.3.1).
 
 **Orden**: proceso → «afecta» → objeto.
 
@@ -381,7 +381,7 @@ Los modificadores de control sólo marcan enlaces que entran al proceso desde un
 
 - **R-MOD-NAT-1** = R-ECA-4.
 - **R-MOD-NAT-2** (ISO §9.5.1, §9.5.3.1): la oración DEBE distinguir la semántica de fallo. Con condición, si la precondición falla el proceso se omite y el control sigue: rama «de lo contrario *Proceso* se omite». Sin modificador, el proceso espera a que se cumpla la precondición (ISO §9.5.1 NOTE 2 [informativo]) y no hay rama de omisión. El evento inicia la evaluación de la precondición y se pierde tras ella aunque falle.
-- **R-MOD-NAT-3** (ISO §3.18, §9.5.1, §12.1): cuando varios enlaces de evento llegan a un mismo proceso, cada evento inicia por sí solo la evaluación de la precondición; la conjunción AND recae sobre los objetos de la precondición. Por eso cada enlace de evento se expresa con su propia oración de evento.
+- **R-MOD-NAT-3** (ISO §3.19, §9.5.1, §12.1): cuando varios enlaces de evento llegan a un mismo proceso, cada evento inicia por sí solo la evaluación de la precondición; la conjunción AND recae sobre los objetos de la precondición. Por eso cada enlace de evento se expresa con su propia oración de evento.
 - **R-MOD-INPUT-1** = R-MOD-4.
 - **R-MOD-INPUT-2** = R-MOD-1.
 - **R-MOD-CAT-1** (ISO §9.5.1): un modificador de evento o de condición NO DEBE marcar un enlace estructural ni un enlace de invocación.
@@ -433,7 +433,7 @@ Los modificadores de control sólo marcan enlaces que entran al proceso desde un
   Correcto: `*Procesar* ocurre si **Pedido** existe, en cuyo caso **Pedido** se consume, de lo contrario *Procesar* se omite.`
   Incorrecto: `*Procesar* ocurre si **Pedido** existe, en cuyo caso **Pedido** es consumido, de lo contrario *Procesar* se omite.`
 
-Cada oración de condición tiene además la sintaxis alternativa normativa «Si … entonces …, de lo contrario se omite *Proceso*» que fija R-OPL-COND-ALT-1 (reglas §4.8; ISO §9.5.3); ambas expresan el mismo hecho y son OPL. El Anexo A da para el agente y el instrumento la forma «*Proceso* ocurre si **Objeto** existe, de lo contrario *Proceso* se omite», distinta de la de ISO §9.5.3.2 para el agente; es una incoherencia de la PAS y las dos formas son OPL del mismo hecho (spec-OPL §18).
+Cada oración de condición tiene además la sintaxis alternativa normativa «Si … entonces …, de lo contrario se omite *Proceso*» que fija R-OPL-COND-ALT-1 (reglas §4.8; ISO §9.5.3); ambas expresan el mismo hecho y son OPL. El Anexo A da para el agente y el instrumento la forma «*Proceso* ocurre si **Objeto** existe, de lo contrario *Proceso* se omite», distinta de la de ISO §9.5.3.2 para el agente; la discrepancia persiste en 2024 y ambas superficies están fundadas por la fuente (spec-OPL §18).
 
 **Oración**: un enlace transformador (consumo o efecto) o habilitador con modificador de condición se expresa con la oración de condición de su clase: «está en `estado`» cuando el enlace parte de un estado y «existe» cuando parte del objeto (ISO §9.5.3.1, §9.5.3.3). Un abanico con condición se expresa con las oraciones de ISO Tablas 22–23 (spec-OPL §8.1, R-FAN-3).
 
@@ -590,7 +590,7 @@ La gestión de contexto expresa en OPL la relación de refinamiento entre los OP
 - Con objetos internos (ISO §A.4.7.4): *Proceso* se descompone en *P1* y *P2*, en esa secuencia, así como **Objeto Interno**.
 - **CX11** (ISO §14.2.1.3, §A.4.7.4): *Proceso* desde SD se descompone en SD1 en *P1*, *P2* y *P3*, en esa secuencia. — descomposición en diagrama nuevo, con OPD padre y OPD hijo; admite las variantes paralela, mixta y con objetos internos.
 - **CX13** (ISO §14.2.1.3, §A.4.7.4): **Objeto** se descompone en **O1**, **O2** y **O3**, en esa secuencia. — descomposición de objeto; «en esa secuencia» expresa aquí el orden espacial o lógico de las partes, no un orden temporal (ISO §14.2.1.3). En diagrama nuevo: **Objeto** desde SD se descompone en SD1 en **O1**, **O2** y **O3**, en esa secuencia. PUEDE añadir «, así como» y los procesos internos.
-- **CX7** (ISO §A.4.7.5, §3.48): *Proceso* se recompone desde SD1. — recomposición (out-zooming): realiza «is out zoom from» y nombra el OPD hijo.
+- **CX7** (ISO §A.4.7.5, §3.50): *Proceso* se recompone desde SD1. — recomposición (out-zooming): realiza «is out zoom from» y nombra el OPD hijo.
 - **CX8** (ISO §A.4.7.5, §3.49): **Objeto** se recompone desde SD1.
 
 **Oración**: un proceso descompuesto tiene una sola oración de descomposición, con todos sus subprocesos (ISO §A.4.7.4). El orden de la lista lo da la altura del punto superior de cada subproceso en el OPD hijo, de arriba abajo: la disposición vertical denota la invocación implícita entre subprocesos sucesivos y la misma altura denota comienzo en paralelo (ISO §14.2.2.1, §14.2.2.2, §D.4 [informativo]; R-INV-2, R-INV-2A, reglas). «en esa secuencia» marca la secuencia y «paralelo» el grupo que comienza a la vez. La oración de recomposición equivale en OPL al contorno grueso del proceso u objeto cuya descomposición produce un OPD hijo (ISO §A.4.7.5).
@@ -603,8 +603,8 @@ La gestión de contexto expresa en OPL la relación de refinamiento entre los OP
 
 - **CX3** (ISO §14.2.1.2, §A.4.7.2): **Cosa** se despliega en **T1**, **T2** y **T3**. — despliegue en diagrama nuevo sin especificar relación ni OPD («unfolds into»); con procesos, «así como» separa los atributos.
 - **CX10** (ISO §A.4.7.2): **Cosa** desde SD se despliega por partes en SD1 en **T1**, **T2** y **T3**. — formas específicas, con OPD padre y OPD hijo: «por partes», «por rasgos» (atributos [, así como operaciones]), «por especialización» y «por instancias» («part-, feature-, specialization-, instance-unfolds»).
-- **CX5** (ISO §A.4.7.3, §3.22): *Proceso* es plegado de SD1.
-- **CX6** (ISO §A.4.7.3, §3.22): **Objeto** es plegado de SD1.
+- **CX5** (ISO §A.4.7.3, §3.23): *Proceso* es plegado de SD1.
+- **CX6** (ISO §A.4.7.3, §3.23): **Objeto** es plegado de SD1.
 
 **Oración**: el despliegue en el mismo OPD se expresa con la oración estructural de la relación fundamental que aplica («consta de», «exhibe», «son», «son instancias de»; ISO §14.2.1.2, §A.4.7.1), sin oración propia; el despliegue en un OPD nuevo se expresa con CX3. La oración de plegado sólo existe para una cosa cuyo despliegue produce un OPD hijo, nombra ese OPD hijo y equivale en OPL al contorno grueso de la cosa (ISO §A.4.7.3). El OPL de cada OPD expresa sólo los refinados que ese OPD muestra (ISO §14.2.1.2); el despliegue o plegado parcial se expresa como la relación fundamental incompleta correspondiente (ISO §14.2.1.2 NOTE 3, NOTE 4 [informativo]). Los refinados se unen a la cosa desplegada por enlaces estructurales fundamentales (ISO §14.2.1.2).
 
@@ -623,7 +623,7 @@ La gestión de contexto expresa en OPL la relación de refinamiento entre los OP
 
 Ambas describen la arista del árbol de procesos OPD entre un OPD de nivel n y su refinamiento de nivel n+1.
 
-**Oración**: cada arista del árbol de procesos OPD tiene la semántica de una oración CX4 o CX9 (ISO §14.2.2.6; R-ARB-4, reglas). La OPL del sistema completo es la sucesión de los párrafos OPL de sus OPD (ISO §14.2.2.6; R-OPL-TOTAL-1, reglas). La norma da esta oración sólo para procesos del árbol de procesos; para el árbol de objetos no hay oración (no verificable).
+**Oración**: cada arista del árbol de procesos OPD tiene la semántica de una oración CX4 o CX9 (ISO §14.2.2.6; R-ARB-4, reglas). La OPL del sistema completo es la sucesión de los párrafos OPL de sus OPD (ISO §14.2.2.6; R-OPL-TOTAL-1, reglas). ISO §14.2.2.6.1.4 define esa oración para aristas del árbol de procesos; §14.2.2.6.1.2 define los árboles de objetos como bosque, sin introducir allí una oración paralela. No se inventa una plantilla por analogía.
 
 ### §7.4 Expresión y supresión de estados (CX-EST)
 
@@ -772,7 +772,7 @@ Para cada combinación con relevancia semántica: su validez según ISO, la orac
 
 #### §8.3.1 Colisión de rol y precedencia al recomponer
 
-La resolución de la colisión de enlaces al abstraer y la precedencia de enlaces al recomponer son reglas de validez: ver reglas §6.5 y §6.6 (ISO §14.2.4, ISO Tabla 27; no verificable: depende de figuras ausentes en la fuente). La OPL expresa el enlace que resulta de esa resolución.
+La resolución de la colisión de enlaces al abstraer y la precedencia de enlaces al recomponer son reglas de validez: ver reglas §6.5 y §6.6 (ISO §14.2.4.1, ISO Tabla 27, verificada gráficamente). La OPL expresa el enlace que resulta de esa resolución.
 
 ### §8.4 Combinaciones sin OPL en ISO
 
@@ -904,7 +904,7 @@ letra_minuscula = 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i' | 'j' | 'k
     | 'n' | 'o' | 'p' | 'q' | 'r' | 's' | 't' | 'u' | 'v' | 'w' | 'x' | 'y' | 'z'
     | 'á' | 'é' | 'í' | 'ó' | 'ú' | 'ü' | 'ñ' ;          (* [localización] á…ñ; ISO sólo a–z *)
 letra = letra_mayuscula | letra_minuscula ;
-caracter_de_cadena = letra | digito_decimal | '-' | '|' | '&' | '/' | ' ' ;
+caracter_de_cadena = letra | digito_decimal | '_' | '-' | '&' | '/' | ' ' ;
 nombre = letra, { caracter_de_cadena } ;
 palabra_capitalizada = letra_mayuscula, { caracter_de_cadena } ;
 palabra_no_capitalizada = letra_minuscula, { caracter_de_cadena } ;
@@ -1019,10 +1019,14 @@ oracion_de_descripcion_de_cosa = oracion_de_propiedades_genericas
     | oracion_de_descripcion_de_tipo
     | oracion_de_descripcion_de_estado ;
 oracion_de_propiedades_genericas = identificador_de_cosa, " es ",
-    ( propiedad_generica
-    | propiedad_generica, conjuncion_y, propiedad_generica
-    | propiedad_generica, ", ", propiedad_generica, conjuncion_y, propiedad_generica ) ;
-    (* errata ISO: [essence] [affiliation] [perseverance] sin separador; a lo sumo un valor de cada propiedad; R-ENT-3 *)
+    ( esencia | afiliacion | perseverancia
+    | esencia, conjuncion_y, afiliacion
+    | esencia, conjuncion_y, perseverancia
+    | afiliacion, conjuncion_y, perseverancia
+    | esencia, ", ", afiliacion, conjuncion_y, perseverancia ) ;
+    (* [localización] separadores españoles; orden de A.4.4.2 y a lo sumo un valor por propiedad.
+       La fuente omite separadores y permite tres opciones vacías; se conserva oración con al menos una propiedad.
+       Su Figura 11 invierte esencia/afiliación: reserva de fuente, no alternativa añadida a esta EBNF. *)
 propiedad_generica = esencia | afiliacion | perseverancia ;
 esencia = "física" | "físico" | "informacional" ;                (* [localización] concordancia de género *)
 afiliacion = "sistémica" | "sistémico" | "ambiental" ;
@@ -1238,7 +1242,7 @@ oracion_de_agente_condicional =
         ( " existe" | ( " está en ", identificador_de_estado ) ), ", de lo contrario ", identificador_de_proceso, " se omite" )
     | ( "Si ", objeto_con_opcion_de_estado, " existe entonces ", identificador_de_objeto, " maneja ",
         identificador_de_proceso, ", de lo contrario se omite ", identificador_de_proceso ) ;
-      (* fuera del Anexo A: ISO §9.5.3.2, §9.5.3.4 (CH1, CS5 y su alternativa); incoherencia de la PAS con la forma del Anexo A.
+      (* fuera del Anexo A: ISO §9.5.3.2, §9.5.3.4 (CH1, CS5 y su alternativa); discrepancia también presente en 2024 con la forma del Anexo A.
          Los dos objetos son el mismo agente *)
 oracion_de_instrumento_condicional =
       ( identificador_de_proceso, " ocurre si ", objeto_con_opcion_de_estado, " existe, de lo contrario ",

@@ -1,10 +1,10 @@
 ---
 urn: urn:fxsl:kb:spec-forja-opd-es
 nombre: spec-forja-opd-es
-version: 2.0.0
-estado: publicado
+version: 2.1.0
+estado: local
 descripcion: "Notación gráfica del OPD según ISO 19450, en español: símbolos de cosas y estados, puntas y marcas de enlace, triángulos estructurales, operadores lógicos, multiplicidad y representación del refinamiento."
-fuente: "ISO/PAS 19450:2015, revisión cláusula por cláusula (2026-10-10); sustituye la sincronización KB previa"
+fuente: "ISO 19450:2024, texto y figuras recuperados; alcance y reservas en canon/CAMBIOS-2.1.md (2026-10-11)"
 autor: FS
 creado: 2026-06-04
 lang: es
@@ -19,7 +19,7 @@ cita: [urn:fxsl:kb:spec-forja-opl-es, urn:fxsl:kb:metodologia-forja-opm-es]
 
 ## Definición
 
-Este documento fija la notación gráfica del diagrama objeto-proceso (OPD) tal como la define ISO/PAS 19450:2015:
+Este documento fija la notación gráfica del diagrama objeto-proceso (OPD) tal como la define ISO 19450:2024:
 el símbolo de cada cosa (forma, sombreado, contorno), los estados y su supresión, las puntas y marcas de cada
 enlace, los triángulos de las relaciones estructurales fundamentales, los enlaces etiquetados y sus arpones, los
 enlaces con estado especificado, la multiplicidad, los arcos de abanico, las etiquetas de ruta, la representación
@@ -33,18 +33,18 @@ tipografía, capas, lienzo, interacción, edición, simulación, export) vive en
 
 1. Reglas (`reglas-opm-estrictas-es`) > especificaciones (este documento y `spec-forja-opl-es`) > metodología
    (`metodologia-forja-opm-es`).
-2. Ante duda sobre el contenido, manda la norma (ISO/PAS 19450:2015).
+2. Ante duda sobre el contenido, manda la norma (ISO 19450:2024).
 3. El perfil `opd-opforja` se subordina a este documento: lo realiza, lo endurece o lo extiende, y no lo contradice.
 
 ## Convenciones
 
-- Cita: `ISO §x.y` con la numeración de ISO/PAS 19450:2015; las tablas y figuras se citan «Tabla n» y «Figura n».
+- Cita: `ISO §x.y` con la numeración de ISO 19450:2024; las tablas y figuras se citan «Tabla n» y «Figura n».
   Toda regla cita al menos una cláusula.
 - Modalidad: *shall* → DEBE; *shall not* → NO DEBE; *should* → DEBERÍA; *should not* → NO DEBERÍA; *may* → PUEDE.
   Un enunciado sin palabra modal describe la notación.
 - `[informativo]`: lo funda sólo un anexo informativo (B, C, D), una NOTE, un EXAMPLE o una figura; nunca lleva DEBE.
 - `[localización]`: realización española de una forma de la norma.
-- «no verificable»: la fuente local resume la cláusula o le falta la figura de la que depende el enunciado.
+- Las reservas concretas de fuente e interpretación se declaran en `canon/CAMBIOS-2.1.md`; las figuras citadas allí fueron observadas individualmente.
 - `- **ID** = R-…`: la definición única de la regla vive en el documento dueño (`reglas` para validez y semántica);
   aquí sólo se registra la remisión.
 - Referencias cruzadas sólo por ID o por `<documento> §n` (`reglas §5.2`, `spec-OPL §3`).
@@ -59,17 +59,17 @@ Apéndice C completas; la parte de producto de §2, §3, §4, §5, §6, §7, §8
 | Término | Definición |
 | --- | --- |
 | Cosa | Objeto o proceso (ISO §7.3.1). El objeto se dibuja como rectángulo y el proceso como elipse (ISO §7.1.2, §7.2.2). |
-| Estado | Condición en que un objeto puede estar, o valor que puede tomar, durante un lapso; se dibuja como rectángulo de esquinas redondeadas dentro de su objeto (ISO §3.68, §7.3.5.2). |
+| Estado | Condición en que un objeto puede estar, o valor que puede tomar, durante un lapso; se dibuja como rectángulo de esquinas redondeadas dentro de su objeto (ISO §3.69, §7.3.5.2). |
 | Marca de enlace | Símbolo que porta el tipo de un enlace: punta cerrada o abierta, arpón, piruleta, triángulo, zigzag, barra, arco, «e»/«c» (ISO §4, §9, §10, §12). |
 | Piruleta | Círculo al final de la línea de un enlace habilitador: relleno (negro) para el agente, vacío (blanco) para el instrumento (ISO §9.4.1, §9.4.2). |
 | Constructo básico | Dos cosas unidas por un enlace; unidad mínima de correspondencia OPD↔OPL [informativo] (ISO §C.3). |
 | Abanico | Dos o más enlaces procedimentales del mismo tipo con un extremo común en la misma cosa, con semántica XOR u OR; el extremo común es el extremo convergente de ISO §12.2. Los enlaces AND no forman abanico (ISO §12.1, §12.2). |
 | Esencia | Propiedad genérica de toda cosa: física o informacional (ISO §7.3.3). Su símbolo es el sombreado [informativo] (ISO §4; Figura C.10). |
 | Afiliación | Propiedad genérica de toda cosa: sistémica o ambiental (ISO §7.3.3); por defecto, sistémica (ISO §7.3.4). Su símbolo es el contorno continuo o discontinuo [informativo] (ISO §4; Figura C.10). |
-| Perseverancia | Propiedad genérica de toda cosa: estática (objeto) o dinámica (proceso) (ISO §7.3.3); no tiene símbolo propio: la porta la forma. |
-| Conjunto de objetos previo al proceso, Pre(P) | Objetos consumidos, afectados y habilitadores cuya existencia o estado forma la precondición del proceso (ISO §3.54, §8.2.2). Sólo sus enlaces hacia el proceso admiten «e»/«c» (ISO §9.5.1). |
-| Refinable / refinado | Cosa que se refina / cosa que la refina: parte, rasgo, especialización, instancia o subproceso (ISO §3.61, §3.62, §3.35). |
-| Contexto de descomposición | Símbolo agrandado del refinable que contiene a sus refinados y a los enlaces entre ellos (ISO §3.33, §14.2.1.3). |
+| Perseverancia | §3.51 distingue objeto estático y proceso dinámico. §7.3.3 incluye persistente y casos límite (reserva R-COSA-2); no introduce otra forma de cosa ni glifo específico para mantenimiento. |
+| Conjunto de objetos previo al proceso, Pre(P) | Objetos consumidos, afectados y habilitadores cuya existencia o estado forma la precondición del proceso (ISO §3.55, §8.2.2). Sólo sus enlaces hacia el proceso admiten «e»/«c» (ISO §9.5.1). |
+| Refinable / refinado | Cosa que se refina / cosa que la refina: parte, rasgo, especialización, instancia o subproceso (ISO §3.62, §3.63, §3.36). |
+| Contexto de descomposición | Símbolo agrandado del refinable que contiene a sus refinados y a los enlaces entre ellos (ISO §3.34, §14.2.1.3). |
 | Aparición | Presencia de una cosa en un OPD; una cosa PUEDE aparecer en varios OPD y varias veces en uno, y sigue siendo la misma cosa [informativo] (ISO §B.4, §B.5). |
 
 ## §2 Cosas: las ocho representaciones
@@ -82,21 +82,17 @@ Figuras C.10–C.11 [informativo]):
 | Rasgo gráfico | Valores | Denota |
 | --- | --- | --- |
 | Forma | rectángulo / elipse | objeto / proceso (ISO §7.1.2, §7.2.2) |
-| Sombreado | sombreado / plano | esencia física / informacional [informativo] (ISO §4; Figura C.10) |
-| Contorno | continuo / discontinuo | afiliación sistémica / ambiental [informativo] (ISO §4; Figura C.10) |
+| Sombreado | sombreado / plano | esencia física / informacional (ISO §7.3.3, Figura 4) |
+| Contorno | continuo / discontinuo | afiliación sistémica / ambiental (ISO §7.3.3, Figura 4) |
 
 - **R-OPD-COSA-1** (ISO §7.1.2, §7.2.2, §7.3.1, §7.3.3): una cosa es objeto o proceso; el objeto se dibuja como
   rectángulo con su nombre dentro y el proceso como elipse con su nombre dentro. No hay otra clase de cosa dibujable.
   La perseverancia no tiene símbolo propio: la porta la forma.
-- **R-OPD-COSA-2** (ISO §7.3.4, §3.55): el valor por defecto de la afiliación es sistémico, de modo que el contorno
-  continuo es el de defecto. La esencia primaria del sistema es la de la mayoría de sus cosas. El valor por defecto
-  de la esencia de cada cosa es no verificable (la fuente local resume ISO §7.3.4).
-- **R-OPD-COSA-3** [informativo] (ISO §4; Figura C.10): el sombreado denota sólo la esencia física: una cosa física
-  se dibuja sombreada y una informacional, plana. Una sombra que no denote esencia física NO DEBERÍA aparecer en el
-  OPD.
+- **R-OPD-COSA-2** (ISO §7.3.4, §3.56): la afiliación por defecto DEBE ser sistémica. La esencia primaria DEBE ser la de la mayoría de las cosas dentro del límite del sistema, y el defecto de esencia de una cosa dentro de ese límite DEBE ser esa esencia primaria (R-OBJ-5).
+- **R-OPD-COSA-3** (ISO §7.3.3, Figura 4): una cosa física DEBE dibujarse sombreada y una informacional, sin sombreado; una cosa ambiental DEBE llevar contorno discontinuo y una sistémica, continuo. Estos rasgos expresan propiedades genéricas, no decoración.
 - **R-OPD-COSA-4** (ISO §14.2.3; §B.4 [informativo]): el contorno de una cosa, continuo o discontinuo, es el mismo
   en todo OPD donde aparece: la afiliación es un hecho del modelo y ningún OPD contradice a otro.
-- **R-OPD-COSA-7** (ISO §3.68, §7.3.5.2): los estados son de los objetos; dentro de la elipse de un proceso NO DEBE
+- **R-OPD-COSA-7** (ISO §3.69, §7.3.5.2): los estados son de los objetos; dentro de la elipse de un proceso NO DEBE
   dibujarse ningún estado (R-PROC-4).
 
 Ejemplo [informativo] (Figura C.11): un objeto físico ambiental es un rectángulo sombreado de contorno discontinuo.
@@ -109,9 +105,9 @@ Bimodal: cambiar cualquiera de los tres rasgos cambia el hecho y su oración de 
 
 ### §3.1 Símbolo y contención
 
-- **R-OPD-EST-1** (ISO §3.68, §7.3.5.2): el estado se dibuja como rectángulo de esquinas redondeadas con su nombre,
+- **R-OPD-EST-1** (ISO §3.69, §7.3.5.2): el estado se dibuja como rectángulo de esquinas redondeadas con su nombre,
   dentro del rectángulo de su objeto dueño. Un estado NO DEBE dibujarse fuera de un objeto (R-EST-1).
-- **R-OPD-EST-3** = R-EFE-1 (ISO §3.2).
+- **R-OPD-EST-3** = R-EFE-1 (ISO §3.3).
 - **R-OPD-EST-4** (ISO §7.3.5.5, §10.3.3.2, §11.3): los valores de un atributo son estados del objeto atributo y se
   dibujan igual que los estados, dentro del atributo: un valor discreto, un rango de valores o el valor concreto de
   una instancia. Un atributo PUEDE declarar su unidad de medida.
@@ -122,14 +118,11 @@ Bimodal: cambiar cualquiera de los tres rasgos cambia el hecho y su oración de 
 | --- | --- | --- | --- |
 | Inicial | contorno grueso | uno o más | ISO §7.3.5.3, §7.3.5.4, §A.4.4.4, §12.7 |
 | Final | contorno doble | uno o más | ISO §7.3.5.3, §7.3.5.4, §A.4.4.4 |
-| Por defecto | flecha diagonal que apunta al estado | a lo sumo uno | ISO §7.3.5.3, §7.3.5.4 |
+| Por defecto | flecha abierta, diagonal desde la izquierda | a lo sumo uno | ISO §7.3.5.3, §7.3.5.4 |
 | Sin designación | contorno simple | — | ISO §7.3.5.2 |
 
-- **R-OPD-EST-5** [informativo] (ISO §14.2.1.3 Figura 47; §14.2.2.6 Tabla 26): un estado PUEDE ser a la vez
-  inicial y final. La forma del símbolo combinado (contorno grueso y doble a la vez) es no verificable (figura
-  ausente).
-- **R-OPD-EST-7** (ISO §7.3.5.4): la marca del estado por defecto es una flecha diagonal que apunta al estado; la
-  forma de su punta es no verificable (figura ausente).
+- **R-OPD-EST-5** (ISO §7.3.5.3, §7.3.5.4; Figura 47 [informativo]): un estado puede combinar las designaciones inicial, final y por defecto. Para inicial y final, el contorno combina grosor y doble línea, como muestra `keeperpayer` en la Figura 47.
+- **R-OPD-EST-7** (ISO §7.3.5.4, Figura 6): la marca del estado por defecto DEBE ser una flecha de punta abierta que apunta diagonalmente desde la izquierda al estado.
 
 ### §3.3 Supresión de estados
 
@@ -209,7 +202,7 @@ Bimodal: H1 ↔ «maneja», H2 ↔ «requiere»; con estado especificado, el est
 
 ### §6.1 Modificadores de control «e» y «c»
 
-- **R-OPD-CTL-1** (ISO §3.13, §8.1.1, §9.5.1): un modificador de control, «e» (evento) o «c» (condición), se dibuja
+- **R-OPD-CTL-1** (ISO §3.14, §8.1.1, §9.5.1): un modificador de control, «e» (evento) o «c» (condición), se dibuja
   junto a un enlace transformador o habilitador que entra al proceso y lo convierte en el enlace de control
   correspondiente; no agrega cosas ni enlaces (R-ECA-4).
 - **R-OPD-CTL-2** (ISO §9.5.2.1, §9.5.3.1, §9.5.3.2): «e» y «c» se escriben en minúscula, cerca de la punta o del
@@ -217,7 +210,7 @@ Bimodal: H1 ↔ «maneja», H2 ↔ «requiere»; con estado especificado, el est
 - **R-OPD-CTL-3** (ISO §9.5.1): el modificador sólo se dibuja junto a un enlace del objeto o de un estado al proceso:
   consumo, efecto, agente o instrumento, con o sin estado especificado. NO DEBE dibujarse junto a un resultado, un
   enlace estructural, una invocación ni una mitad escindida (R-MOD-1..4, R-ECA-4, R-OPD-TR-7).
-- **R-OPD-CTL-4** (ISO §3.18, §9.5.1, §9.5.2.1): el enlace de evento va del objeto o del estado al proceso; la
+- **R-OPD-CTL-4** (ISO §3.19, §9.5.1, §9.5.2.1): el enlace de evento va del objeto o del estado al proceso; la
   ocurrencia del evento inicia la evaluación de la precondición y el evento se pierde tras la evaluación, la
   satisfaga o no. Si varios enlaces de evento llegan a un mismo proceso, cada evento inicia por sí solo la
   evaluación; la conjunción (ISO §12.1) recae sobre los objetos de la precondición.
@@ -229,10 +222,7 @@ Bimodal: H1 ↔ «maneja», H2 ↔ «requiere»; con estado especificado, el est
 | Sobretiempo | EX1 | una barra corta, oblicua a la línea entre el proceso fuente y el de manejo, junto a este último | la duración de la ejecución supera la Duración máxima (ISO §9.5.4.2) |
 | Subtiempo | EX2 | dos barras cortas paralelas, oblicuas a esa línea, junto al proceso de manejo | la ejecución dura menos que la Duración mínima (ISO §9.5.4.3) |
 
-- **R-OPD-CTL-6** (ISO §9.5.4.1, §9.5.4.2, §9.5.4.3): el enlace de excepción es una línea del proceso fuente al
-  proceso de manejo, con las barras junto al proceso de manejo. El sobretiempo se refiere a la Duración máxima del
-  proceso fuente y el subtiempo, a su Duración mínima (R-EXC-1..3). La decoración del extremo de la línea es no
-  verificable (figura ausente).
+- **R-OPD-CTL-6** (ISO §4, §9.5.4.1–§9.5.4.3; Figuras D.7–D.8 [informativo]): el enlace de excepción une el proceso fuente con el de manejo mediante una línea sin punta de flecha, con una barra oblicua para sobretiempo o dos para subtiempo, junto al proceso de manejo. El sobretiempo usa la Duración máxima y el subtiempo la mínima del proceso fuente (R-EXC-1..3); las erratas numéricas de los ejemplos no cambian esos umbrales.
 
 ### §6.3 Operadores lógicos AND, XOR y OR
 
@@ -359,11 +349,7 @@ El OPL del OPD expresa sólo los refinados que el OPD muestra (ISO §14.2.1.2) y
 
 ### §8.2 Duración
 
-- **R-OPD-INV-6** (ISO §9.5.4.1; §D.7 [informativo]): la duración de un proceso y su especialización en Duración
-  mínima, esperada y máxima, con distribución opcional, son las de R-EXC-4 y R-EXC-5. [informativo] En el OPD esas
-  propiedades PUEDEN expresarse con enlaces de exhibición y de especialización, o de forma compacta en el símbolo del
-  proceso: la unidad de tiempo entre corchetes tras el nombre, uno, dos o tres valores de duración y el nombre y los
-  parámetros de la distribución (Figuras D.5–D.6). La forma compacta exacta es no verificable (figura ausente).
+- **R-OPD-INV-6** (ISO §9.5.4.1; §D.7 [informativo]): la duración y sus valores mínimo, esperado y máximo son los de R-EXC-4/5. [informativo] Las Figuras D.5–D.6 muestran exhibición/especialización o una anotación compacta dentro del proceso: nombre, `[unidad]`, `[valores]` y, opcionalmente, `[distribución, parámetros]`. Un valor representa mínimo=máximo; dos representan mínimo y máximo; tres representan mínimo, esperado y máximo. Las cifras inconsistentes de los ejemplos no fijan una regla de cálculo.
 - **R-OPD-INV-8** [informativo] (ISO §D.5, Figura D.2): un objeto reloj del sistema con un valor de tiempo PUEDE
   iniciar un proceso mediante un enlace de evento; no tiene símbolo propio.
 
@@ -388,7 +374,7 @@ El OPL del OPD expresa sólo los refinados que el OPD muestra (ISO §14.2.1.2) y
   modelo (R-MULT-2).
 - **R-OPD-MUL-3** (ISO §11.2): las restricciones usan los símbolos «=», «≠», «<», «≤», «≥», las llaves «{ }» para
   conjuntos y el operador de pertenencia «in» (∈).
-- **R-OPD-MUL-4** (ISO §3.60, §13): multiplicidad, etiqueta y etiqueta de ruta son propiedades del enlace, no
+- **R-OPD-MUL-4** (ISO §3.61, §13): multiplicidad, etiqueta y etiqueta de ruta son propiedades del enlace, no
   atributos: no se dibujan como estados.
 - **R-OPD-MUL-5** (ISO §9.3.1, §9.3.2): la tasa de consumo o de generación es una propiedad del enlace de consumo o
   de resultado, y el objeto lleva un atributo con la cantidad disponible; sin tasa, el consumo es inmediato al
@@ -420,7 +406,7 @@ El OPL del OPD expresa sólo los refinados que el OPD muestra (ISO §14.2.1.2) y
 - **R-OPD-REF-3** [informativo] (ISO §C.5.1, Figuras C.19–C.20): la descomposición en un OPD nuevo PUEDE describirse
   en dos fases —mostrar el contenido y refinar los enlaces, con un OPD semidescompuesto intermedio—; la
   recomposición invierte el orden: abstraer los enlaces y ocultar el contenido.
-- **R-OPD-REF-8** = R-REF-1 (ISO §3.45, §14.2.2.6.1.1).
+- **R-OPD-REF-8** = R-REF-1 (ISO §3.46, §14.2.2.6.1.1).
 - **R-OPD-REF-9** (ISO §14.2.3; §B.2, §B.4 [informativo]): una cosa conserva su símbolo (forma, sombreado, contorno)
   y su nombre en todo OPD donde aparece, y ningún OPD afirma un hecho que contradiga otro; refinar o abstraer no es
   contradecir (R-REF-4, R-CONSIST-1, R-CONSIST-2). La importancia de una cosa es en general proporcional al OPD más
@@ -435,8 +421,7 @@ El OPL del OPD expresa sólo los refinados que el OPD muestra (ISO §14.2.1.2) y
 | Efecto sin estado | PUEDE anclarse al contorno: se distribuye a cada subproceso | ISO §14.2.2.4.1 |
 | Efecto entrada-salida | asignación temporalmente factible: el par en un subproceso o escindido (R-OPD-TR-7) | ISO §14.2.2.4.3 |
 | Agente, instrumento | PUEDE anclarse al contorno: se distribuye a cada subproceso (R-OPD-REF-21) | ISO §14.2.2.4.1 |
-| Evento desde un objeto o estado sistémico | NO DEBE cruzar el contorno desde fuera para iniciar un subproceso | ISO §14.2.2.4.2 |
-| Evento desde un objeto o estado ambiental | PUEDE cruzar el contorno; el modelador DEBERÍA modelar cómo se maneja esa contingencia | ISO §14.2.2.4.2 |
+| Evento desde fuera, sea sistémico o ambiental | NO DEBE cruzar el contorno para iniciar ningún subproceso, en ningún nivel | ISO §14.2.2.4.2 |
 
 - **R-OPD-REF-11** (ISO §14.2.2.4.1, §14.2.1.3): un enlace procedimental anclado al contorno de un proceso
   descompuesto tiene semántica distributiva: equivale a anclarlo a cada subproceso, como un paréntesis algebraico.
@@ -449,16 +434,7 @@ El OPL del OPD expresa sólo los refinados que el OPD muestra (ISO §14.2.1.2) y
 
 ### §10.3 Precedencia de recomposición
 
-- **R-OPD-REF-13** (ISO §8.1.2, §14.2.4.1–§14.2.4.5, Tabla 27): al recomponer o plegar, cuando entre un objeto (o un
-  estado) y el proceso abstracto compiten varios enlaces procedimentales, el OPD abstracto DEBE mostrar uno solo: el
-  de mayor fuerza semántica. El orden primario es consumo = resultado > efecto > agente > instrumento, y los enlaces
-  con estado especificado preceden a los básicos; dentro de cada tipo, el evento es más fuerte y la condición más
-  débil que el enlace sin modificador, con el orden completo de doce niveles de ISO §14.2.4.5, cuyo nivel más débil
-  es la condición de instrumento. Entre transformadores, consumo y resultado prevalecen sobre el efecto y, cuando
-  compiten consumo y resultado, prevalece el efecto (ISO §14.2.4.2); un transformador prevalece sobre un habilitador
-  (ISO §14.2.4.3). La matriz de la Tabla 27, con resultado+resultado y consumo+consumo inválidos (R-PREC-1), se
-  conserva tal como estaba: no verificable, depende de figuras ausentes en la fuente; revisar con la IS 2024. La
-  semántica de colisión vive en reglas §6.5–§6.6 (R-PREC-1..5).
+- **R-OPD-REF-13** (ISO §8.1.2, §14.2.4.1–§14.2.4.1.4, Tabla 27): al recomponer o plegar, si entre el mismo objeto o estado y el proceso abstracto compiten enlaces procedimentales, DEBE mostrarse el de mayor fuerza semántica. Se aplican los doce niveles y la precedencia de estados especificados de reglas §6.5. Entre transformadores se aplica la matriz temporal de §6.6, con P1 anterior a P2 y las cuatro combinaciones inválidas de R-PREC-1; no se sustituye por una matriz simétrica. La resolución de validez vive en reglas §6.5–§6.6.
 
 ### §10.4 Árbol de OPD, apariciones y vistas
 

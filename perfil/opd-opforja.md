@@ -1,5 +1,7 @@
 # Perfil OpForja — realización del OPD (opd-opforja)
 
+Autoridad vigente: canon 2.1.0, ISO 19450:2024; véase `canon/LEEME.md`. Las versiones 2.0/1.x citadas como origen se conservan como historia.
+
 **Qué es.** Reglas propias de OpForja sobre el diagrama objeto-proceso: realización gráfica (geometrías, medidas,
 colores, tokens, tipografía, capas, JointJS), layout, lienzo e interacción, edición, configuración, diagnósticos,
 simulación, export, trazabilidad, migración, y las extensiones y endurecimientos del producto respecto de
@@ -178,7 +180,7 @@ Realización opforja: doble nivel `estado.suprimido` (global) + `apariencia.esta
 ### §4.1 Familia y direcciones
 
 - (R-OPD-TR-1, parte de producto) la punta transformadora canónica de OPFORJA es el **swallowtail cerrado** `M 0 0 L 23 8 L 12 0 L 23 -8 Z` (bbox 23×16), fill paper, stroke ink 1. Es variante conforme de la punta cerrada del canon (R-OPD-TR-1). *(Rationale: §1.5 opd-es; figuras ISO closed arrowhead; V-240; JOYAS swallowtail; `linkAssets.ts`.)*
-- (R-OPD-TR-8, parte de producto) [extensión] Excepción: procesos persistentes que mantienen una condición (*Existir*, *Sostener*, *Esperar*…), que siguen siendo elipses normales solo si satisfacen el cierre canónico de R-PROC-2A: declarar objeto afectado e invariancia neta, atributo o condición mantenida, conforme a R-PROC-5..7. *(Rationale: V-115; opm-es §321; libro 9/10; reglas-opm-estrictas R-PROC-2A/5..7.)*
+- (R-OPD-TR-8, parte de producto) [política de producto] Los procesos de mantenimiento descritos en ISO §7.2.1 NOTA 2 siguen siendo elipses normales. El perfil exige declarar objeto afectado e invariancia neta, atributo o condición mantenida según R-PROC-2A/5..7; esa exigencia de realización no convierte la noción ISO en una extensión. *(Rationale histórico: V-115; opm-es §321; libro 9/10.)*
 
 ### §4.2 Variantes con estado especificado
 
