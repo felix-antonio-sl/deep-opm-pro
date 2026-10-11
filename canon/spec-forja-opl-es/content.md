@@ -1,10 +1,10 @@
 ---
 urn: urn:fxsl:kb:spec-forja-opl-es
 nombre: spec-forja-opl-es
-version: 2.2.0
+version: 2.3.0
 estado: local
 descripcion: "Especificación OPL-ES: realización en español de la OPL de ISO 19450 (vocabulario reservado, plantillas de oración por construcción y gramática EBNF traducida del Anexo A)."
-fuente: "ISO/PAS 19450:2015, revisión cláusula por cláusula (2026-10-10); 2.2.0 restablece el contenido 2.0.0 y retira la revisión 2.1.0 (DEC47)"
+fuente: "ISO/PAS 19450:2015, revisión cláusula por cláusula (2026-10-10); 2.2.0 restablece el contenido 2.0.0 y retira la revisión 2.1.0 (DEC47); 2.3.0 adopta la lectura inferida de la Tabla 27 (DEC50)"
 autor: FS
 creado: 2026-05-26
 lang: es
@@ -772,7 +772,7 @@ Para cada combinación con relevancia semántica: su validez según ISO, la orac
 
 #### §8.3.1 Colisión de rol y precedencia al recomponer
 
-La resolución de la colisión de enlaces al abstraer y la precedencia de enlaces al recomponer son reglas de validez: ver reglas §6.5 y §6.6 (ISO §14.2.4, ISO Tabla 27; no verificable: depende de figuras ausentes en la fuente). La OPL expresa el enlace que resulta de esa resolución.
+La resolución de la colisión de enlaces al abstraer y la precedencia de enlaces al recomponer son reglas de validez: ver reglas §6.5 y §6.6 (ISO §14.2.4, ISO Tabla 27; la matriz es una lectura inferida, porque faltan sus figuras en la fuente). La OPL expresa el enlace que resulta de esa resolución.
 
 ### §8.4 Combinaciones sin OPL en ISO
 

@@ -1,4 +1,4 @@
-Derivada de `canon/` 1.x (reglas OPM 1.5.0, spec-OPD 1.4.0, spec-OPL 1.4.1, metodología 1.7.0). Desde el canon 2.0.0 (ISO/PAS 19450:2015; la 2.2.0 restablece su contenido, DEC47) lo propio de OpForja vive en `perfil/`, con los mismos IDs y números de sección; «reglas §n» y sus pares designan la sección homónima del canon y, si se repartió, su parte del perfil, y «perfil <documento> §n» apunta a una sección que pasó entera al perfil ([canon/CAMBIOS-2.0.md](../canon/CAMBIOS-2.0.md)). Ante conflicto manda `canon/` y luego `perfil/`, con precedencia reglas > spec-OPD/spec-OPL > método; donde un requisito T-NNN difiere del canon vigente, la diferencia está declarada en [conformidad.md](conformidad.md) (B-39 en adelante). Las decisiones del dueño y DS se conservan en [decisiones.md](decisiones.md); los incumplimientos, en [conformidad.md](conformidad.md). El cuerpo que sigue reproduce íntegro CANON.md derivado del diseño; sus menciones al análisis histórico no añaden autoridad.
+Derivada de `canon/` 1.x (reglas OPM 1.5.0, spec-OPD 1.4.0, spec-OPL 1.4.1, metodología 1.7.0). Desde el canon 2.0.0 (ISO/PAS 19450:2015; la 2.2.0 restablece su contenido, DEC47, y la 2.3.0 infiere la Tabla 27, DEC50) lo propio de OpForja vive en `perfil/`, con los mismos IDs y números de sección; «reglas §n» y sus pares designan la sección homónima del canon y, si se repartió, su parte del perfil, y «perfil <documento> §n» apunta a una sección que pasó entera al perfil ([canon/CAMBIOS-2.0.md](../canon/CAMBIOS-2.0.md)). Ante conflicto manda `canon/` y luego `perfil/`, con precedencia reglas > spec-OPD/spec-OPL > método; donde un requisito T-NNN difiere del canon vigente, la diferencia está declarada en [conformidad.md](conformidad.md) (B-39 en adelante). Las decisiones del dueño y DS se conservan en [decisiones.md](decisiones.md); los incumplimientos, en [conformidad.md](conformidad.md). El cuerpo que sigue reproduce íntegro CANON.md derivado del diseño; sus menciones al análisis histórico no añaden autoridad.
 
 # CANON — Especificación del producto opforja derivada del canon (ni más ni menos)
 
@@ -441,7 +441,7 @@ Realización mínima conforme (DR-13/DR-14):
 |---|---|---|
 | R-OPL-DISP-3, R-OPL-PANEL-4 | En un OPD ascendente, los hechos refinados en descendientes se muestran **plegados** (hecho agregado). | DEBE |
 | R-OPD-REF-13, reglas §6.5 | Al abstraer (vista padre), colisiones objeto↔mismo proceso se resuelven por fuerza semántica; en edición directa NO se auto-resuelven. | inf. DEBE |
-| R-PREC-1..5, AP-30 | Matriz de precedencia (abajo); R+R y C+C inválidos; R+C ⇒ efecto solo con continuidad de identidad/estados; sin evidencia NO colapsar (conflicto reportado); transformador prevalece sobre habilitador. | DEBE / NO DEBE |
+| R-PREC-1..5, AP-30 | Matriz de precedencia (abajo); con P1 anterior a P2, R+R, C+C, E→R y C→E inválidos; R+C ⇒ efecto solo con continuidad de identidad/estados; sin evidencia NO colapsar (conflicto reportado); transformador prevalece sobre habilitador. | DEBE / NO DEBE |
 | R-VIS-HIJO-1, R-OPD-REF-6 | En un OPD hijo (textual): «enlaces estructurales al contenedor DEBEN verse, **enlaces procedimentales al contenedor NO DEBEN verse directamente** [(se distribuyen, §10.2)], enlaces entre internos DEBEN verse, y enlaces que no tocan contenedor ni internos DEBEN ocultarse». La cláusula procedimental choca con reglas §8.5 / R-OPD-REF-11 («PERMITIDO al contorno = a todos», «paréntesis algebraico»): DR-13 resuelve por lectura distributiva sobre el contorno; es desvío declarado de R-VIS-HIJO-1 y va al registro de conformidad (R-CONF-7). | DEBEN / NO DEBEN |
 
 Realización (DR-13): la visibilidad es derivada. En un OPD `O`, el extremo `E` de un enlace se ve como `E` si `E` tiene apariencia en `O`; si no, como su ancestro de descomposición más cercano con apariencia en `O` (solo in-zoom abstrae; el despliegue no). Enlaces que colapsan en el mismo par (objeto, proceso) se fusionan por fuerza; los que colapsan sobre la misma cosa (interno↔subproceso) desaparecen. Varios efectos sobre el mismo objeto se fusionan en un efecto cuyo estado de entrada es el del enlace con entrada de la banda más temprana y cuyo estado de salida es el del enlace con salida de la banda más tardía (un par escindido se abstrae así de vuelta a su TS3). En OPDs hijos se aplica además R-VIS-HIJO-1.
@@ -467,7 +467,7 @@ evento > sin control > condición
 | 11 | Instrumento |
 | 12 | Condición de instrumento |
 
-Matriz temporal de precedencia transformadora del producto (DEC31; P1 anterior a P2). El canon reglas §6.6 conserva sólo las combinaciones inválidas que verifica la PAS 2015 y marca la Tabla 27 como no verificable; la diferencia es B-53. La continuidad de identidad exigida por el perfil para R↔C se conserva:
+Matriz temporal de precedencia transformadora (DEC31; P1 anterior a P2). Coincide con la del canon reglas §6.6, lectura inferida de la Tabla 27 (DEC50; B-53 cerrada). La continuidad de identidad exigida por el perfil para R↔C se conserva:
 
 | P1 (primero) \ P2 (después) | Efecto | Resultado | Consumo |
 |---|---|---|---|
@@ -1715,7 +1715,7 @@ Advertencias exigidas (no bloquean):
 | AP-27 | Evento a subproceso intermedio | DEBE bloquearse / advertirse según previos | Primer subproceso o declarar omisión | impedir/advertir |
 | AP-28 | `c` y `e` en el mismo enlace | No canonizado; NO DEBE emitirse | Control externo explícito | imposible ★ |
 | AP-29 | Heredados dibujados como explícitos | DEBE bloquearse salvo vista derivada | Inferir por herencia | no se materializa herencia ★ |
-| AP-30 | R+R o C+C al recomponer | DEBE bloquearse | Corregir el hijo | error en vista padre derivada |
+| AP-30 | R+R, C+C, E→R o C→E al recomponer | DEBE bloquearse | Corregir el hijo | error en vista padre derivada |
 
 ---
 

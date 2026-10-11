@@ -439,7 +439,7 @@ El puente texto↔canvas está legislado en `spec-forja-opl-es §14` (tokens con
 | AP-24 | reutilizar canales semánticos para UI/validación | R-OPD-CAN-3 | lint (design:governance) |
 | AP-25 | proceso de soporte/mantenimiento sin esfuerzo sostenido ni condición mantenida relevante (R-PROC-5..7) como elipse | R-OPD-STR-10 | runtime (diagnóstico) |
 | AP-27 | evento a subproceso intermedio sin justificación | R-OPD-REF-11/R-OPD-INV-3 | runtime (advertencia) |
-| AP-30 | resultado+resultado / consumo+consumo al recomponer | R-OPD-REF-13 | runtime |
+| AP-30 | resultado+resultado, consumo+consumo, efecto→resultado o consumo→efecto al recomponer | R-OPD-REF-13 | runtime |
 
 - **R-OPD-VAL-6**: la herramienta DEBERÍA detectar inconsistencias inter-OPD (un hecho que contradice a otro), advertir el cruce de eventos sistémicos, notificar la inclusión múltiple de un refinador y señalar la sub/sobre-especificación de enlaces (generales redundantes junto a especializados). *(Rationale: opm-es §815-§817/§1230; libro 20/21.)*
 

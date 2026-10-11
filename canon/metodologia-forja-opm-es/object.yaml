@@ -20,9 +20,9 @@ provenance:
   source_path: artefactos/conocimiento/fxsl/metodologia-forja-opm-es.md
   source_sha256: 6414104938129e3b0e07c43c1476fe71ff09e847333b0ebafda664a4560faeb2
   legacy_state: publicado
-  revision: 2.2.0 local (contenido 2.0.0 sobre ISO/PAS 19450:2015; retira la 2.1.0, DEC47)
+  revision: 2.3.0 local (contenido 2.0.0 sobre ISO/PAS 19450:2015 con la Tabla 27 inferida, DEC50; retira la 2.1.0, DEC47)
   norma: ISO/PAS 19450:2015 (texto del dueño, no versionado); única fuente disponible
   perfil: perfil/metodo-opforja.md
 publication:
   status: local
-  sha256: 2e80b452a0b027279743fe11f1edf87d8f6f868bbe37e3a348d6c719e4f37e4f
+  sha256: 0d1eb46b848e1bf7fb0f5fee4bb9ad1938600d032968f079d4cd5cdec2cadc9b

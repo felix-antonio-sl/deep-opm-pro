@@ -1,10 +1,10 @@
 ---
 urn: urn:fxsl:kb:spec-forja-opd-es
 nombre: spec-forja-opd-es
-version: 2.2.0
+version: 2.3.0
 estado: local
 descripcion: "Notación gráfica del OPD según ISO 19450, en español: símbolos de cosas y estados, puntas y marcas de enlace, triángulos estructurales, operadores lógicos, multiplicidad y representación del refinamiento."
-fuente: "ISO/PAS 19450:2015, revisión cláusula por cláusula (2026-10-10); 2.2.0 restablece el contenido 2.0.0 y retira la revisión 2.1.0 (DEC47)"
+fuente: "ISO/PAS 19450:2015, revisión cláusula por cláusula (2026-10-10); 2.2.0 restablece el contenido 2.0.0 y retira la revisión 2.1.0 (DEC47); 2.3.0 adopta la lectura inferida de la Tabla 27 (DEC50)"
 autor: FS
 creado: 2026-06-04
 lang: es
@@ -456,8 +456,8 @@ El OPL del OPD expresa sólo los refinados que el OPD muestra (ISO §14.2.1.2) y
   débil que el enlace sin modificador, con el orden completo de doce niveles de ISO §14.2.4.5, cuyo nivel más débil
   es la condición de instrumento. Entre transformadores, consumo y resultado prevalecen sobre el efecto y, cuando
   compiten consumo y resultado, prevalece el efecto (ISO §14.2.4.2); un transformador prevalece sobre un habilitador
-  (ISO §14.2.4.3). La matriz de la Tabla 27, con resultado+resultado y consumo+consumo inválidos (R-PREC-1), se
-  conserva tal como estaba: no verificable, depende de figuras ausentes en la fuente; revisar con la IS 2024. La
+  (ISO §14.2.4.3). La matriz de la Tabla 27, con P1 anterior a P2 y cuatro combinaciones inválidas (R-PREC-1), es una
+  lectura inferida de la disposición de la tabla, porque sus figuras faltan en la fuente. La
   semántica de colisión vive en reglas §6.5–§6.6 (R-PREC-1..5).
 
 ### §10.4 Árbol de OPD, apariciones y vistas

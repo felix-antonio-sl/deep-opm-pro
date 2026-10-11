@@ -1,10 +1,10 @@
 ---
 urn: urn:fxsl:kb:metodologia-forja-opm-es
 nombre: metodologia-forja-opm-es
-version: 2.2.0
+version: 2.3.0
 estado: local
 descripcion: "Metodología OPM según ISO/PAS 19450:2015 en español: principios de modelado, prueba objeto-proceso, construcción del SD, comprensión del modelo y guías informativas de los Anexos B y D."
-fuente: "ISO/PAS 19450:2015, revisión cláusula por cláusula (2026-10-10); 2.2.0 restablece el contenido 2.0.0 y retira la revisión 2.1.0 (DEC47)"
+fuente: "ISO/PAS 19450:2015, revisión cláusula por cláusula (2026-10-10); 2.2.0 restablece el contenido 2.0.0 y retira la revisión 2.1.0 (DEC47); 2.3.0 adopta la lectura inferida de la Tabla 27 (DEC50)"
 autor: FS
 creado: 2026-05-31
 lang: es
@@ -326,7 +326,7 @@ Etapas:
   un mismo proceso, el modelador DEBE resolver el conflicto por fuerza semántica: consumo = resultado >
   efecto > agente > instrumento; los de estado especificado preceden a los básicos; dentro de cada
   clase, evento > enlace sin modificador > condición (ISO §14.2.4.4–§14.2.4.5). La matriz de la Tabla 27
-  está en reglas §6.5–§6.6 y es no verificable: depende de figuras ausentes en la fuente.
+  está en reglas §6.6 y es una lectura inferida: faltan sus figuras en la fuente.
 
 ### A3.5 Invocación implícita
 

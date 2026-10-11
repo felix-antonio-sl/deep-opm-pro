@@ -13,9 +13,9 @@ provenance:
   source_path: artefactos/conocimiento/fxsl/reglas-opm-estrictas-es.md
   source_sha256: b3d59d0de851447e11e2f95200edd706b1c5eb39d05f6f452a6ead022d8f1ac1
   legacy_state: publicado
-  revision: 2.2.0 local (contenido 2.0.0 sobre ISO/PAS 19450:2015; retira la 2.1.0, DEC47)
+  revision: 2.3.0 local (contenido 2.0.0 sobre ISO/PAS 19450:2015 con la Tabla 27 inferida, DEC50; retira la 2.1.0, DEC47)
   norma: ISO/PAS 19450:2015 (texto del dueño, no versionado); única fuente disponible
   perfil: perfil/reglas-opforja.md
 publication:
   status: local
-  sha256: a78ac6995e925b73314d798ce8ece1d8705c033689c722af4ed41cb1ab031107
+  sha256: 65aa693210b2b07aa23ed0909e73624462ab18e35a1f1c1f9173865154a6e84d

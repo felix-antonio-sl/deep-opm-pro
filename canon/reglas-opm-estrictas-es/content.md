@@ -1,10 +1,10 @@
 ---
 urn: urn:fxsl:kb:reglas-opm-estrictas-es
 nombre: reglas-opm-estrictas-es
-version: 2.2.0
+version: 2.3.0
 estado: local
 descripcion: "Reglas OPM estrictas según ISO/PAS 19450:2015, en español: ontología, clases de enlace y su validez, modificadores de control, abanicos, refinamiento, bimodalidad OPD↔OPL y consistencia de hechos."
-fuente: "ISO/PAS 19450:2015, revisión cláusula por cláusula (2026-10-10); 2.2.0 restablece el contenido 2.0.0 y retira la revisión 2.1.0 (DEC47)"
+fuente: "ISO/PAS 19450:2015, revisión cláusula por cláusula (2026-10-10); 2.2.0 restablece el contenido 2.0.0 y retira la revisión 2.1.0 (DEC47); 2.3.0 adopta la lectura inferida de la Tabla 27 (DEC50)"
 autor: FS
 creado: 2026-05-31
 lang: es
@@ -759,17 +759,17 @@ Orden completo (ISO §14.2.4.5):
 
 ### 6.6 Precedencia entre transformadores al recomponer (ISO §14.2.4.2, Tabla 27)
 
-Al recomponer subprocesos en su padre, si dos subprocesos tienen enlaces distintos hacia el mismo objeto:
+Al recomponer subprocesos en su padre, si dos subprocesos tienen enlaces distintos hacia el mismo objeto B, y P1 es anterior a P2:
 
-| B↔P1 \ B↔P2 | Efecto | Resultado | Consumo |
+| B↔P1 (anterior) \ B↔P2 (posterior) | Efecto | Resultado | Consumo |
 |---|---|---|---|
-| **Efecto** | Efecto | Resultado | Consumo |
+| **Efecto** | Efecto | **Inválido** | Consumo |
 | **Resultado** | Resultado | **Inválido** | Efecto |
-| **Consumo** | Consumo | Efecto | **Inválido** |
+| **Consumo** | **Inválido** | Efecto | **Inválido** |
 
-No verificable: esta matriz depende de las figuras de la Tabla 27, ausentes en la fuente disponible; la Tabla 27 distingue P1 (arriba) de P2 y muestra cuatro celdas inválidas. Se conserva la matriz vigente hasta revisarla con ISO 19450:2024. Lo verificable en el texto de ISO §14.2.4.2 es que el resultado o el consumo prevalecen sobre el efecto y que, cuando compiten resultado y consumo, prevalece el efecto.
+No verificable directamente; lectura inferida. La fuente disponible no trae las figuras de la Tabla 27, pero sí su disposición: las columnas son el enlace entre B y P1, que está arriba; las filas, el enlace entre B y P2; y las celdas «Invalid» son (fila 1, columna 2), (2, 2), (3, 1) y (3, 3). Los rótulos de las columnas describen un enlace sin dirección (efecto), uno hacia abajo, hacia P1 (consumo), y uno hacia arriba (resultado). De los seis órdenes posibles de los tres tipos, sólo efecto, consumo, resultado pone las cuatro celdas en las combinaciones temporalmente imposibles: crear dos veces, consumir dos veces, afectar lo ya consumido y crear lo que ya existía. Con ese orden la Tabla 27 es esta matriz. Las celdas válidas siguen el texto de ISO §14.2.4.2: el resultado o el consumo prevalecen sobre el efecto y, cuando compiten resultado y consumo, prevalece el efecto. La tabla supone P1 anterior a P2; la norma no trata subprocesos sin orden entre sí. Se revisa si se dispone de las figuras.
 
-- **R-PREC-1** (ISO §14.2.4.2, Tabla 27): resultado más resultado y consumo más consumo sobre el mismo objeto son inválidos al recomponer. No verificable (ver la nota anterior).
+- **R-PREC-1** (ISO §14.2.4.2, Tabla 27): con P1 anterior a P2, son inválidos al recomponer, sobre el mismo objeto: resultado en ambos, consumo en ambos, efecto en P1 seguido de resultado en P2, y consumo en P1 seguido de efecto en P2. Lectura inferida (ver la nota anterior).
 - **R-PREC-2** (ISO §14.2.4.2): cuando resultado y consumo compiten sobre el mismo objeto, prevalece el efecto.
 - **R-PREC-5** (ISO §14.2.4.3, Tabla 25): al recomponer, un enlace transformador DEBE prevalecer sobre uno habilitador, y el agente sobre el instrumento; la excepción es el objeto cuyo cambio neto en el proceso abstracto es nulo (estado inicial igual al final): en el OPD abstracto PUEDE figurar como instrumento (R-ROL-1; ISO Tabla 25 NOTA 2 [informativo]).
 
@@ -1045,7 +1045,7 @@ Un enlace procedimental unido al contorno de un proceso descompuesto se distribu
 | AP-16 | Refinamiento cíclico | R-REF-1 (ISO §14.2.2.6.1.1). | Romper el ciclo. |
 | AP-20 | Triángulo estructural sin su interior | La exhibición lleva un triángulo negro interior y la clasificación un círculo negro interior (R-TRI-2; ISO §10.3.3.1, §10.3.5.1). | Dibujar el interior que corresponde a la relación. |
 | AP-21 | Evento desde una cosa sistémica que cruza el contorno de un proceso descompuesto | NO DEBE ocurrir (ISO §14.2.2.4.2). | Llevar el evento dentro de la descomposición o, si la cosa es ambiental, modelar la contingencia. |
-| AP-30 | Resultado más resultado, o consumo más consumo, sobre el mismo objeto al recomponer | R-PREC-1 (ISO §14.2.4.2, Tabla 27). No verificable: las figuras de la Tabla 27 faltan en la fuente. | Corregir el nivel hijo antes de recomponer. |
+| AP-30 | Al recomponer, sobre el mismo objeto: resultado más resultado, consumo más consumo, efecto seguido de resultado, o consumo seguido de efecto | R-PREC-1 (ISO §14.2.4.2, Tabla 27); lectura inferida, porque faltan las figuras de la tabla. | Corregir el nivel hijo antes de recomponer. |
 
 ### 11.2 Probabilidad fuera de un abanico
 

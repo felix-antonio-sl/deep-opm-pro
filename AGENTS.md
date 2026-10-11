@@ -5,7 +5,7 @@ Construir y mantener el modelador OPM/ISO 19450 de `app/`: un solo modelo, dos e
 (OPD y OPL) simétricas y persistencia fiable. Este repositorio no es fuente de modelos de dominio.
 
 ## Autoridad
-1. `canon/` (4 documentos 2.2, sólo ISO/PAS 19450:2015 en español; versiones y límites en `canon/LEEME.md`) es la
+1. `canon/` (4 documentos 2.3, sólo ISO/PAS 19450:2015 en español; versiones y límites en `canon/LEEME.md`) es la
    autoridad OPM local. Precedencia: reglas > spec-OPD / spec-OPL > metodología.
    `perfil/` reúne las reglas propias de OpForja (producto, extensiones, endurecimientos), con los IDs y la
    numeración del canon 1.x; se subordina al canon y nunca lo contradice.

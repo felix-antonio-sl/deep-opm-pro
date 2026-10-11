@@ -185,6 +185,17 @@ que tenemos» (ISO/PAS 19450:2015; no se versiona en el repositorio). Se cita la
     sistémico exterior. Sustituye esa parte de DEC48: ISO §14.2.2.4.2 sólo nombra eventos desde un objeto o
     estado, así que R-CX-DIST-2 deja de aplicarse a la invocación entre procesos, de cualquier afiliación. B-44
     queda enforzada sin endurecimiento. El canon no cambia.
+50. **Decisiones pendientes respondidas por el dueño en preguntas interactivas.** Respuestas textuales, role=user:
+    - `main`: «Dejarlo así (Recomendado)». `main` conserva `e508574`, que se había subido sin pedido explícito.
+    - Siguiente incremento: «B-39 (Recomendado)».
+    - Endurecimientos que se retiran porque manda la norma: «B-43 un solo hijo», «B-46 escisión TS3» y
+      «B-47 caracteres».
+    - B-53: la primera respuesta, «B-53 precedencia» (retirarla), se dio sobre una descripción errónea de la PAS:
+      se le dijo que la norma sólo invalida resultado+resultado y consumo+consumo, cuando la Tabla 27 muestra cuatro
+      celdas inválidas. Repreguntado, respondió «Corregir el canon (Recomendado)». El producto conserva la matriz de
+      DEC31 y el canon 2.3.0 adopta la lectura inferida de la Tabla 27: cuatro celdas inválidas, P1 anterior a P2.
+      Sustituye a DEC44.
+    - Despliegue: «No todavía (Recomendado)».
 
 ## Resoluciones directas posteriores — vigentes
 
