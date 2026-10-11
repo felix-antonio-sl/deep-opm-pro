@@ -12,8 +12,8 @@ B-42, B-45 y B-48 (capacidades pendientes), B-40 (desviación declarada), B-47 y
 
 ## Pendiente
 
-- **Del dueño:** llevar a `main` la ola de DEC50 (canon 2.3.0, B-43, B-46, B-47 y B-39), que está sólo en la rama.
-  Producción sigue en `5e0003f0` y no se despliega hasta que el dueño lo autorice (DEC50).
+- **Del dueño:** la ola de DEC50 (canon 2.3.0, B-43, B-46, B-47 y B-39) está en `main`. Producción sigue en
+  `5e0003f0` y no se despliega hasta que el dueño lo autorice (DEC50).
 - **Siguiente incremento, por elegir.** Brechas de producto abiertas frente al canon: B-37 (caracterización con
   estado), B-41 (enlaces AND del mismo tipo en una oración), B-42 (multiplicidad del Anexo A), B-45 (bandas y
   posición vertical) y B-48 (frases OPL de plegado y probabilidad).
