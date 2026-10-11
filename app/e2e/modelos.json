@@ -1447,13 +1447,6 @@
               "opdId": "h"
             }
           }
-        },
-        "q": {
-          "id": "q",
-          "tipo": "proceso",
-          "nombre": "Preparar",
-          "esencia": "informacional",
-          "afiliacion": "sistemica"
         }
       },
       "estados": {},
@@ -1465,11 +1458,7 @@
           "nombre": "SD1",
           "padreId": "sd",
           "ordenLocal": 0,
-          "ordenInzoom": [
-            [
-              "q"
-            ]
-          ],
+          "ordenInzoom": [],
           "apariencias": {
             "a-h-p": {
               "id": "a-h-p",
@@ -1483,20 +1472,6 @@
                 "tipo": "descomposicion",
                 "refinableEntidadId": "p",
                 "rol": "contorno"
-              }
-            },
-            "a-h-q": {
-              "id": "a-h-q",
-              "entidadId": "q",
-              "opdId": "h",
-              "x": 95,
-              "y": 100,
-              "width": 160,
-              "height": 90,
-              "contextoRefinamiento": {
-                "tipo": "descomposicion",
-                "refinableEntidadId": "p",
-                "rol": "interno"
               }
             }
           },

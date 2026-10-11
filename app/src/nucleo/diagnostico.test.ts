@@ -51,7 +51,7 @@ const pares: readonly [
     ['conflicto-resultado-consumo', 'T-260', () => refinado([r('a', 'p1', 'o-s1'), c('b', 'p2', 'o-s2')]), () => refinado([r('a', 'p1', 'o-s1'), c('b', 'p2', 'o-s1')])],
     ['proceso-sin-transformacion', 'T-263', () => modelo(), () => modelo(undefined, [c('e')])],
     ['subproceso-sin-transformado', 'T-264', () => refinado(), () => refinado([c('a', 'p1'), r('b', 'p2')])],
-    ['refinamiento-trivial', 'T-077', () => refinado([], [['p1']]), () => refinado()],
+    ['refinamiento-trivial', 'T-077', () => refinado([], []), () => refinado([], [['p1']])],
     ['enlace-en-contorno-temporal', 'T-060', () => refinado([c('e')], []), () => modelo(undefined, [c('e')])],
     ['opd-denso', 'T-265', () => densidad(21), () => densidad(20)],
     ['opd-sobrecargado', 'T-265', () => densidad(26), () => densidad(25)],
@@ -110,7 +110,8 @@ test('T-261 catálogo cerrado, cinco familias y tres severidades; memo por ident
 test('T-283 gates por alcance: densidad, trivialidad, error visible y huérfanos; warnings comunes permiten', () => {
     expect(gatesExportacion(densidad(25), 'modelo')).toEqual([]);
     expect(gatesExportacion(densidad(26), { opd: 'sd' })).toHaveLength(1);
-    expect(gatesExportacion(refinado([], [['p1']]), { opd: 'h' })).toHaveLength(1);
+    expect(gatesExportacion(refinado([], []), { opd: 'h' })).toHaveLength(1);
+    expect(gatesExportacion(refinado([], [['p1']]), { opd: 'h' })).toEqual([]);
     const m = pares[0]![2]();
     expect(gatesExportacion(m, { opd: 'sd' }).some(x => x.regla === 'R-AG-1')).toBe(true);
     const sin = pares[32]![2]();
@@ -288,11 +289,11 @@ test('T-054 FAN5A cuatro tipos de estado: T3 puro legal, TS3 con entrada común 
     const evento = cambiar(b08, { enlaces: Object.fromEntries(es.map(e => [e.id, e])) });
     expect(objetivo(evento, 'abanico-invalido')).toEqual([expect.objectContaining({ regla: 'T-056', refs: [{ tipo: 'abanico', id: 'f' }] })]);
 });
-test('T-077 despliegue cuenta refinadores únicos, no enlaces a dos estados del mismo hijo', () => {
+test('T-077 despliegue con un refinador y dos enlaces a estados distintos cierra (ISO §10.3.1)', () => {
     const m = modelo([objeto('o'), objeto('a', 'Factura')], [{ id: 'g1', tipo: 'generalizacion', refinable: 'o', refinador: 'a', estados: { general: 'o-s1', especializacion: 'a-s1' } }, { id: 'g2', tipo: 'generalizacion', refinable: 'o', refinador: 'a', estados: { general: 'o-s2', especializacion: 'a-s2' } }], [{ id: 'h', tipo: 'despliegue', padre: 'sd', cosa: 'o', orden: 0, modo: 'generalizacion', apariciones: { o: ap, a: ap } }]);
     expect(validarForma(m)).toEqual([]);
-    expect(objetivo(m, 'refinamiento-trivial')).toEqual([expect.objectContaining({ opd: 'h', refs: [{ tipo: 'opd', id: 'h' }, { tipo: 'cosa', id: 'o' }] })]);
-    expect(gatesExportacion(m, { opd: 'h' })).toHaveLength(1);
+    expect(objetivo(m, 'refinamiento-trivial')).toEqual([]);
+    expect(gatesExportacion(m, { opd: 'h' })).toEqual([]);
 });
 test('T-261 metadatos por código transcritos y refs existentes; las acciones no mutan el modelo', () => {
 
@@ -334,12 +335,12 @@ test('T-261 catálogo de precedencia acredita AP-30 y R-PREC-1 literal', () => {
 test('T-077 refinamiento trivial cuenta refinadores revelados en cada OPD, no colección nuclear completa', () => {
     const modeloParcial = modelo([objeto('o'), objeto('a', 'Cuenta'), objeto('b', 'Saldo')],
         [{ id: 'e1', tipo: 'agregacion', refinable: 'o', refinador: 'a' }, { id: 'e2', tipo: 'agregacion', refinable: 'o', refinador: 'b' }],
-        [{ id: 'h', tipo: 'despliegue', padre: 'sd', cosa: 'o', modo: 'agregacion', orden: 0, apariciones: { o: ap, a: ap } }]);
+        [{ id: 'h', tipo: 'despliegue', padre: 'sd', cosa: 'o', modo: 'agregacion', orden: 0, apariciones: { o: ap } }]);
     expect(validarForma(modeloParcial)).toEqual([]);
     const antes = JSON.stringify(modeloParcial);
     expect(diagnosticar(modeloParcial).filter(d => d.codigo === 'refinamiento-trivial')).toEqual([expect.objectContaining({ opd: 'h', refs: [{ tipo: 'opd', id: 'h' }, { tipo: 'cosa', id: 'o' }] })]);
     const h = modeloParcial.opds.h!;
-    const completo = cambiar(modeloParcial, { opds: { ...modeloParcial.opds, h: { ...h, apariciones: { ...h.apariciones, b: ap } } } });
+    const completo = cambiar(modeloParcial, { opds: { ...modeloParcial.opds, h: { ...h, apariciones: { ...h.apariciones, a: ap } } } });
     expect(diagnosticar(completo).filter(d => d.codigo === 'refinamiento-trivial')).toEqual([]);
     expect(JSON.stringify(modeloParcial)).toBe(antes);
 });

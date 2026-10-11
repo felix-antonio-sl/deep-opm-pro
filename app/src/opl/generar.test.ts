@@ -169,8 +169,8 @@ test('T-125 CX secuencia, paralelo, mixto e internos se obtienen de bandas reale
  for(const [bandas,texto]of casos.slice(0,2)){const mod=hijo(bandas);expect(validarForma(mod)).toEqual([]);expect(generarBloque(mod,'h')[0]!.texto).toBe(texto);}
  expect(validarForma(modMixto)).toEqual([]);expect(generarBloque(modMixto,'h')[0]!.texto).toBe('*Procesar* se descompone en paralelo *Archivar* y *Validar*, y *Cerrar*, en esa secuencia, así como **Cuenta**.');
 });
-test('T-127 un refinador no fabrica oración CX y bloques usan preorden y contexto padre',()=>{
- const mod=hijo([['q']],[]);expect(generarBloque(mod,'h').some(l=>l.plantilla.startsWith('CX'))).toBe(false);
+test('T-127 un refinador emite su oración CX (ISO §10.3.1, A.4.7.4) y bloques usan preorden y contexto padre',()=>{
+ const mod=hijo([['q']],[]);expect(generarBloque(mod,'h').filter(l=>l.plantilla.startsWith('CX')).map(l=>[l.plantilla,l.texto])).toEqual([['CX1','*Procesar* se descompone en *Archivar*, en esa secuencia.']]);
  expect(generarModelo(mod).filter(l=>l.plantilla==='cabecera').map(l=>l.texto)).toEqual(['## SD','## SD1 · descomposición de *Procesar* · en SD']);
 });
 test('T-126 despliegue mixto primero clase del refinable sin secuencia ni paralelo',()=>{
@@ -278,10 +278,10 @@ test('T-106 valor de atributo usa el exhibidor visible primero por nombre',()=>{
  const base=m();const mod=m([{id:'e1',tipo:'exhibicion',refinable:'a',refinador:'o'},{id:'e2',tipo:'exhibicion',refinable:'q',refinador:'o'}],{cosas:{...base.cosas,o:{...obj('o','Pedido'),tipo:'objeto',valor:'uno'}}});expect(validarForma(mod)).toEqual([]);expect(generarBloque(mod,'sd').filter(l=>l.plantilla==='VAL').map(l=>l.texto)).toEqual(['**Pedido** de *Archivar* es uno.']);
 });
 
-test('T-127 un refinador con dos especializaciones de estado no fabrica CX3',()=>{
+test('T-127 un refinador con dos especializaciones de estado emite una CX3 con él una vez',()=>{
  const ap={x:0,y:0,ancho:140,alto:70};
  const m:Modelo={id:'test',nombre:'Prueba única',unidadTiempo:'min',raiz:'sd',secuencia:100,cosas:{o:{id:'o',nombre:'Pedido',tipo:'objeto',esencia:'informacional',afiliacion:'sistemica',estados:[{id:'a',nombre:'pendiente'},{id:'b',nombre:'pagado'}]},c:{id:'c',nombre:'Factura',tipo:'objeto',esencia:'informacional',afiliacion:'sistemica',estados:[{id:'c-a',nombre:'pendiente'},{id:'c-b',nombre:'pagado'}]}},enlaces:{e1:{id:'e1',tipo:'generalizacion',refinable:'o',refinador:'c',estados:{general:'a',especializacion:'c-a'}},e2:{id:'e2',tipo:'generalizacion',refinable:'o',refinador:'c',estados:{general:'b',especializacion:'c-b'}}},abanicos:{},opds:{sd:{id:'sd',tipo:'raiz',apariciones:{o:ap,c:ap}},h:{id:'h',tipo:'despliegue',padre:'sd',cosa:'o',orden:0,modo:'generalizacion',apariciones:{o:ap,c:ap}}}};
- expect(validarForma(m)).toEqual([]);expect(generarBloque(m,'h').filter(l=>l.plantilla==='CX3')).toEqual([]);
+ expect(validarForma(m)).toEqual([]);expect(generarBloque(m,'h').filter(l=>l.plantilla==='CX3').map(l=>l.texto)).toEqual(['**Pedido** se despliega en SD1 en **Factura**.']);
 });
 
 const estructuralesPendientes:readonly[Enlace['tipo'],boolean,string,string][]=[

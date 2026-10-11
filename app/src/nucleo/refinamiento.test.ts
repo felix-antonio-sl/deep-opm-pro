@@ -176,12 +176,13 @@ test('T-020 ensayo compartido no rechaza borrador anterior al retiro final del v
     const a = base({ id: 'e', tipo: 'exhibicion', refinable: 'o', refinador: 'b' }), m: Modelo = congelar({ ...a, cosas: { ...a.cosas, b: { ...a.cosas.b! as Objeto, valor: 'uno' } } });
     sano(m); const r = must(cambiarTipoEnlace(m, { enlace: 'e', tipo: 'agregacion' })).modelo; expect(r.cosas.b).not.toHaveProperty('valor'); expect(r.enlaces.e).toEqual({ id: 'e', tipo: 'agregacion', refinable: 'o', refinador: 'b' }); sano(r);
 });
-test('T-077 operaciones permiten placeholder vacío y uno, gate real exige dos', () => {
+test('T-077 operaciones permiten placeholder vacío; uno o más hijos cierran (ISO §10.3.1)', () => {
     const m = base(), vacio = must(descomponer(m, { opd: 'sd', proceso: 'p' })).modelo;
-    for (const actual of [vacio, must(agregarSubprocesos(vacio, { opd: 'opd-100', bandas: [['Recibir']], posicion: 'final' })).modelo]) {
-        expect(diagnosticar(actual).some(d => d.codigo === 'refinamiento-trivial' && d.opd === 'opd-100')).toBe(true); expect(gatesExportacion(actual, { opd: 'opd-100' }).some(d => d.regla.includes('R-REF-NTRIV'))).toBe(true);
+    expect(diagnosticar(vacio).some(d => d.codigo === 'refinamiento-trivial' && d.opd === 'opd-100')).toBe(true); expect(gatesExportacion(vacio, { opd: 'opd-100' }).some(d => d.regla.includes('R-REF-NTRIV'))).toBe(true);
+    for (const bandas of [[['Recibir']], [['Recibir'], ['Despachar']]]) {
+        const actual = must(agregarSubprocesos(vacio, { opd: 'opd-100', bandas, posicion: 'final' })).modelo;
+        expect(diagnosticar(actual).some(d => d.codigo === 'refinamiento-trivial')).toBe(false); expect(gatesExportacion(actual, { opd: 'opd-100' })).toEqual([]);
     }
-    const completo = must(agregarSubprocesos(vacio, { opd: 'opd-100', bandas: [['Recibir'], ['Despachar']], posicion: 'final' })).modelo; expect(gatesExportacion(completo, { opd: 'opd-100' })).toEqual([]);
 });
 test('T-081 externo traído dentro rebota con aviso y conserva alcance real', () => {
     const m = refinado(0, { id: 'e', tipo: 'instrumento', objeto: 'o', proceso: 'p' }), a = m.opds.dc!;

@@ -664,7 +664,7 @@ Rationale: `reglas §4.11` (CX1–CX8, CM1–CM3), `§8` (mecanismos, síncrona/
 
 ### §7.0 Reglas duras transversales de refinamiento
 
-- **R-CX-0** (no-trivialidad): un refinamiento NO DEBE emitir oración de gestión de contexto cuando el hijo tiene **menos de 2** refinadores; un nodo con un solo hijo NO es refinamiento canónico (R-REF-NTRIV-1..3) y solo PUEDE persistir como placeholder de edición.
+- **R-CX-0** (no vacío): un refinamiento NO DEBE emitir oración de gestión de contexto cuando el hijo no tiene refinadores; un nodo sin hijos NO es refinamiento canónico (R-REF-NTRIV-1..3) y solo PUEDE persistir como placeholder de edición. Con un solo refinador la oración se emite (ISO §10.3.1; A.4.7.4 admite una lista de un elemento; DEC50).
 
   Rationale: `reglas §8.3` (R-REF-NTRIV-1, R-REF-NTRIV-2, R-REF-NTRIV-3).
 
@@ -676,7 +676,7 @@ Rationale: `reglas §4.11` (CX1–CX8, CM1–CM3), `§8` (mecanismos, síncrona/
 
 ### §7.1 Descomposición / recomposición de proceso (in-zoom / out-zoom, CX1, CX2)
 
-**Supresión**: padre o subproceso con nombre placeholder NO emite (R-ENT-2). Un OPD semidescompuesto (transitorio) NO DEBE emitir oración canónica de descomposición (R-OPD-OP-3). Si el hijo no llega a 2 refinadores, NO se emite (R-CX-0).
+**Supresión**: padre o subproceso con nombre placeholder NO emite (R-ENT-2). Un OPD semidescompuesto (transitorio) NO DEBE emitir oración canónica de descomposición (R-OPD-OP-3). Si el hijo no tiene refinadores, NO se emite (R-CX-0).
 
 **Tokenización**: span del *proceso* padre con `ref`; `se descompone en` token-verbo del enum §1.1; cada *subproceso* es span con `ref`; `paralelo` clave de coetaneidad; `en esa secuencia` clave de orden temporal; `así como` adición de objetos internos; `y`/`e`, `o`/`u` conectores según fonética.
 
@@ -690,7 +690,7 @@ Rationale: `reglas §4.11` (CX1, CX2), `§8.1`–`§8.2`, `§8.9` y `opm-opl-es 
 
 ### §7.2 Despliegue / plegado de cosa (unfolding / folding, CX3, CX5, CX6)
 
-**Emisión**: cuando una **cosa** porta un refinamiento `despliegue` con `≥ 2` refinadores (R-CX-0), se emite la oración de despliegue. El **modo** se resuelve por la relación fundamental dominante en el OPD hijo (agregación, exhibición, generalización, clasificación) según `modoDespliegue`; si el modo es una de las cuatro fundamentales, la superficie emitida reusa el verbo de esa relación (`consta de`/`se despliega en`, `exhibe`, `son`/`es un`, `son instancias de`), no una forma genérica `se despliega`. El despliegue revela estructura estática y NO implica orden temporal (R-REF-SYNC-2): NUNCA DEBE añadir `en esa secuencia`.
+**Emisión**: cuando una **cosa** porta un refinamiento `despliegue` con al menos un refinador (R-CX-0), se emite la oración de despliegue. El **modo** se resuelve por la relación fundamental dominante en el OPD hijo (agregación, exhibición, generalización, clasificación) según `modoDespliegue`; si el modo es una de las cuatro fundamentales, la superficie emitida reusa el verbo de esa relación (`consta de`/`se despliega en`, `exhibe`, `son`/`es un`, `son instancias de`), no una forma genérica `se despliega`. El despliegue revela estructura estática y NO implica orden temporal (R-REF-SYNC-2): NUNCA DEBE añadir `en esa secuencia`.
 
 **Tokenización**: span de la **cosa** desplegada con `ref`; verbo de la relación fundamental (token del enum §1.1); span de cada **refinador** con `ref`; `así como` separa atributos de operaciones en exhibición; el span `SD1` (CX3) lleva `ref` al OPD persistente, no a la etiqueta (R-CX-2). En plegado: `se pliega en` token-verbo (GAP-PLIEGA); `el OPD padre` referencia al ascendente.
 

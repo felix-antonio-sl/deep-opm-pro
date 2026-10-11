@@ -218,7 +218,7 @@ Etapa de verificación del asistente (origen: canon v1.7.0 A2, tabla):
 
 ### A3.1 Descomposición (origen: canon v1.7.0 A3.1, parte)
 
-- **A3.1h** [endurecimiento] (origen: canon v1.7.0 A3.1): ≥2 subprocesos (refinamiento no trivial).
+- **A3.1h** (origen: canon v1.7.0 A3.1): al menos un subproceso (ISO §10.3.1; DEC50 retiró el mínimo de dos).
 
 > **Corrección 2.0:** ISO no fija mínimo de subprocesos (canon metodología A3.1c); el mínimo de dos es endurecimiento de OpForja.
 
@@ -374,12 +374,12 @@ Prácticas de validación continua (origen: canon v1.7.0 A8, l.327–331):
 
 | Invariante | Capa |
 |---|---|
-| Refinamiento no trivial: descomposición ≥2 subprocesos; despliegue ≥2 refinadores | manual |
+| Refinamiento no vacío: descomposición con al menos un subproceso; despliegue con al menos un refinador | manual |
 | Interfaz de sub-modelo congelada tras creación | manual |
 | Cada OPD con identificador persistente ≠ etiqueta `SDx.y` | opd-es |
 | Referencia inter-modelo explicita propietario y consumidor | opm-es |
 
-> **Corrección 2.0:** el mínimo de dos refinados es `[endurecimiento]`: ISO admite uno (ISO §10.3.1, §A.4.3). La interfaz congelada y la referencia inter-modelo son `[extensión]`.
+> **Corrección 2.0:** el mínimo de dos refinados era `[endurecimiento]`: ISO admite uno (ISO §10.3.1, §A.4.3). DEC50 lo retiró. La interfaz congelada y la referencia inter-modelo son `[extensión]`.
 
 
 

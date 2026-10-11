@@ -378,7 +378,7 @@ Secuencia (R-VIS-INZOOM-1, R-OPD-REF-3, R-OPD-OP-1, método A3.1): Mostrar conte
 | R-OPD-UI-3 | El drag de un subproceso DEBE quedar confinado al interior del contenedor. | DEBE |
 | R-INV-2/2A/2C/2D, R-IDP-0A, R-OPD-REF-2 | Orden temporal = **bandas declaradas** (fuente de verdad); la coordenada Y las realiza (arriba → abajo); misma banda = paralelo; el último del grupo paralelo en terminar invoca la banda siguiente. El layout NO reordena bandas (R-LAY-4). Descomposición de objeto: la posición NO es tiempo. | DEBE |
 | R-INV-2B, R-INV-2D, R-OPD-INV-9 | La invocación implícita no se dibuja; un rayo entre hermanos que repite una transición de banda adyacente es «doble vara» y «viola R-INV-2B» ⇒ impedir (Prohibido: «bloquearlo o reportarlo como error estructural», reglas l.117). Salto fuera de orden, bucle, cross-OPD: rayo explícito legal. | NO DEBE |
-| R-REF-NTRIV-1/3, AP-13, R-CX-0 | ≥2 subprocesos para cerrar; con <2: se permite en edición (placeholder), se advierte, se bloquea el export canónico y no se emite la oración de descomposición. | DEBE / NO DEBE / PUEDE |
+| R-REF-NTRIV-1/3, AP-13, R-CX-0 | Al menos un subproceso para cerrar (ISO §10.3.1; DEC50); sin subprocesos: se permite en edición (placeholder), se advierte, se bloquea el export canónico y no se emite la oración de descomposición. | DEBE / NO DEBE / PUEDE |
 | R-OPL-CX-4 | OPL-ES soporta descomposición de procesos y de objetos. Descomposición de objeto: DEBE, escalonable (DR-23). | DEBE |
 
 Distribución de enlaces al descomponer (reglas §8.5 = spec-OPL §7.6 = spec-OPD §10.2, textual):
@@ -410,7 +410,7 @@ Realización mínima conforme (DR-13/DR-14):
 | R-REF-MEC-1, R-CX-DESP-1 | Por relación fundamental (modo); NO mezclar dos relaciones en una oración de despliegue. | DEBE / NO DEBE |
 | R-HIJO-4, R-OPD-REF-4 | El hijo copia solo los hijos estructurales directos (de ese modo). | DEBE |
 | R-OPD-REF-1, R-CTRN-2 | Despliegue en OPD nuevo marca contorno grueso; despliegue intradiagrama NO. | DEBE / NO DEBE |
-| R-REF-NTRIV-2/3 | ≥2 refinadores para cerrar (idem AP-13). | DEBE |
+| R-REF-NTRIV-2/3 | Al menos un refinador para cerrar (idem AP-13). | DEBE |
 | spec-OPL §7.2 edge | En despliegue las partes viven **fuera** del contenedor y se conectan por enlaces estructurales; pertenencia por presencia en el OPD hijo. | inf. |
 | método A3.2, R-OPD-EDIT-6 | Despliegue parcial ⇒ colección incompleta; la herramienta DEBE rastrear refinadores y ajustar símbolo y OPL cuando cambia la colección. | DEBE |
 | R-OPD-OP-5 | Si la herramienta rastrea refinadores y ajusta símbolo/OPL automáticamente (lo que R-OPD-EDIT-6 exige), DEBE conservar **trazabilidad de cada ajuste automático** (p. ej. diagnóstico `info` o entrada en el historial de la operación). Reglas lo formula como PUEDE; spec-OPD como DEBE (DR-45). | DEBE (si ajusta) |
@@ -784,7 +784,7 @@ Estado: C, no ★ (escalonable; mientras no se ofrezca, el parser responde `unsu
 | CX7/CX8 | *Proceso* se recompone desde `diagrama`. · **Objeto** se recompone desde `diagrama`. | X (GAP-RECOMPONE) |
 | CM1–CM3 | vistas de sub-modelo y referencias externas | X |
 
-Reglas: R-CX-DESP-2 / R-CX-SYNC-2 — el despliegue NUNCA lleva `en esa secuencia` ni `paralelo` (`Incorrecto: **Pedido** se despliega en **Cabecera** y **Línea**, en esa secuencia.`). R-CX-0 — sin oración de refinamiento con <2 refinadores. R-OPD-OP-3 — un OPD semidescompuesto no emite oración canónica.
+Reglas: R-CX-DESP-2 / R-CX-SYNC-2 — el despliegue NUNCA lleva `en esa secuencia` ni `paralelo` (`Incorrecto: **Pedido** se despliega en **Cabecera** y **Línea**, en esa secuencia.`). R-CX-0 — sin oración de refinamiento sin refinadores. R-OPD-OP-3 — un OPD semidescompuesto no emite oración canónica.
 
 #### 4.4.10 Rutas (reglas §4.12, textual)
 
@@ -813,7 +813,7 @@ R-MULT-1 (DEBE): la emisión antepone la frase al sustantivo, concordando géner
 Reglas: R-OPL-DISP-1/2, R-OPL-PANEL-1 (bloques por OPD, orden jerárquico determinista y estable), R-COMP-ELEG-3 (orden determinista; DEBERÍA seguir la fuerza semántica en eje (a) y el orden del modelo en eje (b)), R-COMP-EJE-3 (DEBE coordinar destinos estructurales tras un verbo), R-CX-COMP-1..3 y R-COMP-ZP-1 (en OPD hijo de refinamiento NO fusionar enlaces de refinadores; la oración de refinamiento COEXISTE con las atómicas), R-COMP-ELEG-1/2/4, R-COMP-ZP-2/3.
 
 Algoritmo de emisión (DR-32), por cada OPD en preorden del árbol:
-1. **Oración de refinamiento** del OPD si es hijo: CX1/CX2/mixta (descomposición, ≥2 subprocesos) o CX3 (despliegue, ≥2 refinadores).
+1. **Oración de refinamiento** del OPD si es hijo: CX1/CX2/mixta (descomposición, al menos un subproceso) o CX3 (despliegue, al menos un refinador).
 2. **Cosas visibles**, en orden de creación de su apariencia en el OPD: D1 si física, D3 si ambiental; D5/D6 con estados visibles en el orden del modelo; D10 o D7/D8, D9, D13 por estado visible designado; `es valor` si hay `valorSlot`.
 3. **Procedimentales**, agrupados por proceso (orden de aparición), y por tipo en orden de fuerza: consumo, resultado, efecto, agente, instrumento; luego invocación y excepción. Cada enlace con control emite su plantilla E\*/C\* en lugar de la base (nunca ambas: es un solo hecho, R-ECA-4). Abanicos: una oración por abanico (§4.4.8) salvo ruta (R-COMB-5).
 4. **Estructurales**: en OPDs no hijos, agrupados por vértice y relación (eje b: RF1, RF2/RF2b, RF3 plural agrupado por general, RF4b agrupado por clase; RH1 cuando una especialización tiene ≥2 generales, y esos enlaces salen de los grupos RF3); en OPDs hijos, una oración por enlace. Luego etiquetados (SE3 con etiquetas idénticas ⇒ SE4, R-STRE-1).
@@ -1660,7 +1660,7 @@ Advertencias exigidas (no bloquean):
 |---|---|---|
 | R-PROC-2, R-OPD-TR-8 | Proceso sin consumo/resultado/efecto (los habilitadores no cuentan; sí cuentan los transformadores heredados de su general, DR-43). | DEBE |
 | método A3.1/A8.2 | Subproceso sin transformado. | inv. manual |
-| R-REF-NTRIV-1/2, AP-13 | Refinamiento con <2 hijos (además bloquea export). | DEBE |
+| R-REF-NTRIV-1/2, AP-13 | Refinamiento sin hijos (además bloquea export). | DEBE |
 | R-LAY-1 | 21–25 cosas en un OPD. | DEBE |
 | R-LAY-2 | Cruces u oclusión al exportar. | DEBE |
 | R-SD-4, R-VIS-SD-1 | SD sin exactamente un proceso sistémico. | inf. DEBE |
@@ -1698,7 +1698,7 @@ Advertencias exigidas (no bloquean):
 | AP-10 | `c`/`e` sobre invocación | DEBE bloquearse | Nodo de decisión booleano, fan de invocación | imposible ★ |
 | AP-11 | Bi/recíproco con estado solo en destino | DEBE bloquearse | Unidireccional o estado en origen | impedir |
 | AP-12 | Estados de proceso | DEBE bloquearse | Subprocesos o atributo exhibido | imposible ★ |
-| AP-13 | Refinamiento con 1 hijo | DEBE bloquearse en cierre/export; PUEDE persistir como placeholder | ≥2 hijos | advertir + bloquear export ★ |
+| AP-13 | Refinamiento sin hijos | DEBE bloquearse en cierre/export; PUEDE persistir como placeholder | al menos un hijo | advertir + bloquear export ★ |
 | AP-14 | Duplicar estados para inicial+final | DEBE bloquearse como sinónimo falso | Estado único inicial y final | permitir D10; método |
 | AP-15 | Instancia visual entre tipos distintos | DEBE bloquearse | Misma cosa o clasificación | imposible ★ |
 | AP-16 | Refinamiento cíclico | DEBE bloquearse | Romper ciclo | impedir ★ |
@@ -1727,7 +1727,7 @@ Advertencias exigidas (no bloquean):
 | R-OPD-EXP-1/3, R-VIS-EXPORT-1A | `canon-diagrama` sin handles, grid, overlays, toasts, chrome, marcas de validación ni sombras decorativas; rótulos en negro; estilado normalizado; viewport auto-ajustado. Recomendado: SVG. | DEBE |
 | R-OPD-CAN-2, R-VIS-EXP-3/5 | Todo lo que persiste en `canon-diagrama` tiene regla visual; un elemento presente en un solo perfil se declara atributo de perfil. | DEBE |
 | Export OPL | OPL completo en Markdown (tipografía R-OPL-TYPO-1), bloques por OPD en orden del árbol; parte de `canon-documento`. | DEBE |
-| Gates de export canónico | (1) OPD con >25 cosas (R-LAY-1); (2) refinamiento con <2 hijos (R-REF-NTRIV-3, AP-13); (3) errores estructurales abiertos (R-ESC-OP-4, R-AP-0); (4) rótulos truncados (AP-23, imposible por autosize); (5) Bocetos en régimen Modelo (solo si existen, R-CAN-BOCETO-2). El bloqueo NO afecta la edición. | DEBE |
+| Gates de export canónico | (1) OPD con >25 cosas (R-LAY-1); (2) refinamiento sin hijos (R-REF-NTRIV-3, AP-13); (3) errores estructurales abiertos (R-ESC-OP-4, R-AP-0); (4) rótulos truncados (AP-23, imposible por autosize); (5) Bocetos en régimen Modelo (solo si existen, R-CAN-BOCETO-2). El bloqueo NO afecta la edición. | DEBE |
 | R-LAY-2, R-OPD-LAY-1 | Advertencia de cruces/oclusión al exportar. | DEBE |
 | R-OPD-EXP-2 | Export parcial declarado como tal; recursos dependientes embebidos, referenciados o declarados ausentes. | inf. DEBE |
 | R-OPD-EXP-1 | Previsualización raster: no canónica; si un perfil rasteriza, declara resolución que preserve dash, contornos, triángulos y rótulos. | PUEDE / DEBE (si existe) |
@@ -1872,7 +1872,7 @@ Los ★ con obligación PUEDE o inferida son soportes necesarios de un DEBE ★ 
 | T-074 | Escisión: TS3 al descomponer (≥2 subprocesos) ⇒ TS4 en el temprano + TS5 en el tardío, par acoplado sin `e`/`c`; único mecanismo. | DEBE | ope | R-ESCIND-1..3, R-ESC-1/1A, AP-07/08, R-OPD-TR-7 | ★ |
 | T-075 | Toda migración conserva el id del enlace. | DEBE | ope | R-OPD-OP-4, R-CX-DIST (efecto OPL) | ★ |
 | T-076 | Enlaces que quedan en el contorno sin subprocesos: respaldo temporal que migra al insertar el primero; luego la reasignación es del modelador. | inf. PUEDE | ope | R-VIS-DIST-1, método A3.4, DR-13 | ★ |
-| T-077 | Refinamiento no trivial: ≥2 subprocesos o refinadores; con <2 se permite en edición, se advierte y se bloquea el export canónico. | DEBE / NO DEBE / PUEDE | adv | R-REF-NTRIV-1..3, AP-13, R-OPD-REF-7 | ★ |
+| T-077 | Refinamiento no vacío: al menos un subproceso o refinador (ISO §10.3.1; DEC50); sin hijos se permite en edición, se advierte y se bloquea el export canónico. | DEBE / NO DEBE / PUEDE | adv | R-REF-NTRIV-1..3, AP-13, R-OPD-REF-7 | ★ |
 | T-078 | Sin ciclos de refinamiento (chequeo transitivo). | NO DEBE | imp | R-REF-1, AP-16, R-OPD-REF-8 | ★ |
 | T-079 | Un externo no se refina desde el OPD hijo donde es externo. | NO DEBE | imp | R-HIJO-5 | ★ |
 | T-080 | Internos se eliminan en cascada con su refinamiento; externos persisten. | DEBE | ope | R-HIJO-6, R-OPD-REF-5 | ★ |
@@ -1922,7 +1922,7 @@ Los ★ con obligación PUEDE o inferida son soportes necesarios de un DEBE ★ 
 | T-124 | Abanico × modificador solo con plantilla: condición con todas las ramas `c` (C-18 y reglas §7.4) y evento en fan de efecto con objeto común (R-FAN-4). | DEBE / NO DEBE | gen | reglas §7.4, R-FAN-3/4 | |
 | T-125 | Descomposición en el OPD hijo: CX1 (secuencial), CX2 (una banda paralela) o mixta; sin rayos de invocación implícita. | DEBE | gen | reglas §4.11, R-OPL-CX-5, R-IV-2, DR-24 | ★ |
 | T-126 | Despliegue en el OPD hijo: CX3 `**Cosa** se despliega en SDx en …`; nunca `en esa secuencia` ni `paralelo`. | DEBE / NO DEBE | gen | reglas §4.11, R-OPL-CX-2, R-CX-DESP-2, R-CX-SYNC-2, DR-24 | ★ |
-| T-127 | Sin oración de refinamiento con <2 refinadores ni para OPD semidescompuesto. | NO DEBE | gen | R-CX-0, R-OPD-OP-3 | ★ |
+| T-127 | Sin oración de refinamiento sin refinadores ni para OPD semidescompuesto; con uno se emite. | NO DEBE | gen | R-CX-0, R-OPD-OP-3 | ★ |
 | T-128 | Multiplicidad antepuesta al sustantivo (`un/una opcional`, `opcional (cero o más)`, `al menos un/una`, `al menos dos`, el entero en cifras) como sub-span propio; nunca símbolos crudos. | DEBE | gen | R-MULT-1, spec-OPL §10.1/§10.3 | |
 | T-129 | Ruta como prefijo fijo `Por ruta L, ` antepuesto a la oración completa (también a su variante E\*/C\*), con orden de superficie estable; con ruta, una oración por enlace (no agrupar abanico). | DEBE / NO DEBE | gen | R-OPL-RUTA-1, R-COMB-4, R-COMB-5, spec-OPL §11, C-24 | |
 | T-130 | Listas con coma y `y`/`o` final sin coma de Oxford; alternancia `e`/`u` por fonética. | DEBE | gen | R-OPL-LISTA-1, R-OPL-KW-2, R-§18-LISTA-1, DR-26 | ★ |
@@ -2070,7 +2070,7 @@ Los ★ con obligación PUEDE o inferida son soportes necesarios de un DEBE ★ 
 | T-280 | Perfil `canon-diagrama` por OPD (SVG): gramática visible sin UI, grid, overlays, validación ni sombras decorativas; rótulos negros; estilado normalizado; viewport ajustado sin recortes. | DEBE | exp | R-VIS-EXP-2..4, R-OPD-CAN-1/2, R-OPD-EXP-1/3, R-OPD-LAY-8, R-VIS-EXPORT-1A/1D | ★ |
 | T-281 | Perfil `canon-documento` por modelo: por OPD en orden del árbol, su diagrama y su párrafo OPL. | DEBE | exp | R-VIS-EXP-2, R-OPD-CAN-1, R-OPD-EXP-1 | ★ |
 | T-282 | Export del OPL completo en Markdown canónico. | DEBE | exp | R-OPL-TYPO-1, R-OPL-TOTAL-1 | ★ |
-| T-283 | Gates del export canónico: >25 cosas, refinamiento con <2 hijos, errores estructurales abiertos (y Bocetos en régimen Modelo si existen); sin bloquear la edición. | DEBE | exp | R-LAY-1, R-REF-NTRIV-3, AP-13, R-ESC-OP-4, R-CAN-BOCETO-2 | ★ |
+| T-283 | Gates del export canónico: >25 cosas, refinamiento sin hijos, errores estructurales abiertos (y Bocetos en régimen Modelo si existen); sin bloquear la edición. | DEBE | exp | R-LAY-1, R-REF-NTRIV-3, AP-13, R-ESC-OP-4, R-CAN-BOCETO-2 | ★ |
 | T-284 | Advertencia de cruces/oclusión al exportar. | DEBE | exp | R-LAY-2, R-OPD-LAY-1 | |
 | T-285 | Export parcial declarado como tal; recursos dependientes embebidos, referenciados o declarados ausentes. | inf. DEBE | exp | R-OPD-EXP-2, R-VIS-EXPORT-1B | |
 | T-286 | Intercambio JSON `{ "formato": "deep-opm-pro.modelo.v0", "modelo": {...} }` con el núcleo del Apéndice F; no emitir otro `formato`; export = instantánea. | inf. DEBE / NO DEBE | exp | método Apéndice F, DR-41 | ★ |
@@ -2169,7 +2169,7 @@ Criterio de resolución: (1) precedencia del canon (§0.3); (2) si el canon no d
 | «Probabilístico sin pesos» sin plantilla ni marca. | GAP-9 reglas-b | `Pr` no ofrecido. |
 | SD con un proceso sistémico: ¿edición o cierre? | GAP-13 reglas-b | Advertencia (T-090), sin bloqueo. |
 | AP sin regla primaria o no detectables (AP-14, AP-22, AP-25). | GAP-15 reglas-b | Método / advertencia; no bloqueo mecánico. |
-| «Placeholder de edición tipificado» indefinido. | GAP-16 reglas-b | Refinamiento con <2 hijos persiste normalmente con advertencia; bloquea export. |
+| «Placeholder de edición tipificado» indefinido. | GAP-16 reglas-b | Refinamiento sin hijos persiste normalmente con advertencia; bloquea export. |
 | «Modelado de contingencia» del evento ambiental. | GAP-17 reglas-b, GAP-A16 | Sin exigencia adicional a la herramienta. |
 | Parámetros de multiplicidad sin sintaxis. | GAP-18 reglas-b, G13 | No soportados (DR-21). |
 | Tabla 9.2 omite construcciones canónicas (proceso ambiental, TS1/TS2/TS4/TS5, HS*, etc.). | GAP-19 reglas-b | El gate completo son las tablas de §4.4 (T-105). |

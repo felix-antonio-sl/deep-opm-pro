@@ -290,7 +290,7 @@ Realización opforja: etiquetas serif 12 ink; origen en `distance:0.1` (procedim
 - **R-OPD-REF-4**: al crear el OPD hijo, las cosas conectadas al refinado en el padre se copian como **elementos externos** (mantienen esencia, contorno y estados; posición recalculada). En descomposición se copian TODAS las conectadas por cualquier enlace; en despliegue SOLO los hijos estructurales directos. Un elemento externo NO se refina desde ese OPD hijo. *(Rationale: V-80..V-83, R-HIJO-3/4/5.)*
 - **R-OPD-REF-5**: objetos internos (creados en la descomposición, sin apariencia en el padre) se eliminan en cascada con el proceso padre; los externos persisten independientes. Mover gráficamente un objeto externo dentro del contenedor NO cambia su alcance (envolvimiento sin efecto semántico; la herramienta DEBE advertir o rebotar). *(Rationale: V-84, V-85; metodologia §A3; OPCloud enveloping.)*
 - **R-OPD-REF-6**: visibilidad de enlaces en OPD hijo — estructurales al contenedor: visibles; procedimentales al contenedor: se dibujan anclados al contorno con lectura distributiva o en el subproceso que corresponda (canon spec-OPD R-OPD-REF-11, §10.2); entre internos: visibles; los que no tocan contenedor ni internos: invisibles. *(Rationale: V-91..V-94, R-VIS-HIJO-1.)*
-- **R-OPD-REF-7** [endurecimiento]: refinamiento no trivial — una descomposición DEBE tener ≥2 subprocesos y un despliegue ≥2 refinadores; con un solo hijo no cierra ni exporta como canónico (placeholder de edición tipificado). *(Rationale: R-REF-NTRIV-1/2/3, AP-13.)*
+- **R-OPD-REF-7**: refinamiento no vacío — una descomposición DEBE tener al menos un subproceso y un despliegue al menos un refinador (ISO §10.3.1: uno o más refinados); sin hijos no cierra ni exporta como canónico (placeholder de edición tipificado). DEC50 retiró el mínimo de dos. *(Rationale: R-REF-NTRIV-1/2/3, AP-13.)*
 - **R-OPD-REF-10** [extensión]: la descomposición DEBE preservar la **firma de frontera** del proceso abstracto (mismos roles de entrada/salida netos); añadir o quitar un rol cambia la función visible. Conservarla es condición necesaria, no prueba equivalencia conductual ni sustituibilidad total. *(Rationale: metodologia-forja §A0.4; checker `DESCOMPOSICION_NO_PRESERVA_FRONTERA`.)*
 
 ### §10.2 Distribución y escisión de enlaces
@@ -426,7 +426,7 @@ El puente texto↔canvas está legislado en `spec-forja-opl-es §14` (tokens con
 | AP-09/10 | `e`/`c` sobre estructural / sobre invocación | R-OPD-CTL-3 | runtime |
 | AP-11 | bidireccional/recíproco con estado solo-en-destino | R-OPD-STR-9 | runtime |
 | AP-12 | estados dentro de proceso | R-OPD-COSA-7 | runtime |
-| AP-13 | refinamiento de 1 hijo | R-OPD-REF-7 | runtime |
+| AP-13 | refinamiento sin hijos | R-OPD-REF-7 | runtime |
 | AP-14 | duplicar estados para separar inicio/fin | R-OPD-EST-5 | runtime (diagnóstico) |
 | AP-15 | instancia visual entre tipos distintos | R-OPD-REF-17 | runtime |
 | AP-16 | refinamiento cíclico | R-OPD-REF-8 | runtime |

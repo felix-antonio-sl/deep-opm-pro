@@ -45,7 +45,7 @@ export const CATALOGO = Object.freeze([
     fila('conflicto-resultado-consumo', 'R-PREC-3/4', 'warning', 'contencion', 'Declara continuidad de identidad y estados en el nivel hijo'),
     fila('proceso-sin-transformacion', 'R-PROC-2, R-OPD-TR-8', 'warning', 'metodologica', 'Declara el objeto que consume, crea o afecta el proceso'),
     fila('subproceso-sin-transformado', 'método A3.1', 'warning', 'metodologica', 'Declara el objeto transformado por el subproceso'),
-    fila('refinamiento-trivial', 'AP-13, R-REF-NTRIV-1/2', 'warning', 'contencion', 'Completa el refinamiento con al menos dos hijos'),
+    fila('refinamiento-trivial', 'AP-13, R-REF-NTRIV-1/2', 'warning', 'contencion', 'Completa el refinamiento con al menos un hijo'),
     fila('enlace-en-contorno-temporal', 'R-VIS-DIST-1', 'info', 'contencion', 'Agrega subprocesos y distribuye el enlace'),
     fila('opd-denso', 'R-LAY-1', 'warning', 'sugerencia', 'Reduce el detalle de este OPD mediante refinamiento'),
     fila('opd-sobrecargado', 'R-LAY-1, R-OPD-LAY-2', 'warning', 'sugerencia', 'Reduce este OPD a un máximo de 25 cosas'),
@@ -133,8 +133,9 @@ export function diagnosticar(m: Modelo): readonly Diagnostico[] {
             añadir('opd-denso', [ref('opd', id)], `Este OPD contiene ${n} cosas.`, { opd: id });
         if (o.tipo !== 'raiz') {
             const hijos = o.tipo === 'descomposicion' ? new Set(o.bandas.flat()).size : new Set(vista.enlaces.filter(v => v.enlace.tipo === o.modo && 'refinable' in v.enlace && v.enlace.refinable === o.cosa).map(v => 'refinador' in v.enlace ? v.enlace.refinador : '')).size;
-            if (hijos < 2)
-                añadir('refinamiento-trivial', [ref('opd', id), ref('cosa', o.cosa)], `El refinamiento tiene ${hijos} hijos.`, { opd: id });
+            // ISO §10.3.1: un refinamiento elabora el refinable en uno o más refinados.
+            if (hijos < 1)
+                añadir('refinamiento-trivial', [ref('opd', id), ref('cosa', o.cosa)], 'El refinamiento no tiene hijos.', { opd: id });
         }
         for (const c of vista.cosas) {
             const parcial = vista.incompletas.some(x => x.refinable === c.cosa && !x.declarada);

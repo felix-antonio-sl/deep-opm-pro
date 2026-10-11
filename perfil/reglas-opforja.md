@@ -440,11 +440,11 @@ R-CONF-1 a R-CONF-5 siguen en canon reglas, «Conformidad OPM».
 
 ### 8.3 Refinamiento no trivial (`SSOT-metod §7.1`)
 
-> [endurecimiento] Más estricto que ISO 19450; la brecha se declara en `docs/conformidad.md`.
+> Realización de producto de ISO §10.3.1 (uno o más refinados). Hasta DEC50 exigía dos hijos, como endurecimiento.
 
-- **R-REF-NTRIV-1**: un proceso descompuesto DEBE contener al menos **2 subprocesos** para cerrar como refinamiento canónico.
-- **R-REF-NTRIV-2**: un despliegue DEBE revelar al menos **2 refinadores** para cerrar como refinamiento canónico.
-- **R-REF-NTRIV-3**: un refinamiento con un solo elemento hijo NO DEBE cerrarse ni exportarse como refinamiento canónico; solo PUEDE persistir como placeholder de edición tipificado y DEBE eliminarse, postergarse o ampliarse antes del cierre.
+- **R-REF-NTRIV-1**: un proceso descompuesto DEBE contener al menos **un subproceso** para cerrar como refinamiento canónico (ISO §10.3.1: uno o más refinados; DEC50 retiró el mínimo de dos).
+- **R-REF-NTRIV-2**: un despliegue DEBE revelar al menos **un refinador** para cerrar como refinamiento canónico.
+- **R-REF-NTRIV-3**: un refinamiento sin elementos hijos NO DEBE cerrarse ni exportarse como refinamiento canónico; solo PUEDE persistir como placeholder de edición tipificado y DEBE eliminarse, postergarse o ampliarse antes del cierre.
 
 ### 8.4 Enlaces escindidos
 
@@ -617,7 +617,7 @@ Al editar OPD:
 | # | Construcción no-canónica | Regla de rechazo | Acción canónica |
 |---|---|---|---|
 | AP-11 | **Bidireccional o recíproco con estado solo en destino** | DEBE bloquearse por `V-30`. | Usar unidireccional con estado en destino o agregar estado en origen. |
-| AP-13 | **Refinamiento con un solo subproceso o refinador** | DEBE bloquearse en cierre/export canónico; PUEDE persistir solo como placeholder de edición tipificado. | Eliminar, postergar o ampliar a ≥ 2 hijos. |
+| AP-13 | **Refinamiento sin subprocesos ni refinadores** | DEBE bloquearse en cierre/export canónico; PUEDE persistir solo como placeholder de edición tipificado. | Eliminar, postergar o agregar al menos un hijo. |
 | AP-14 | **Duplicar estados para evitar inicial+final simultáneo** | DEBE bloquearse como sinónimo falso. | Marcar el estado único como inicial y final. |
 | AP-15 | **Instancia visual entre tipos distintos** | DEBE bloquearse por `V-102`. | Usar apariencia del mismo tipo o clasificación-instanciación lógica. |
 | AP-17 | **`SDx.y` como identificador estable externo** | DEBE bloquearse por `V-247`–`V-249`. | Usar identificador persistente. |

@@ -465,7 +465,7 @@ export function datosContexto(m: Modelo, opd: string): HechoGenerable | null {
     const cmp = (a: string, b: string) => colacionContexto.compare(m.cosas[a]!.nombre, m.cosas[b]!.nombre) || a.localeCompare(b);
     const idx = indice(m);
     if (d.tipo === 'descomposicion') {
-        if (d.bandas.flat().length < 2)
+        if (d.bandas.flat().length < 1)
             return null;
         const bandas = d.bandas.map(b => [...b].sort(cmp));
         const h: Record<string, ValorHueco> = { P: cosa(m, d.cosa), O: [...d.objetosInternos].sort(cmp).map(id => cosa(m, id)) };
@@ -486,7 +486,7 @@ export function datosContexto(m: Modelo, opd: string): HechoGenerable | null {
     const refinadores = [...new Set(Object.values(m.enlaces).filter(e => 'refinable' in e && e.tipo === d.modo && e.refinable === d.cosa).map(e => (e as Extract<Enlace, {
         refinador: string;
     }>).refinador).filter(id => Object.hasOwn(d.apariciones, id)))];
-    if (refinadores.length < 2)
+    if (refinadores.length < 1)
         return null;
     const tipo = m.cosas[d.cosa]!.tipo, principal = refinadores.filter(id => m.cosas[id]!.tipo === tipo).sort(cmp), otros = refinadores.filter(id => m.cosas[id]!.tipo !== tipo).sort(cmp);
     return { plantilla: 'CX3', huecos: { vertice: cosa(m, d.cosa), C: (principal.length ? principal : otros).map(id => cosa(m, id)), otro: principal.length ? otros.map(id => cosa(m, id)) : [], opd: { texto: idx.etiqueta.get(opd)!, ref: { tipo: 'opd', id: opd } } } };

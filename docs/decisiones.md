@@ -673,7 +673,8 @@ estricto» y su fila en la tabla 3 de `docs/conformidad.md`:
    actual sin expresar, y las demás bisimetrías parciales permanecen vigentes.
 5. Duración de proceso sin una excepción que la cite: no hay plantilla (zona laxa, B-20).
 6. `descripcion`, y `genero` cuando ninguna oración muestra `un/una`.
-7. Refinamientos triviales (<2): sin oración CX (R-CX-0), no se reconstruyen desde el texto.
+7. Refinamientos sin hijos: sin oración CX (R-CX-0), no se reconstruyen desde el texto. Desde DEC50, con un solo hijo
+   se emite la oración CX y se reconstruyen.
 8. El operador de un abanico con ruta (DS-10).
 9. Dos etiquetados opuestos con etiquetas distintas se reconstruyen como un bidireccional (DS-13).
 10. Cosas sin aparición y enlaces sin vista: no pertenecen a ningún bloque (DS-6).
@@ -822,7 +823,7 @@ Infraestructura:
 | 16 | editar OPL | agregar `**Cliente** es físico.` da «1 aplicable»; Aplicar pone la cosa en el lienzo con la línea resaltada; reabrir da «Sin cambios aplicables»; una línea inválida muestra su razón y no bloquea las demás |
 | 17 | bimodal | el hover de un token realza el elemento (atributo de realce en la capa UI) y viceversa; un clic en un token de otro bloque navega y selecciona sin cambiar la `rev` |
 | 18 | diagnóstico y reparación | un proceso sin transformación da una advertencia e «Ir» lo selecciona; un modelo sembrado con dos nombres duplicados muestra «Aplicar a los N», que renombra con sufijo; el SVG no tiene marcas |
-| 19 | exportar y vista canon | el SVG descargado no tiene `data-ref` ni clases UI, y sí `@font-face`; un OPD con 1 subproceso deja el ítem deshabilitado por AP-13; `F9` dibuja el mismo SVG que el export; tras «Guardado», el JSON exportado ≡ `GET`; una cosa quitada de su último OPD deshabilita `canon-documento` (B-26) |
+| 19 | exportar y vista canon | el SVG descargado no tiene `data-ref` ni clases UI, y sí `@font-face`; un OPD sin subprocesos deja el ítem deshabilitado por AP-13 (antes de DEC50, también con uno); `F9` dibuja el mismo SVG que el export; tras «Guardado», el JSON exportado ≡ `GET`; una cosa quitada de su último OPD deshabilita `canon-documento` (B-26) |
 | 20 | deshacer | aplicar un OPL con 3 cambios y deshacer vuelve al modelo previo y al OPD donde ocurrió; rehacer |
 | 21 | guardado y conflicto | editar da «Guardado» y `GET` lo refleja; un PUT concurrente por la API da «Conflicto»: «Conservar mis cambios» deja la versión del servidor en la papelera, y en otra corrida «Usar la guardada» crea la «(copia …)»; la red cortada da «Sin conexión», y al recargar se recupera el borrador |
 | 22 | reanclar | arrastrar el extremo de una parte a otra cosa cambia el OPL de `consta de`; arrastrar el extremo proceso de un consumo migrado a otro subproceso lo reasigna con el mismo id |
