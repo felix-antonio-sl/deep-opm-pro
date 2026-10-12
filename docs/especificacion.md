@@ -799,14 +799,75 @@ R-COMB-4 (DEBE, orden de superficie estable cuando coinciden dimensiones, textua
 
 | Símbolo | Rango | OPL-ES |
 |---|---|---|
-| `?` | 0..1 | un/una opcional |
-| `*` | 0..* | opcional (cero o más) |
+| `?` | 0..1 | un/una … opcional |
+| `*` | 0..* | … opcionales |
 | (sin símbolo) | 1..1 | (default; sin marca) |
 | `+` | 1..* | al menos un/una |
 | `2..*` | 2..* | al menos dos (el parser acepta también «dos o más»; DEC35) |
 | `n` (entero ≥ 2) | n..n | n, en cifras y sin género (EBNF A.2 `limite_de_participacion`; DEC35) |
+| `muchos` | plural sin cota declarada | muchos/muchas, distinto de `*` |
+| parámetro simple | entero simbólico, sin valor asignado | escritura exacta del símbolo; no se capitaliza por posición |
 
-R-MULT-1 (DEBE): la emisión antepone la frase al sustantivo, concordando género. `Correcto: *Cocinar* requiere al menos una **Olla**.` `Incorrecto: *Cocinar* requiere 1..* **Olla**.` La frase de cardinalidad es un sub-span propio (perfil opl-opforja §10.3). Fuera de estos valores (`0`, `1` explícito, `exactamente un/una`, otros rangos `qmín..qmáx`, intervalos, listas, parámetros, `m a n`, restricciones `donde …`): X (DR-21, DEC35). El sustantivo sigue en singular con cualquier valor (DR-12). Huecos donde la EBNF admite la frase: objeto de consumo/resultado/instrumento, sujeto de agente, lista de efecto, disparador de evento (A.5), partes de agregación (A.9), ambos extremos de etiquetados (A.8). Las plantillas de **condición** (A.6) y el **todo** de la agregación NO tienen hueco (DR-44). Estado: C (no ★).
+R-MULT-1: la frase, el entero o el parámetro precede al objeto; `opcional/opcionales` va
+tras el objeto completo, incluido su estado. Los prefijos históricos de `?` y `*` siguen
+leyéndose si son unívocos; G emite la localización canónica pospuesta. DR12 conserva el nombre
+literal sin inflexión plural automática (B-09). `muchos` no equivale a ningún rango: en OPD se
+anota literalmente `muchos` como realización de producto, sin afirmar un glifo ISO específico.
+
+Los parámetros son strings validados por matriz: una letra del repertorio español seguida
+por letras o dígitos. Su escritura exacta identifica un único símbolo global reutilizable,
+independiente de nombres/IDs de cosas y OPDs; `n` y `N` son distintos. No son cosas ni
+bindings, no hay valores locales, evaluación o tabla persistente nueva. `un`, `una`,
+`muchos`, `muchas`, `Infinity` y `NaN` (sin distinguir mayúsculas) son palabras reservadas en este
+subconjunto de producto, no prohibiciones ISO de nombres. Rangos, expresiones aritméticas,
+restricciones y nombres de parámetro con operadores/espacios siguen no ofrecidos (B-10).
+`b-i` no se acepta ni como nombre recortado ni como expresión parcialmente reconstruida.
+Los campos y el formato v0 conservan strings; cifras ≥2 y DEC43 permanecen byteexactas.
+
+Frontera de parámetro/prosa (B-56, extensión de producto): G delimita todos los parámetros
+simples entre `«»`, por ejemplo `*Procesar* consume **Alfa** y «genera» **Beta**.`. El
+símbolo almacenado y el rótulo OPD siguen siendo `genera`; el token de multiplicidad conserva
+esa escritura y los delimitadores son superficie, sin IDs ni campos v0 nuevos. Números,
+`muchos/muchas`, opcionalidad y las otras frases de cantidad no se delimitan como parámetros.
+P reconoce `«símbolo»` sólo en un hueco de multiplicidad válido de la plantilla; en el hueco
+de etiqueta sigue siendo etiqueta. La delimitación no es literal ISO ni modifica el canon.
+La entrada histórica sin delimitación sigue admitiéndose cuando es unívoca. Una oración
+que coincide con prosa mixta de verbos no ofrecida conserva su diagnóstico sin hechos ni
+acciones; no se reinterpreta como parámetros por el modelo existente. Así se preserva la
+lista AND de una sola oración, sin split, nombres prohibidos adicionales ni pérdida de hechos.
+
+Sólo los objetos admiten cantidad (R-MULT-1A), incluso en agregación y etiquetados. La matriz
+impide crear/agregar cantidad en un extremo proceso; un v0 recuperado conserva el campo
+con diagnóstico y gates. U permite quitar ese campo, sin ofrecer una cantidad nueva. Huecos:
+objeto de consumo/resultado/instrumento, sujeto de agente, efecto sin estado y evento,
+partes objeto de agregación y ambos extremos objeto de etiquetados sin estado. B-04/DR44
+conserva las otras combinaciones y la condición `c`; no añade huecos. T-057/T-128/T-194
+contrastan dato, token, prosa, inversa de hechos y punto fijo. Estado parcial del alcance ISO;
+no acredita todas las multiplicidades posibles del Anexo A o §11.2.
+
+
+### 4.4.12 Frontera entre etiqueta libre y cantidad (extensión de producto)
+
+La delimitación `«etiqueta»` es sintaxis de OpForja, no literal ISO/PAS ni cambio del canon.
+Separa hechos que, con la yuxtaposición de A.4.6.2.2, tienen la misma superficie: una etiqueta
+`conoce 3` y una etiqueta `conoce` con cantidad `3`; también `opcionales conoce` sin cantidad
+origen y `conoce` con cantidad origen `*`. No se prohíben ni se recortan estas etiquetas.
+
+G delimita uniformemente cada etiqueta de los estructurales etiquetados: UNI, listas UNI
+cerradas, las dos direcciones del bidireccional, recíproco con etiqueta y formas con estado.
+Incluye el literal efectivo `se relaciona con` de UNI sin etiqueta; el recíproco sin etiqueta
+conserva el literal fijo `se relacionan`. La ausencia y el valor explícito de la etiqueta por
+defecto conservan su equivalencia vigente B-38, sin normalizar campos JSON. Ejemplos:
+`**Origen** «conoce 3» **Destino**.` / `**Origen** «conoce» 3 **Destino**.` /
+`**Origen** opcionales «conoce» **Destino** opcionales.` Los delimitadores no forman parte
+del dato etiqueta, de su token editable ni del rótulo OPD; el token conserva ref/hecho/ID.
+
+P reconoce exactamente etiqueta, estado y cantidad de la forma delimitada. Una entrada
+histórica sin delimitadores sólo se admite si determina un único conjunto de hechos legales;
+con dos interpretaciones distintas da `ambiguous-symbol`, conserva la línea y no propone
+acciones. El texto regenerado idéntico no basta: T-182/T-192/T-194 contrastan hechos por
+extremos y cantidades, JSON, auto-reparseo, ida y vuelta desde vacío y edición con IDs.
+No modifica el léxico, el formato v0, operadores XOR/OR ni las guardas B-04/DR-44 y DR-12.
 
 ### 4.5 Orden y composición de oraciones (generador)
 
@@ -1870,7 +1931,7 @@ Los ★ con obligación PUEDE o inferida son soportes necesarios de un DEBE ★ 
 | T-054 | Abanico: n ≥ 2, mismo tipo, extremo común; solo en consumo, resultado, efecto, agente, instrumento e invocación (convergente o divergente). | inf. DEBE | imp | spec-OPL §8.1, reglas §7.2, R-FAN-HAB-1, DR-9 | ★ |
 | T-055 | Abanicos de resultado e invocación sin `e`/`c`. | DEBE bloquearse | imp | AP-03, R-OPD-CTL-8, R-FAN-4 | ★ |
 | T-056 | Abanico con control mixto: rechazar como `non-canonical`. Abanico×control listado como válido pero sin plantilla literal (C-19b, C-18 instrumento, agente): no ofrecer; parser `unsupported-canonical`. | DEBE / NO DEBE | imp | R-ZNC-COMB-1, R-COMB-1, R-FAN-3, R-IMPORT-5, spec-OPL §8.3/§8.4 | |
-| T-057 | Multiplicidad solo en etiquetados (ambos extremos), agregación (extremo parte) y procedimentales (extremo objeto); nunca en extremo proceso; valores `?`, `*`, `+`, `2..*` y un entero n ≥ 2 (DEC35; ausente = 1..1); no se ofrece junto con `c` (sin hueco en A.6, DR-44). | DEBE / NO DEBE / NUNCA | imp | R-MULT-1/1A, R-OPD-MUL-1, R-COMB-6, EBNF A.5/A.6/A.8/A.9, DR-21, DR-44 | |
+| T-057 | Multiplicidad solo en etiquetados (ambos extremos), agregación (extremo parte) y procedimentales (extremo objeto); nunca en extremo proceso; valores `?`, `*`, `+`, `2..*`, entero n ≥ 2, `muchos` y parámetro simple global (§4.4.11; ausente = 1..1); no se ofrece junto con `c` (sin hueco en A.6, DR-44). | DEBE / NO DEBE / NUNCA | imp | R-MULT-1/1A, R-OPD-MUL-1, R-COMB-6, EBNF A.5/A.6/A.8/A.9, DR-21, DR-44 | |
 | T-058 | Ruta solo en consumo y resultado (restricción de producto declarada); etiqueta definida por el modelador, nunca autogenerada. | DEBE / NO DEBE | imp | R-OPL-RUTA-2/3, DR-19 | |
 | T-059 | Nada dentro de un estado; ningún estado dentro de un proceso. | inf. DEBE | imp | reglas §3.11, R-OPD-COSA-7, AP-12 | ★ |
 | T-060 | Consumo y resultado no quedan en un contorno con subprocesos. Ningún evento sistémico exterior al contorno inicia directamente un subproceso a ningún nivel; puede iniciar el proceso completo. El ambiental PUEDE cruzar el contorno (B-44, DEC48). | NO DEBE / PUEDE | imp | R-DIST-1, R-CX-DIST-1/2, AP-06, AP-21 | ★ |
@@ -1943,7 +2004,7 @@ Los ★ con obligación PUEDE o inferida son soportes necesarios de un DEBE ★ 
 | T-125 | Descomposición en el OPD hijo: CX1 (secuencial), CX2 (una banda paralela) o mixta; sin rayos de invocación implícita. | DEBE | gen | reglas §4.11, R-OPL-CX-5, R-IV-2, DR-24 | ★ |
 | T-126 | Despliegue en el OPD hijo: CX3 `**Cosa** se despliega en SDx en …`; nunca `en esa secuencia` ni `paralelo`. | DEBE / NO DEBE | gen | reglas §4.11, R-OPL-CX-2, R-CX-DESP-2, R-CX-SYNC-2, DR-24 | ★ |
 | T-127 | Sin oración de refinamiento sin refinadores ni para OPD semidescompuesto; con uno se emite. | NO DEBE | gen | R-CX-0, R-OPD-OP-3 | ★ |
-| T-128 | Multiplicidad antepuesta al sustantivo (`un/una opcional`, `opcional (cero o más)`, `al menos un/una`, `al menos dos`, el entero en cifras) como sub-span propio; nunca símbolos crudos. | DEBE | gen | R-MULT-1, spec-OPL §10.1/§10.3 | |
+| T-128 | Cantidad como sub-span propio: frase/entero/parámetro antepuesto y `opcional/opcionales` pospuesto al objeto con estado; `muchos/muchas` sin cota, género y símbolo global exactos; delimitación de parámetro sólo en superficie de producto (DEC54); nunca glifos de opcionalidad crudos. | DEBE | gen | R-MULT-1, spec-OPL §10.1/§10.3 | |
 | T-129 | Ruta como prefijo fijo `Por ruta L, ` antepuesto a la oración completa (también a su variante E\*/C\*), con orden estable; listas AND sólo con ruta común; las ramas de abanico con ruta se emiten separadas (DS10). | DEBE / NO DEBE | gen | R-OPL-RUTA-1, R-COMB-4, R-COMB-5, spec-OPL §11, C-24 | |
 | T-130 | Listas con coma y `y`/`o` final sin coma de Oxford; alternancia `e`/`u` por fonética. | DEBE | gen | R-OPL-LISTA-1, R-OPL-KW-2, R-§18-LISTA-1, DR-26 | ★ |
 | T-131 | En cada OPD, coordinar miembros estructurales del mismo vértice y relación con sus referencias individuales. | DEBE | gen | R-COMP-EJE-3, R-COMP-ELEG-3 | ★ |
@@ -2149,7 +2210,7 @@ Criterio de resolución: (1) precedencia del canon (§0.3); (2) si el canon no d
 | DR-18 | Unidades de duración en inglés (`ms, sec, min…`) en canon es-CL; R-OPD-INV-6 dice que ese enum «fija solo la superficie visual» y delega la textual a spec-OPL §5.3, cuyos ejemplos normativos usan palabras es-CL (`excede 5 minutos`, `es menor que 30 segundos`) sin tabla de mapeo; EBNF fija el literal `unidades-tiempo` mientras §5.3 lo declara metavariable. | R-OPD-INV-6, spec-OPL §5.3, EBNF A.5, C-11 | OPD: token del enum (`[min]`). OPL: `<valor> <palabra es-CL>` con mapeo fijo mínimo `ms`→milisegundos, `sec`→segundos, `min`→minutos, `hour`→horas, `day`→días, `week`→semanas, `month`→meses, `year`→años (singular si el valor es 1). `unidades-tiempo` = metavariable; la EBNF se corrige así. Sin cota: frase de respaldo (R-EXC-DUR-1). El mapeo exacto es decisión pendiente menor del dueño (§10.3). |
 | DR-19 | Ruta: canónica sobre toda oración procedimental (A.5) pero «restricción de producto» a consumo/resultado; ¿qué hace el parser con ruta sobre habilitadores? | R-OPL-RUTA-3, C-25, GAP-08 | Se mantiene la restricción declarada: ruta solo en consumo/resultado; otras ⇒ `unsupported-canonical`. |
 | DR-20 | Valores de atributo: plantilla propia `**Atributo** de **Objeto** puede estar …` y D5 genérico. | reglas §4.13 vs D5 | Generador usa D5 (el atributo es un objeto); parser acepta ambas (la forma «de **Objeto**» crea la exhibición si falta). |
-| DR-21 | Multiplicidad: `*` → `opcional (cero o más)` no es derivable de la EBNF; rangos, intervalos y parámetros sin plantilla en prosa (GAP-RANGO-TEXTUAL); R-MULT-1 excluye exhibición pero RF2o la usa. | spec-OPL §10.1/§10.2 vs EBNF A.2, R-MULT-1 vs RF2o | `?`, `*`, `+` y default, con las frases de §10.1 (el parser acepta `opcional (cero o más)` como plantilla). DEC35 suma lo que la EBNF A.2 sí escribe en prosa: un entero exacto n ≥ 2 en cifras y `2..*` como «al menos dos» (también se lee «dos o más»). Todo lo demás, y la exhibición opcional, ⇒ `unsupported-canonical`. |
+| DR-21 | La superficie de cardinalidad anterior usaba prefijos opcionales y no ofrecía parámetros. | canon §6.7/spec-OPL §10; DEC35/43/53/54 | B-42 emite opcional pospuesto, opcionales, muchos y parámetro simple global delimitado (§4.4.11); P conserva legacy unívoco. B-10 conserva rangos/aritmética/restricciones y nombres adicionales; exhibición no tiene cantidad. No inflexión de nombres (DR12) ni bindings. |
 | DR-22 | Unicidad nominal vs `referencia-ambigua` («más de una entidad con ese nombre») y «homónimos → cosas separadas». | método A5.15, R-OPL-FALLO-4, R-OPD-ROT-5 | Nombre único en todo el modelo (objetos y procesos); la ambigüedad es imposible; un cambio de tipo por OPL cae en R-IMPORT-7. |
 | DR-23 | Descomposición de objeto: DEBE (R-OPL-CX-4) pero la EBNF le exige `, en esa secuencia`, contra «la posición NO es tiempo». | EBNF A.10 vs R-OPD-REF-2, R-CX-DESP-2, método A3.3 | Escalonable: se declara en el registro (las partes se modelan por despliegue de agregación). Si se implementa, sin marca temporal (corrige la EBNF). |
 | DR-24 | CX1 (sin OPDs) es plantilla-gate, pero R-OPL-CX-2/3 exigen declarar OPD padre/hijo en refinamiento en OPD nuevo; CX3 lleva etiqueta; spec-OPL distingue el despliegue en el diagrama original del despliegue en un hijo nuevo. | reglas §4.11, 9.2, R-OPL-CX-2/3, spec-OPL §7.2, ISO §14.2.1.2/A.4.7.1 | Refinamiento siempre en OPD nuevo. Descomposición: CX1/CX2/mixta dentro del bloque del hijo. Despliegue: CX3 con etiqueta y las relaciones fundamentales agrupadas elegibles, conservando el modo y las referencias por miembro (B-41). El parser acepta además las formas `desde SDp … en SDh en …` y `se despliega en` sin etiqueta. |

@@ -23,17 +23,18 @@ test('T-282 Markdown genuino contiene todos los bloques en preorden y contexto d
 // Revisión contra los ejemplos de Wikipedia/ISO: el texto que genera el producto vuelve idéntico.
 for (const texto of [
     '**B** puede estar `s1`, `s2` o `s3`.\n*P* genera exactamente uno de **B** en `s1`, **B** en `s2` o **B** en `s3`.',
-    '**Auto** tiene un opcional **Techo Solar**.',
-    '**Auto** tiene al menos una **Rueda**.'
+    '**Auto** «tiene» un **Techo Solar** opcional.',
+    '**Auto** «tiene» al menos una **Rueda**.'
 ])
     test(`T-287 OPL→modelo→OPL idéntico: ${texto.split('\n').at(-1)}`, () => {
         const r = importarOpl('Prueba', `## SD\n${texto}`); expect(r.ok).toBe(true); if (!r.ok) return;
         expect(Object.keys(r.valor.modelo.enlaces).length).toBeGreaterThan(0);
         expect(generarDocumentoOpl(r.valor.modelo)).toBe(`# Prueba\n\n## SD\n${texto}`);
     });
-test('T-287 el atributo opcional «tiene un **Y** opcional» sigue sin soporte y no crea hechos', () => {
-    const r = importarOpl('Prueba', '## SD\n**Pedido** tiene una **Marca** opcional.'); expect(r.ok).toBe(true); if (!r.ok) return;
-    expect(r.valor.modelo.enlaces).toEqual({});
+test('T-287 B-42 tiene una cosa opcional es etiquetado de Tabla16, no exhibición inventada', () => {
+    const r = importarOpl('Prueba', '## SD\n**Pedido** «tiene» una **Marca** opcional.'); expect(r.ok).toBe(true); if (!r.ok) return;
+    expect(Object.values(r.valor.modelo.enlaces)).toEqual([expect.objectContaining({tipo:'etiquetado',etiqueta:'tiene',multDestino:'?'})]);
+    expect(Object.values(r.valor.modelo.enlaces).some(e=>e.tipo==='exhibicion')).toBe(false);
 });
 
 import {aplicarAcciones} from '../nucleo/operaciones';
@@ -88,7 +89,7 @@ test('T-057 DEC35 el entero exacto y «al menos dos» vuelven desde vacío al mi
   [{objetos:[['Llave',[]]],procesos:['Ensamblar'],enlaces:[['instrumento','Llave','Ensamblar']]},{mult:'3'},'*Ensamblar* requiere 3 **Llave**.'],
   [{objetos:[['Operador',[]]],procesos:['Ensamblar'],enlaces:[['agente','Operador','Ensamblar']]},{mult:'2..*'},'Al menos dos **Operador** maneja *Ensamblar*.'],
   [{objetos:[['Conjunto de Cosas',[]],['Cosa',[]]],enlaces:[['agregacion','Conjunto de Cosas','Cosa']]},{mult:'2..*'},'**Conjunto de Cosas** consta de al menos dos **Cosa**.'],
-  [{objetos:[['Fábrica',[]],['Planta',[]]],enlaces:[['etiquetado','Fábrica','Planta']]},{etiqueta:'comprende',multDestino:'3'},'**Fábrica** comprende 3 **Planta**.'],
+  [{objetos:[['Fábrica',[]],['Planta',[]]],enlaces:[['etiquetado','Fábrica','Planta']]},{etiqueta:'comprende',multDestino:'3'},'**Fábrica** «comprende» 3 **Planta**.'],
  ] as const){
   const base=modeloCon(datos as unknown as DatosModelo),[id,e]=Object.entries(base.enlaces)[0]!,m={...base,enlaces:{[id]:{...e,...campos}}} as Modelo;
   expect(validarForma(m)).toEqual([]);expect(erroresContexto(m)).toEqual([]);

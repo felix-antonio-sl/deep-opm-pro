@@ -29,9 +29,9 @@ function estricto(m: Modelo): string {
 }
 const casos: readonly (readonly [string, (x: ReturnType<typeof base>) => EnlaceNuevo, readonly string[]])[] = [
     ['bidireccional con estado en destino (SSE4/SSE5)', x => ({ tipo: 'etiquetadoBidireccional', origen: x.p, destino: x.c, etiqueta: 'pertenece a', inversa: 'posee', estadoDestino: x.activo }),
-        ['**Pedido** pertenece a **Cliente** en `activo`.', '**Cliente** en `activo` posee **Pedido**.']],
+        ['**Pedido** «pertenece a» **Cliente** en `activo`.', '**Cliente** en `activo` «posee» **Pedido**.']],
     ['bidireccional con estado en ambos extremos (dos SSE3)', x => ({ tipo: 'etiquetadoBidireccional', origen: x.p, destino: x.c, etiqueta: 'pertenece a', inversa: 'posee', estadoOrigen: x.listo, estadoDestino: x.activo }),
-        ['**Pedido** en `listo` pertenece a **Cliente** en `activo`.', '**Cliente** en `activo` posee **Pedido** en `listo`.']],
+        ['**Pedido** en `listo` «pertenece a» **Cliente** en `activo`.', '**Cliente** en `activo` «posee» **Pedido** en `listo`.']],
 ];
 for (const [nombre, candidato, oraciones] of casos)
     test(`T-049 T-192 ${nombre}: OPL canónico desde vacío y códec en punto fijo`, () => {
@@ -46,5 +46,5 @@ test('T-049 T-192 recíproco con estado sólo en destino lo lleva al origen (SSE
     const r = crearEnlace(x.b, { opd: x.b.raiz, candidato }); expect(r.ok).toBe(true); if (!r.ok) throw Error(r.rechazo.mensaje);
     expect(Object.values(r.valor.modelo.enlaces)).toEqual([{ id: r.valor.creados[0]!, tipo: 'reciproco', origen: x.c, destino: x.p, etiqueta: 'asociados', estados: { origen: x.activo } }]);
     expect(r.trazas.some(t => t.regla === 'R-EST-SSE-1')).toBe(true);
-    expect(estricto(r.valor.modelo)).toContain('**Pedido** y **Cliente** en `activo` son asociados.');
+    expect(estricto(r.valor.modelo)).toContain('**Pedido** y **Cliente** en `activo` son «asociados».');
 });

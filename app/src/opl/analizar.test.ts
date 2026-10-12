@@ -59,7 +59,6 @@ const limites = [
  ['Por ruta Uno, *Procesar* requiere **Pedido**.','unsupported-canonical'],
  ['**Pedido** es persistente.','unsupported-canonical'],
  ['**Pedido** es de tipo integer.','unsupported-canonical'],
- ['**Pedido** tiene un **Color** opcional.','unsupported-canonical'],
  ['*Procesar* consume **A** y genera **B**.','unsupported-canonical'],
  ['*Archivar* ocurre si duración de *Procesar* excede 1 minuto y es menor que 3 minutos.','unsupported-canonical'],
  ['*Procesar* es persistente.','non-canonical'],
@@ -118,12 +117,18 @@ test('T-150 nombres tipados con palabras de límites preservan núcleo y estrict
 });
 test('T-150 límites no interpretan palabras dentro estado o ruta fiel y sí fuera del span',()=>{
  const m=modeloNombresReservados({objetos:[['Pedido',['estado-OR']]],procesos:['Validar'],enlaces:[['consumo','Pedido','Validar']]}),e=Object.values(m.enlaces)[0]!;if(e.tipo!=='consumo')throw Error('fixture');const r={...m,enlaces:{[e.id]:{...e,ruta:'OR'}}};expect(formaNombresReservados(r)).toEqual([]);expect(contextoNombresReservados(r)).toEqual([]);const texto=docNombresReservados(r);expect(analizar(texto).flatMap(l=>l.diagnosticos)).toEqual([]);const importado=importNombresReservados(r.nombre,texto);expect(importado.ok).toBe(true);if(importado.ok)expect(docNombresReservados(importado.valor.modelo)).toBe(texto);
- for(const s of ['**Pedido** XOR **Registro**.','*Validar* consume AND **Pedido**.','*Validar* consume **Pedido** Pr=0.5.'])expect(caso(s).diagnosticos[0]?.codigo).toBe('non-canonical');expect(caso('**Pedido** puede ser **Registro**.').diagnosticos[0]?.codigo).toBe('unsupported-canonical');
+ // B-42: AND en el hueco de cantidad es dato legal; entre objetos sigue siendo operador no ofrecido.
+ expect(caso('*Validar* consume AND **Pedido**.').hechos).toEqual([{k:'enlace',enlace:{tipo:'consumo',objeto:{nombre:'Pedido',tipo:'objeto',mult:'AND'},proceso:'Validar'}}]);
+ for(const s of ['**Pedido** XOR **Registro**.','*Validar* consume **Pedido** AND **Registro**.','*Validar* consume **Pedido** Pr=0.5.'])expect(caso(s).diagnosticos[0]?.codigo).toBe('non-canonical');expect(caso('**Pedido** puede ser **Registro**.').diagnosticos[0]?.codigo).toBe('unsupported-canonical');
 });
 
 test('T-170 SE1 residual requiere dos nombres tipados del mismo tipo y frase no capitalizada',()=>{
- expect(caso('**Cuenta** pertenece a **Registro**.').hechos).toEqual([{k:'enlace',enlace:{tipo:'etiquetado',origen:{nombre:'Cuenta',tipo:'objeto'},destino:{nombre:'Registro',tipo:'objeto'},etiqueta:'pertenece a'}}]);
+ expect(caso('**Cuenta** «pertenece a» **Registro**.').hechos).toEqual([{k:'enlace',enlace:{tipo:'etiquetado',origen:{nombre:'Cuenta',tipo:'objeto'},destino:{nombre:'Registro',tipo:'objeto'},etiqueta:'pertenece a'}}]);
  expect(caso('**Cuenta** pertenece a *Registrar*.').hechos).toEqual([]);expect(caso('**Cuenta** Pertenece a **Registro**.').hechos).toEqual([]);
+});
+test('T-156 T-157 B-42 **Pedido** tiene un **Color** opcional es etiquetado de Tabla16',()=>{
+ expect(caso('**Pedido** tiene un **Color** opcional.').diagnosticos).toEqual([]);
+ expect(caso('**Pedido** tiene un **Color** opcional.').hechos).toEqual([{k:'enlace',enlace:{tipo:'etiquetado',origen:{nombre:'Pedido',tipo:'objeto'},destino:{nombre:'Color',tipo:'objeto',mult:'?'},etiqueta:'tiene'}}]);
 });
 
 for(const texto of ['**Cuenta** puede ser **Registro**.','??.'])test(`T-152 salida de límite readonly no contamina hechos compartidos ${texto}`,()=>{

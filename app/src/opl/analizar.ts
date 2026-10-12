@@ -119,36 +119,44 @@ export interface LineaAnalizada {
 }
 
 
-import { PLANTILLAS } from './plantillas';
+import { PLANTILLAS, patronProducto } from './plantillas';
 import type { Plantilla, Hueco, Huecos, ValorHueco } from './plantillas';
 import { NO_SOPORTADAS, NO_CANONIZADAS } from './no-soportadas';
 import { validarEtiqueta } from '../nucleo/lexico';
+import { esParametroMultiplicidad, multiplicidadEnExtremo, PATRON_PARAMETRO_MULTIPLICIDAD } from '../nucleo/matriz';
 
 interface Span { readonly texto: string; readonly marca: 'objeto' | 'proceso' | 'estado'; }
 const atom = '§\\d+§';
 // DEC35: «al menos dos» y «dos o más» son 2..*; el entero exacto va desde 2 (B-10 conserva los demás).
-const prefijo = '(?:(?:un opcional|una opcional|al menos un|al menos una|al menos dos|dos o más|opcional \\(cero o más\\)|[2-9]|[1-9]\\d+) )?';
+const identificadorCantidad = PATRON_PARAMETRO_MULTIPLICIDAD;
+const parametroCantidad = '(?:«' + identificadorCantidad + '»|' + identificadorCantidad + ')';
+const prefijo = '(?:(?:un opcional|una opcional|al menos un|al menos una|al menos dos|dos o más|opcional \\(cero o más\\)|muchos|muchas|[2-9]|[1-9]\\d+|' + parametroCantidad + ') )?';
 const escape = (s: string) => s.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\$&');
 function literal(s: string,inicial=false): string {
     const letras=(x:string)=>{const re=escape(x);return inicial?re.replace(/\p{L}/gu,c=>c.toLowerCase()===c.toUpperCase()?c:'['+c.toLowerCase()+c.toUpperCase()+']'):re;};
     return s.split(/([\p{L}]+(?:\|[\p{L}]+)+)/u).map(x=>x.includes('|')?'(?:'+x.split('|').map(letras).join('|')+')':x.split(/( y | o )/).map(t=>t===' y '?inicial?' [yeYE] ':' [ye] ':t===' o '?inicial?' [ouOU] ':' [ou] ':letras(t)).join('')).join('');
 }
-function slot(k: string,inicial=false,listaAnd=false): string {
+function slot(k: string,inicial=false,listaAnd=false,tagCodicioso=false,pospuestoPrimero=false): string {
     if (k === 'Q' || k === 'Q^') return '(?:[Ee]xactamente uno de|[Aa]l menos uno de)';
     if (k === 'SEC') return '.+?';
     const name = k.replace(/^(Ly|Lo|Lista):/, '');
     const list = name !== k, mult = name.startsWith('m'), estado = name.endsWith('e') && name !== 'e';
-    if (['r', 't', 't2', 'v', 'esencia', 'afiliacion', 'u', 'n', 'opd', 'padre'].includes(name)) return '.+?';
+    if (name === 't' || name === 't2') return tagCodicioso ? '.+' : '.+?';
+    if (['r', 'v', 'esencia', 'afiliacion', 'u', 'n', 'opd', 'padre'].includes(name)) return '.+?';
     const prefijoInicial=prefijo.replace(/un opcional/g,'[Uu]n opcional').replace(/una opcional/g,'[Uu]na opcional').replace(/al menos/g,'[Aa]l menos').replace('dos o más','[Dd]os o más').replace('opcional '+String.fromCharCode(92)+'(','[Oo]pcional '+String.fromCharCode(92)+'(');
     const cambio = name === 'cambios' || name === 'entradas' || name === 'salidas';
+    const nombre = atom + '(?: proceso)?' + (estado ? '(?: en ' + atom + ')?' : '');
+    const variantes = [(inicial ? prefijoInicial : prefijo) + nombre, (inicial ? '(?:[Uu]n|[Uu]na) ' : '(?:un|una) ') + nombre + ' opcional', nombre + ' opcionales'];
+    if (pospuestoPrimero) variantes.reverse();
     const item = cambio ? atom + (name !== 'salidas' ? ' de ' + atom : '') + (name !== 'entradas' ? ' a ' + atom : '')
-        : (mult ? inicial?prefijoInicial:prefijo : name === 'articulos' ? '(?:un|una) ' : '') + atom + '(?: proceso)?' + (estado ? '(?: en ' + atom + ')?' : '');
+        : mult ? '(?:' + variantes.join('|') + ')'
+            : (name === 'articulos' ? '(?:un|una) ' : '') + nombre;
     const conjuncion = k.startsWith('Ly:') ? '[ye]' : k.startsWith('Lo:') ? '[ou]' : '[yeou]';
     // A.4.3: las listas AND nuevas cierran con una sola conjunción; los spans son opacos.
     if (list && listaAnd) return item + '(?:, ' + item + ')* ' + conjuncion + ' ' + item;
     return list ? item + '(?:(?:, | ' + conjuncion + ' )' + item + ')*' : item;
 }
-function compilar(p: Plantilla) {
+function compilar(p: Plantilla, tagCodicioso=false, pospuestoPrimero=false) {
     const keys: string[] = [];let primerLiteral=true;
     const tramo=(s:string)=>{const esPrimero=primerLiteral&&/\p{L}/u.test(s);if(esPrimero)primerLiteral=false;return literal(s,esPrimero);};
     function fragmento(s: string): string {
@@ -156,15 +164,27 @@ function compilar(p: Plantilla) {
         for (const m of s.matchAll(/\[([^\[\]]+)\]|\{([^}]+)\}/g)) {
             out += tramo(s.slice(fin, m.index));
             if (m[1] !== undefined){const antes=primerLiteral;out += '(?:' + fragmento(m[1]) + ')?';primerLiteral=antes;}
-            else { keys.push(m[2]!); out += '(' + slot(m[2]!,primerLiteral,p.id.startsWith('AND-') || p.id === 'SE1L' || p.id === 'SE2L') + ')'; }
+            else { keys.push(m[2]!); out += '(' + slot(m[2]!,primerLiteral,p.id.startsWith('AND-') || p.id === 'SE1L' || p.id === 'SE2L',tagCodicioso,pospuestoPrimero) + ')'; }
             fin = m.index! + m[0].length;
         }
         return out + tramo(s.slice(fin));
     }
-    return { p, keys, re: new RegExp('^' + fragmento(p.patron) + '$', 'u'), peso: p.patron.replace(/\{[^}]+\}/g, '').length };
+    return { p, keys, re: new RegExp('^' + fragmento(p.patron) + '$', 'du'), peso: p.patron.replace(/\{[^}]+\}/g, '').length };
 }
 // Esqueletos específicos primero; SE1/SSE residuales nunca capturan un literal reservado.
-const esqueletos = PLANTILLAS.map(compilar).sort((a, b) => {
+const esqueletos = PLANTILLAS.flatMap(p => {
+    const variantes = (patron: string, marcada: boolean, codicioso=false, pospuesto=false) => {
+        const original = { ...compilar({ ...p, patron },codicioso,pospuesto), p, marcada, estadoSeparado: undefined as string | undefined };
+        const separado = /\{mO\} en \{([es])\}/.exec(patron);
+        if (!separado) return [original];
+        const unido = compilar({ ...p, patron: patron.replace(separado[0], '{mOe}') });
+        return [original, { ...unido, p, marcada, estadoSeparado: separado[1] }];
+    };
+    if (p.familia !== 'etiquetada') return variantes(p.patron, false);
+    const marcado = patronProducto(p);
+    return [...variantes(marcado, true), ...variantes(p.patron, false),
+        ...variantes(p.patron, false, true), ...variantes(p.patron, false, false, true), ...variantes(p.patron, false, true, true)];
+}).sort((a, b) => {
     const residual = (id: string) => /^(?:SE[13]|SE1L|SSE[12345])$/.test(id) ? 1 : 0;
     return residual(a.p.id) - residual(b.p.id) || b.peso - a.peso;
 });
@@ -179,7 +199,7 @@ function nombres(texto: string): { plano: string; spans: Span[] } | null {
     });
     return /[*`]/.test(plano.replace('`Current`', '')) ? null : { plano, spans };
 }
-function capturar(k: string, s: string, spans: readonly Span[]): ValorHueco | null {
+function capturar(k: string, s: string, spans: readonly Span[], parametro?: (desde: number, hasta: number) => void): ValorHueco | null {
     if (k === 'Q' || k === 'Q^') return { texto: s.toLowerCase().startsWith('exactamente') ? 'XOR' : 'OR' };
     if (k === 'SEC') {
         // Los separadores sólo existen fuera de los spans; un nombre con y no se corta.
@@ -224,14 +244,33 @@ function capturar(k: string, s: string, spans: readonly Span[]): ValorHueco | nu
         return { texto: s };
     }
     const valores: Hueco[] = [];
-    for (const m of s.matchAll(/(?:(un opcional|una opcional|al menos un|al menos una|al menos dos|dos o más|opcional \(cero o más\)|[2-9]|[1-9]\d+|un|una) )?§(\d+)§(?: proceso)?(?: en §(\d+)§)?/gi)) {
+    const cantidad = new RegExp('(?:(un opcional|una opcional|al menos un|al menos una|al menos dos|dos o más|opcional \\(cero o más\\)|muchos|muchas|[2-9]|[1-9]\\d+|'+parametroCantidad+') )?§(\\d+)§(?: proceso)?(?: en §(\\d+)§)?(?: (opcionales|opcional))?', 'iy');
+    let cursor = 0;
+    while (cursor < s.length) {
+        if (valores.length) {
+            const separador = /^(?:, | [yeou] )/.exec(s.slice(cursor));
+            if (!separador) return null;
+            cursor += separador[0].length;
+        }
+        cantidad.lastIndex = cursor;
+        const m = cantidad.exec(s); if (!m) return null;
+        cursor = cantidad.lastIndex;
         const modificador = m[1]?.toLowerCase();
+        const delimitado = m[1]?.startsWith('«') ? m[1].slice(1, -1) : undefined;
         const span = spans[Number(m[2])]!, e = m[3] ? spans[Number(m[3])] : undefined;
         const esperado = ['s','e','a','b'].includes(name) ? 'estado' : /^(?:O|Olista)/.test(base) ? 'objeto' : /^(?:P|Plista)/.test(base) ? 'proceso' : undefined;
         if (esperado && span.marca !== esperado || e && e.marca !== 'estado') return null;
-        const mult: Multiplicidad | undefined = !modificador ? undefined : modificador.includes('opcional') ? modificador.startsWith('opcional') ? '*' : '?'
-            : modificador === 'al menos dos' || modificador === 'dos o más' ? '2..*' : modificador.startsWith('al menos') ? '+' : /^\d+$/.test(modificador) ? modificador as Multiplicidad : undefined;
-        valores.push({ ...span, ...(modificador?.includes('una') ? { genero: 'f' as const } : {}), ...(mult ? { mult } : {}), ...(e ? { estado: e } : {}) });
+        const pospuesto = m[4]?.toLowerCase();
+        if (pospuesto === 'opcional' && !['un', 'una'].includes(modificador ?? '') || pospuesto === 'opcionales' && modificador) return null;
+        if (name.startsWith('m') && ['un','una'].includes(modificador ?? '') && !pospuesto) return null;
+        const mult: Multiplicidad | undefined = delimitado !== undefined ? esParametroMultiplicidad(delimitado) ? delimitado : undefined
+            : pospuesto === 'opcional' ? '?' : pospuesto === 'opcionales' ? '*' : !modificador ? undefined
+                : modificador === 'opcional (cero o más)' ? '*' : ['un opcional', 'una opcional'].includes(modificador) ? '?'
+            : modificador === 'al menos dos' || modificador === 'dos o más' ? '2..*' : modificador.startsWith('al menos') ? '+'
+                : ['muchos','muchas'].includes(modificador) ? 'muchos' : /^\d+$/.test(modificador) ? modificador : esParametroMultiplicidad(m[1]!) ? m[1] : undefined;
+        if (name.startsWith('m') && modificador && mult === undefined) return null;
+        if (mult && esParametroMultiplicidad(mult)) parametro?.(m.index, m.index + m[1]!.length);
+        valores.push({ ...span, ...(/(?:^| )una(?: |$)|^muchas$/.test(modificador ?? '') ? { genero: 'f' as const } : {}), ...(mult ? { mult } : {}), ...(e ? { estado: e } : {}) });
     }
     if (!valores.length) return null;
     return name !== k ? valores : valores.length === 1 ? valores[0]! : null;
@@ -239,17 +278,37 @@ function capturar(k: string, s: string, spans: readonly Span[]): ValorHueco | nu
 function congelarHecho<T>(x:T):T {
     if(x&&typeof x==='object'&&!Object.isFrozen(x)){for(const v of Object.values(x))congelarHecho(v);Object.freeze(x);}return x;
 }
-const memoLineas = new Map<string, { plantilla: string; hechos: readonly HechoTexto[] } | null>();
-function reconocerLinea(texto: string): { plantilla: string; hechos: readonly HechoTexto[] } | null {
+type Reconocimiento = { plantilla: string; hechos: readonly HechoTexto[]; ambigua?: true; superficieLimites?: string };
+function superficieParaLimites(texto: string): string {
+    return texto.replace(/\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`|«[^«»]+»/gu,
+        span => span.startsWith('**') ? '**N**' : span.startsWith('*') ? '*N*' : span.startsWith('«') ? '«etiqueta»' : '`s`')
+        .replace(/^Por ruta [^,\n]+, /u, 'Por ruta R, ');
+}
+const memoLineas = new Map<string, Reconocimiento | null>();
+function reconocerLinea(texto: string): Reconocimiento | null {
     if (memoLineas.has(texto)) return memoLineas.get(texto)!;
     if (memoLineas.size >= 2048) memoLineas.clear();
     const tokens = nombres(texto); if (!tokens) return null;
-    for (const { p, re, keys } of esqueletos) {
+    const lecturas = new Map<string, Reconocimiento>();
+    const firma = (hechos: readonly HechoTexto[]) => {
+        const normalizar = (v: unknown): unknown => {
+            if (Array.isArray(v)) return v.map(normalizar);
+            if (!v || typeof v !== 'object') return v;
+            const x = v as Record<string, unknown>;
+            return Object.fromEntries(Object.keys(x).sort().filter(k => k !== 'genero'
+                && !(k === 'etiqueta' && x.tipo === 'etiquetado' && x.etiqueta === 'se relaciona con')).map(k => [k, normalizar(x[k])]));
+        };
+        return JSON.stringify(normalizar(hechos));
+    };
+    for (const { p, re, keys, estadoSeparado, marcada } of esqueletos) {
         const match = re.exec(tokens.plano); if (!match) continue;
         const h: Record<string, ValorHueco> = {}; let valido = true;
+        const parametros: { desde: number; hasta: number }[] = [];
         for (let i = 0; i < keys.length; i++) {
             const k = keys[i]!, s = match[i + 1]; if (s === undefined) continue;
-            const v = capturar(k, s, tokens.spans); if (!v) { valido = false; break; }
+            const inicio = match.indices![i + 1]![0];
+            const v = capturar(k, s, tokens.spans, (desde, hasta) => parametros.push({ desde: inicio + desde, hasta: inicio + hasta }));
+            if (!v) { valido = false; break; }
             let name = k === 'Q' || k === 'Q^' ? 'operador' : k.replace(/^(Ly|Lo|Lista):/, '');
             if (name.startsWith('m')) name = name.slice(1).replace(/^(O|Olista|C[12])e$/, '$1');
             if (h[name]) {
@@ -260,15 +319,40 @@ function reconocerLinea(texto: string): { plantilla: string; hechos: readonly He
             }
             h[name] = v;
         }
-        if (!valido || !p.restricciones?.(h)) continue;
+        if (!valido) continue;
+        if (estadoSeparado) {
+            const objeto = h.O;
+            if (!objeto || Array.isArray(objeto) || !(objeto as Hueco).estado) continue;
+            h[estadoSeparado] = (objeto as Hueco).estado!;
+        }
+        if (!p.restricciones?.(h)) continue;
         if((p.id==='SE1'||p.id==='SE3')&&(h.C1 as Hueco)?.marca!==(h.C2 as Hueco)?.marca)continue;
         if ((p.id === 'D1' || p.id === 'D4') && / es (?:física|sistémica)\.$/.test(texto)) h.C = { ...(h.C as Hueco), genero: 'f' };
         if (p.id.endsWith('-XOR') && (h.operador as Hueco).texto !== 'XOR' || p.id.endsWith('-OR') && (h.operador as Hueco).texto !== 'OR') continue;
         if (p.id === 'RF3b' && / es una /.test(tokens.plano)) h.general = { ...(h.general as Hueco), genero: 'f' };
         const hechos = congelarHecho(p.hacia(h));
-        if (hechos.length) { const r = { plantilla: p.id, hechos }; memoLineas.set(texto,r); return r; }
+        if (!hechos.length) continue;
+        let superficie: string | undefined;
+        if (parametros.length) {
+            // Sólo posiciones reconocidas como cantidad: una palabra igual en prosa
+            // conserva su papel y sus límites. Texto, hechos y símbolos siguen intactos.
+            let plano = tokens.plano;
+            for (const { desde, hasta } of parametros.sort((a, b) => b.desde - a.desde))
+                plano = plano.slice(0, desde) + 'cantidad' + plano.slice(hasta);
+            superficie = superficieParaLimites(plano.replace(/§(\d+)§/g, (_, n: string) =>
+                tokens.spans[Number(n)]!.marca === 'objeto' ? '**N**' : tokens.spans[Number(n)]!.marca === 'proceso' ? '*N*' : '`s`'));
+        }
+        const r: Reconocimiento = { plantilla: p.id, hechos, ...(superficie ? { superficieLimites: superficie } : {}) };
+        // Los literales reservados conservan su prioridad; la ambigüedad nueva
+        // se comprueba entre lecturas del residual etiquetado histórico.
+        if (p.familia !== 'etiquetada' || marcada) { memoLineas.set(texto,r); return r; }
+        const extremos = Object.values(h).flatMap(v => !v ? [] : Array.isArray(v) ? v : [v as Hueco]);
+        if (extremos.some(v => (v.marca === 'objeto' || v.marca === 'proceso') && !multiplicidadEnExtremo(v.marca,v.mult))) continue;
+        lecturas.set(firma(hechos),r);
     }
-    memoLineas.set(texto,null); return null;
+    const r = lecturas.size > 1 ? { plantilla: lecturas.values().next().value!.plantilla, hechos: [], ambigua: true as const }
+        : lecturas.values().next().value ?? null;
+    memoLineas.set(texto,r); return r;
 }
 const HECHOS_VACIOS:readonly HechoTexto[]=Object.freeze([]);
 const DIAGS_VACIOS:readonly DiagOpl[]=Object.freeze([]);
@@ -287,14 +371,15 @@ export function analizar(texto: string): readonly LineaAnalizada[] {
         if (!s.endsWith('.') && !/\. \[etiqueta: [^\]]+\]$/.test(s)) return diag('syntax-error', 'La oración OPL-ES debe terminar en punto.');
         let clasificacion=memoClasificacion.get(s);
         if(!clasificacion){
-            // Los límites leen gramática y tipografía, nunca contenido de nombres/estados/ruta.
-            const superficieLimites = s.replace(/\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`/gu,span=>span.startsWith('**')?'**N**':span.startsWith('*')?'*N*':'`s`').replace(/^Por ruta [^,\n]+, /u,'Por ruta R, ');
-            const etiquetada = /\bdonde\b|\bordenados por\b/u.test(superficieLimites) ? reconocerLinea(s) : null;
-            const no = [...NO_CANONIZADAS,...NO_SOPORTADAS].find(x => x.patron.test(superficieLimites) && !(x.enEtiqueta && etiquetada?.plantilla === 'SE1L'));
+            // Los límites leen gramática y tipografía, nunca datos de huecos reconocidos.
+            const reconocida = reconocerLinea(s);
+            const superficieInicial = superficieParaLimites(s);
+            const superficieLimites = reconocida?.superficieLimites ?? superficieInicial;
+            const no = [...NO_CANONIZADAS,...NO_SOPORTADAS].find(x => x.patron.test(x.prosaCompuesta ? superficieInicial : superficieLimites) && !(x.enEtiqueta && reconocida?.plantilla === 'SE1L'));
             // Sujetos enumerados del canon no son plural por multiplicidad (B-09).
-            const r = !no || no.registro === 'B-09' ? etiquetada ?? reconocerLinea(s) : null;
+            const r = !no || no.registro === 'B-09' ? reconocida : null;
             const limite = no && r?.plantilla !== 'AND-agente' && r?.plantilla !== 'AND-instrumento-procesos' ? no : undefined;
-            clasificacion=limite?{hechos:HECHOS_VACIOS,diagnosticos:diag(limite.codigo,'Construcción fuera del subconjunto inverso soportado.',limite.regla).diagnosticos.map(d=>({...d,linea:0}))}:r?{...r,diagnosticos:[]}:{hechos:HECHOS_VACIOS,diagnosticos:[{codigo:'syntax-error',severidad:'error',linea:0,mensaje:'Forma OPL no reconocida.'}]};
+            clasificacion=r?.ambigua?{hechos:HECHOS_VACIOS,diagnosticos:[{codigo:'ambiguous-symbol',severidad:'error',linea:0,mensaje:'Etiqueta y cantidad admiten hechos distintos; delimita la etiqueta entre «».'}]}:limite?{hechos:HECHOS_VACIOS,diagnosticos:diag(limite.codigo,'Construcción fuera del subconjunto inverso soportado.',limite.regla).diagnosticos.map(d=>({...d,linea:0}))}:r?{plantilla:r.plantilla,hechos:r.hechos,diagnosticos:[]}:{hechos:HECHOS_VACIOS,diagnosticos:[{codigo:'syntax-error',severidad:'error',linea:0,mensaje:'Forma OPL no reconocida.'}]};
             if(memoClasificacion.size>=2048)memoClasificacion.delete(memoClasificacion.keys().next().value!);
             memoClasificacion.set(s,clasificacion);
         }

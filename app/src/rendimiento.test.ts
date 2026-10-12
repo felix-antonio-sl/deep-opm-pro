@@ -129,6 +129,7 @@ function prepararCorpusRoundtrip() {
             esperar(JSON.stringify(b)).toBe(antes);
         }
         return { casos: casos.length, modelos, importaciones, pendientes: pendientes.length,
+            cantidadesProcesoRechazadas: libro.filter(c => Array.isArray(c.contexto) && c.contexto.includes('R-MULT-1A')).length,
             argumentosExactos: argumentosExactos.size, admitidos: libro.filter(c => c.admitido).length,
             familias: [...new Set(libro.map(c => c.familia))].sort(), comprobaciones };
     };
@@ -138,9 +139,11 @@ test('T-192 toda enumeración construcción análisis ensayo aplicación mediana
     const medidas = medir('T-192 corpus completo', 3000, prepararCorpusRoundtrip, r => {
         for (const comprobar of r.comprobaciones) comprobar();
         expect(r.casos).toBe(160);
-        expect(r.modelos).toBe(3012);
+        expect(r.modelos).toBe(2148);
+        expect(r.cantidadesProcesoRechazadas).toBe(864);
+        expect(r.modelos + r.cantidadesProcesoRechazadas).toBe(3012);
         expect(r.admitidos).toBe(r.modelos);
-        expect(r.argumentosExactos).toBe(2746);
+        expect(r.argumentosExactos).toBe(1926);
         expect(r.importaciones).toBe(r.pendientes);
         expect(r.familias).toEqual(['CX', 'CX3', 'EX', 'FAN5', 'atributos-mixtos', 'atómico', 'fan', 'fan-por-rama']);
     });

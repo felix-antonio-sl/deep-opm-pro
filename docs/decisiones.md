@@ -220,6 +220,37 @@ que tenemos» (ISO/PAS 19450:2015; no se versiona en el repositorio). Se cita la
     No modifica XOR/OR, el DEBE de §12.1 ni los otros documentos del canon. La aceptación requiere pruebas
     completas y revisión independiente; publicación sólo en la rama, sin integración ni despliegue.
 
+53. **B-42 y delimitación de etiquetas como extensión de producto.** Mandato directo, role=user:
+    > Sigamos con B-42. Contrasta con el canon y conserva el roundtrip, con pruebas completas y revisión independiente. Commit atómico y semántico y push solo a la rama; sin tocar main ni desplegar.
+
+    Respuesta directa a `request_user_input_async` sobre la propuesta precisa de frontera etiqueta/cantidad:
+    > Autorizar la delimitación propuesta (recomendado)
+
+    `questionItemId`: `["request_user_input_async","call_a29efd347c344e309a501dfdd654e28c",0]`; ID/fecha del
+    mensaje no observables. Autoriza el patch de 60 líneas SHA256
+    `3f15d5208bd84fab00a79089ae5351a7992c8f2517e8f28c06d9c9352b460532`, revisado independientemente,
+    y su implementación. `«etiqueta»` separa la etiqueta libre de las cantidades en ambos extremos:
+    UNI y listas cerradas, bidireccionales, recíprocos con etiqueta y estados; incluye la etiqueta
+    efectiva UNI por defecto. Es sintaxis explícita de producto, no literal ISO/PAS ni modificación
+    del canon, del dato almacenado, del rótulo OPD o de v0. Entrada histórica unívoca compatible;
+    ambigua, conservada y diagnosticada sin acciones. No elimina B-04/DR44, DR12 ni XOR/OR.
+    La aceptación exige roundtrip de hechos, check completo y revisión independiente favorable;
+    un commit/push sólo a la rama de trabajo. Sin integración en main ni despliegue.
+
+54. **B-42 y delimitación de parámetros simples como extensión de producto.** Resolución
+    directa role=user, recibida después de DEC53:
+    > Autorizo delimitar los parámetros simples con «» según la propuesta B-42. Aplícala y conserva el roundtrip, con pruebas completas y revisión independiente. Commit atómico y semántico y push solo a la rama; sin main ni despliegue.
+
+    ID/fecha originales del mensaje no observables. Autoriza el patch documental de 49 líneas
+    SHA256 `b02515035249943912a140cd0861251112479b09833eda77a284a5969e1a81cd`, con revisión
+    independiente favorable, y su implementación. G delimita uniformemente los parámetros
+    simples en su hueco de cantidad; P mantiene la entrada histórica unívoca y los rechazos
+    de prosa mixta no ofrecida. Se conserva una sola oración AND, cantidad, tokens de dato,
+    IDs/referencias, rótulo OPD y v0. No modifica canon ni introduce nombres prohibidos,
+    bindings o entidades de parámetro. Es sintaxis explícita de producto, no literal ISO.
+    La aceptación requiere roundtrip de hechos, pruebas completas y revisión global favorable;
+    un commit/push sólo a la rama de trabajo, sin integración en main ni despliegue.
+
 ## Resoluciones directas posteriores — vigentes
 
 Frases role=user recibidas textualmente; ID y fecha originales no observables.

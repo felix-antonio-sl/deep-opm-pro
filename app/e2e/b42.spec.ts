@@ -1,0 +1,41 @@
+import { test, expect, TOKEN, abrir, leer, guardado, seleccionarEnlace, tecla, opl, captura, aplicarTexto } from './soporte';
+import { modeloCon, must, porNombre } from '../src/pruebas/constructores';
+import { crearEnlace } from '../src/nucleo/enlaces';
+import { exportarV0 } from '../src/codec/exportar';
+import { importarV0 } from '../src/codec/importar';
+
+const decodificar = (texto: string) => {
+    const r = importarV0(texto); if (!r.ok) throw Error('Códec'); return r.modelo;
+};
+test('T-057 T-128 T-182 T-194 B-42 inspector persiste parámetro y muchos, etiqueta delimitada sólo en OPL y undo', async ({ page, request }) => {
+    const id = 'e2e-b42-cantidades';
+    let m = { ...modeloCon({ objetos: [['Alfa', []], ['Beta', []]], procesos: ['Preparar'] }), id, nombre: 'E2E B42' };
+    const r = must(crearEnlace(m, { opd: m.raiz, candidato: { tipo: 'consumo', objeto: porNombre(m, 'Alfa').id, proceso: porNombre(m, 'Preparar').id } }));
+    m = { ...r.modelo }; const enlace = r.creados[0]!;
+    m = { ...must(crearEnlace(m, { opd: m.raiz, candidato: { tipo: 'etiquetado', origen: porNombre(m, 'Alfa').id, destino: porNombre(m, 'Beta').id, etiqueta: 'conoce 3' } })).modelo };
+    const creado = await request.post('/api/modelos', { headers: { Authorization: `Bearer ${TOKEN}`, 'Content-Type': 'application/json' }, data: exportarV0(m) });
+    expect(creado.status(), await creado.text()).toBe(201); await abrir(page, id); await seleccionarEnlace(page, enlace);
+    const campo = page.getByRole('textbox', { name: 'Cantidad o parámetro objeto', exact: true });
+    await campo.fill('n'); await campo.press('Tab'); await guardado(page);
+    await expect.poll(async () => decodificar((await leer(request,id)).texto).enlaces[enlace]).toEqual({ ...m.enlaces[enlace]!, mult: 'n' });
+    await expect(opl(page).locator('[data-linea]').filter({ hasText: /^Preparar consume «n» Alfa\.$/ })).toHaveCount(1);
+    const cantidadOpd = await page.getByLabel(/^Diagrama /).locator('text').allTextContents();
+    expect(cantidadOpd).toContain('n'); expect(cantidadOpd).not.toContain('«n»');
+    await captura(page,'b42-parametro-delimitado');
+    const parametro = await leer(request,id); await page.reload(); await guardado(page); await seleccionarEnlace(page,enlace);
+    await expect(campo).toHaveValue('n'); expect((await leer(request,id)).texto).toBe(parametro.texto);
+    await page.getByRole('combobox', { name: 'Multiplicidad objeto', exact: true }).selectOption('muchos'); await guardado(page);
+    await expect.poll(async () => decodificar((await leer(request,id)).texto).enlaces[enlace]).toEqual({ ...m.enlaces[enlace]!, mult: 'muchos' });
+    await expect(opl(page).locator('[data-linea]').filter({ hasText: /^Preparar consume muchos Alfa\.$/ })).toHaveCount(1);
+    await expect(opl(page).locator('[data-linea]').filter({ hasText: /^Alfa «conoce 3» Beta\.$/ })).toHaveCount(1);
+    const rotulos = await page.getByLabel(/^Diagrama /).locator('text').allTextContents();
+    expect(rotulos).toContain('conoce 3'); expect(rotulos).not.toContain('«conoce 3»');
+    await captura(page,'b42-muchos-etiqueta'); await tecla(page,'Control+z'); await guardado(page);
+    expect((await leer(request,id)).texto).toBe(parametro.texto);
+    await aplicarTexto(page, '*Preparar* consume opcionalidad **Alfa**.'); await guardado(page);
+    await expect.poll(async () => decodificar((await leer(request,id)).texto).enlaces[enlace]).toEqual({ ...m.enlaces[enlace]!, mult: 'opcionalidad' });
+    await expect(opl(page).locator('[data-linea]').filter({ hasText: /^Preparar consume «opcionalidad» Alfa\.$/ })).toHaveCount(1);
+    expect(Object.keys(decodificar((await leer(request,id)).texto).enlaces)).toEqual(Object.keys(m.enlaces));
+    await page.reload(); await guardado(page);
+    expect(decodificar((await leer(request,id)).texto).enlaces[enlace]).toEqual({ ...m.enlaces[enlace]!, mult: 'opcionalidad' });
+});

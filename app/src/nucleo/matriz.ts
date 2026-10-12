@@ -4,7 +4,7 @@ import { esProcedimental, extremos, reciprocoConEstados } from './tipos';
 import { indice } from './indice';
 import { generales } from './herencia';
 import { validarEtiqueta } from './lexico';
-import type { Familia, TipoEnlace, Modelo, Enlace, EnlaceNuevo, EnlaceProcedimental, Id, Abanico, Multiplicidad } from './tipos';
+import type { Familia, TipoCosa, TipoEnlace, Modelo, Enlace, EnlaceNuevo, EnlaceProcedimental, Id, Abanico, Multiplicidad } from './tipos';
 import type { Violacion, Respuesta, Rechazo } from './resultado';
 import type { Indice } from './indice';
 import type { Accion, EstadosEnlace, ExtremoRef } from './operaciones';
@@ -43,8 +43,15 @@ export interface FilaMatriz {
 }
 // La tabla es la única autoridad de firma para todos los consumidores.
 const fila = (f: FilaMatriz): FilaMatriz => Object.freeze({ ...f, roles: Object.freeze(f.roles), clases: Object.freeze(f.clases), plantillas: Object.freeze(f.plantillas) });
-/** DEC35: además de ?, * y +, un entero exacto n ≥ 2 y 2..* (EBNF A.2 `restriccion_de_participacion`). */
-export const esMultiplicidad = (v: unknown): v is Multiplicidad => typeof v === 'string' && /^(?:[?*+]|2\.\.\*|[2-9]|[1-9]\d+)$/.test(v);
+/** Los símbolos globales se identifican por su escritura exacta, sin bindings ni scopes locales.
+ * El subconjunto de identificadores evita operadores/espacios; las palabras de cantidad se reservan. */
+export const PATRON_PARAMETRO_MULTIPLICIDAD = '[A-Za-zÁÉÍÓÚÜÑáéíóúüñ][A-Za-zÁÉÍÓÚÜÑáéíóúüñ\\d]*';
+const parametroMultiplicidad = new RegExp('^' + PATRON_PARAMETRO_MULTIPLICIDAD + '$');
+export const esParametroMultiplicidad = (v: string): boolean => parametroMultiplicidad.test(v)
+    && !['un', 'una', 'muchos', 'muchas', 'infinity', 'nan'].includes(v.toLocaleLowerCase('es'));
+export const esMultiplicidad = (v: unknown): v is Multiplicidad => typeof v === 'string'
+    && (/^(?:[?*+]|2\.\.\*|[2-9]|[1-9]\d+|muchos)$/.test(v) || esParametroMultiplicidad(v));
+export const multiplicidadEnExtremo = (clase: TipoCosa, valor?: Multiplicidad): boolean => valor === undefined || clase === 'objeto';
 export const MATRIZ: Readonly<Record<TipoEnlace, FilaMatriz>> = Object.freeze({
     consumo: fila({ familia: "transformadora", roles: ["objeto", "proceso"], clases: ["objeto", "proceso"], mismoTipo: false, reflexivo: false, estados: "objeto", control: true, abanico: true, ruta: true, mult: "objeto", etiquetas: "ninguna", plantillas: ["T1", "TS1", "ET1", "ETS1", "CT1", "CS1", "COND-ALT"], menu: 1 }),
     resultado: fila({ familia: "transformadora", roles: ["objeto", "proceso"], clases: ["objeto", "proceso"], mismoTipo: false, reflexivo: false, estados: "objeto", control: false, abanico: true, ruta: true, mult: "objeto", etiquetas: "ninguna", plantillas: ["T2", "TS2"], menu: 2 }),
@@ -211,6 +218,11 @@ function duplicaHeredado(m: Modelo, e: Enlace, idx: Indice): boolean {
 }
 const regla = (r: ReglaContexto): ReglaContexto => Object.freeze({ ...r, tipos: Object.freeze([...r.tipos]) });
 export const REGLAS_CONTEXTO: readonly ReglaContexto[] = Object.freeze([
+    regla({ id: 'R-MULT-1A', tipos: ['agregacion', 'etiquetado', 'etiquetadoBidireccional', 'reciproco'], severidad: 'error', accion: 'Retira la cantidad del proceso o modela repetición mediante proceso recurrente o subprocesos', viola(m, e) {
+        if (e.tipo === 'agregacion') return !multiplicidadEnExtremo(cosa(m,e.refinador)!.tipo,e.mult) ? 'La multiplicidad cuenta instancias de objetos, nunca procesos.' : null;
+        if ('origen' in e && ('multOrigen' in e && !multiplicidadEnExtremo(cosa(m,e.origen)!.tipo,e.multOrigen) || 'multDestino' in e && !multiplicidadEnExtremo(cosa(m,e.destino)!.tipo,e.multDestino))) return 'La multiplicidad cuenta instancias de objetos, nunca procesos.';
+        return null;
+    } }),
     regla({ id: 'AP-29', tipos: [...PROCEDIMENTALES, 'agregacion', 'exhibicion', 'etiquetado', 'etiquetadoBidireccional', 'reciproco'], severidad: 'error', accion: 'Conserva el hecho del general; no dupliques explícitamente un enlace heredado', viola(m, e, idx) { return duplicaHeredado(m, e, idx) ? 'El enlace duplica un hecho heredado del general (R-HER-8).' : null; } }),
     regla({ id: 'R-ESCIND-2', tipos: ['efecto'], severidad: 'error', accion: 'Conserva la mitad de entrada antes de la salida al ordenar bandas', viola(m, e, idx) { return escisionInvertida(m, e, idx) ? 'La mitad de salida precede a la mitad de entrada del par escindido (R-ESCIND-3).' : null; } }),
     regla({ id: 'R-AG-1', tipos: ['agente'], severidad: 'error', accion: 'Usa instrumento para máquinas, software o IA; si es humano, márcalo físico', viola(m, e) { return e.tipo === 'agente' && cosa(m, e.objeto)?.esencia !== 'fisica' ? 'El agente debe ser un objeto físico (proxy declarado de humano).' : null; } }),

@@ -1,5 +1,6 @@
 import type { Cosa, Enlace, Modelo, Multiplicidad, Operador, Ref, UnidadTiempo } from '../nucleo/tipos';
 import { esProcedimental } from '../nucleo/tipos';
+import { esParametroMultiplicidad } from '../nucleo/matriz';
 import { indice } from '../nucleo/indice';
 import { conjuncionO, conjuncionY } from '../nucleo/lexico';
 import type { EnlaceTexto, ExtremoTexto, HechoTexto, NombreTipado } from './analizar';
@@ -37,7 +38,7 @@ export interface Plantilla {
 }
 // Expansiones finitas de la tabla: se comparten entre emisión y vocabulario.
 const cuantificadores = { XOR: 'exactamente uno de', OR: 'al menos uno de' } as const;
-const multiplicidades = { '?': ['un opcional ', 'una opcional '], '*': ['opcional (cero o más) ', 'opcional (cero o más) '], '+': ['al menos un ', 'al menos una '], '2..*': ['al menos dos ', 'al menos dos '] } as const;
+const multiplicidades = { '?': ['un ', 'una '], '*': ['', ''], '+': ['al menos un ', 'al menos una '], '2..*': ['al menos dos ', 'al menos dos '], muchos: ['muchos ', 'muchas '] } as const;
 // DEC35: el entero exacto va en cifras y sin género (EBNF A.2 `limite_de_participacion`); el nombre sigue en singular (DR-12).
 const fraseMultiplicidad = (m: Multiplicidad, f: boolean): string => Object.hasOwn(multiplicidades, m) ? multiplicidades[m as keyof typeof multiplicidades][f ? 1 : 0] : `${m} `;
 /** Etiqueta reservada de SE2 (T-119): la emite un etiquetado sin etiqueta y la lee el parser como ausencia de etiqueta. */
@@ -97,6 +98,12 @@ export const PLANTILLAS: readonly Plantilla[] = Object.freeze([
     ][]))
 ].map(([id, base, familia, p]) => { const patron = conRuta.has(id) ? `[Por ruta {r}, ]${base}` : base; return Object.freeze({ id, patron, familia: familia as Plantilla['familia'], estado: p ?? 'G', ...(p ? {} : { desde: (h: HechoGenerable) => h.plantilla === id && validarHuecos(patron, h.huecos) ? h.huecos : null }), hacia: (h: Huecos) => validarHuecos(patron, h) ? reconocer(id, h) : [], restricciones: (h: Huecos) => validarHuecos(patron, h) }); }));
 const tabla = new Map(PLANTILLAS.map(p => [p.id, p]));
+/** Realización superficial DEC53; la tabla primaria y los hechos conservan sus IDs. */
+export function patronProducto(p: Plantilla): string {
+    return p.familia === 'etiquetada'
+        ? p.patron.replace(/\{(t2?)\}/g, '«{$1}»').replace(' se relaciona con ', ' «se relaciona con» ')
+        : p.patron;
+}
 export const hueco = (texto: string): Hueco => ({ texto });
 export function cosa(m: Modelo, id: string, hecho?: string, mult?: Multiplicidad, estado?: string): Hueco {
     const c = m.cosas[id]!;
@@ -173,7 +180,10 @@ function componerTokensPlantilla(id: string, h: Huecos): readonly TokenOpl[] {
     const p = tabla.get(id);
     if (!p)
         throw new Error(`Plantilla desconocida: ${id}`);
-    let secciones=patronesCompilados.get(p.patron);if(!secciones){secciones=compilarTokens(p.patron);patronesCompilados.set(p.patron,secciones);}
+    const porDefecto = id === 'SE2' || id === 'SE2L';
+    const patron = porDefecto ? patronProducto(p).replace('«se relaciona con»', '«{t}»') : patronProducto(p);
+    if (porDefecto) h = { ...h, t: { ...(h.t && !Array.isArray(h.t) ? h.t as Hueco : {}), texto: ETIQUETA_POR_DEFECTO } };
+    let secciones=patronesCompilados.get(patron);if(!secciones){secciones=compilarTokens(patron);patronesCompilados.set(patron,secciones);}
     const tokens: TokenOpl[] = [];
     const literal = (texto:string,rol:TokenOpl['rol']='verbo')=>{
         if(!texto)return;
@@ -187,8 +197,11 @@ function componerTokensPlantilla(id: string, h: Huecos): readonly TokenOpl[] {
     function atom(x: Hueco, mult = false, conEstado = false, articulo = false) {
         if (articulo)
             literal(x.genero === 'f' ? 'una ' : 'un ');
-        if (mult && x.mult)
-            literal(fraseMultiplicidad(x.mult, x.genero === 'f'), 'multiplicidad');
+        if (mult && x.mult) {
+            if (esParametroMultiplicidad(x.mult)) {
+                literal('«'); literal(x.mult, 'multiplicidad'); literal('» ');
+            } else literal(fraseMultiplicidad(x.mult, x.genero === 'f'), 'multiplicidad');
+        }
         if (x.tokens) {
             tokens.push(...x.tokens);
             return;
@@ -198,11 +211,13 @@ function componerTokensPlantilla(id: string, h: Huecos): readonly TokenOpl[] {
             literal(' en ');
             atom(x.estado);
         }
+        if (mult && (x.mult === '?' || x.mult === '*'))
+            literal(x.mult === '?' ? ' opcional' : ' opcionales', 'multiplicidad');
     }
     function superficieInicial(k: string, x: Hueco): string {
         const name = k.replace(/^(Ly|Lo|Lista):/, '');
         if (name === 'articulos') return x.genero === 'f' ? 'una ' : 'un ';
-        if (name.startsWith('m') && x.mult) return fraseMultiplicidad(x.mult, x.genero === 'f');
+        if (name.startsWith('m') && x.mult) return fraseMultiplicidad(x.mult, x.genero === 'f') || x.texto;
         return x.tokens?.map(t => t.texto).join('') || x.texto;
     }
     function slot(k: string) {
@@ -236,9 +251,19 @@ function componerTokensPlantilla(id: string, h: Huecos): readonly TokenOpl[] {
         }
     }
     literal(tramo);
+    // Las plantillas atómicas conservan su hueco de estado separado. La marca
+    // de opcionalidad califica el objeto completo, incluido ese estado.
+    for (let i = 0; i + 2 < tokens.length; i++) {
+        if (tokens[i]!.rol === 'multiplicidad' && /^ opcional(?:es)?$/.test(tokens[i]!.texto)
+            && tokens[i + 1]!.texto === ' en ' && tokens[i + 2]!.marca === 'estado') {
+            const sufijo = tokens[i]!;
+            tokens.splice(i, 3, tokens[i + 1]!, tokens[i + 2]!, sufijo);
+            i += 2;
+        }
+    }
     // Capitalización inicial sin modificar nombres tipados ni identidades.
     const first = tokens[0];
-    if (first && !first.marca)
+    if (first && !first.marca && !(first.rol === 'multiplicidad' && esParametroMultiplicidad(first.texto.trim())))
         tokens[0] = { ...first, texto: first.texto.charAt(0).toLocaleUpperCase('es') + first.texto.slice(1) };
     return tokens;
 }
@@ -432,7 +457,7 @@ export function datosEtiquetadosLista(m: Modelo, es: readonly Enlace[]): HechoGe
     return { plantilla: primero.etiqueta ? 'SE1L' : 'SE2L', huecos: {
         C1: cosa(m, primero.origen, primero.id, primero.multOrigen, primero.estadoOrigen),
         C2: es.map(e => { const miembro = e as typeof primero; return cosa(m, miembro.destino, miembro.id, miembro.multDestino, miembro.estadoDestino); }),
-        ...(primero.etiqueta ? { t: { texto: primero.etiqueta, hecho: primero.id, ref: { tipo: 'enlace', id: primero.id } } } : {})
+        t: { texto: primero.etiqueta ?? ETIQUETA_POR_DEFECTO, hecho: primero.id, ref: { tipo: 'enlace', id: primero.id } }
     } };
 }
 const unidades: Record<UnidadTiempo, readonly [
@@ -441,6 +466,8 @@ const unidades: Record<UnidadTiempo, readonly [
 ]> = { ms: ['milisegundo', 'milisegundos'], sec: ['segundo', 'segundos'], min: ['minuto', 'minutos'], hour: ['hora', 'horas'], day: ['día', 'días'], week: ['semana', 'semanas'], month: ['mes', 'meses'], year: ['año', 'años'] };
 export const LITERALES_EXPANDIDOS: readonly string[] = Object.freeze([
     ...Object.values(cuantificadores), ...Object.values(multiplicidades).flat(),
+    // Sufijos canónicos y prefijos históricos que P sigue leyendo.
+    'opcional', 'opcionales', 'un opcional', 'una opcional', 'opcional (cero o más)',
     // Ly/Lo son macros fonéticos definidos por nucleo/lexico. Su universo es finito.
     'y', 'e', 'o', 'u', ...Object.values(unidades).flat()
 ]);

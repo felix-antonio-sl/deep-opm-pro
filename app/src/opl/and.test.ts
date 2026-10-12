@@ -79,7 +79,7 @@ test('T-194 B-41 estado parcial y multiplicidad distinta pertenecen a cada miemb
     const b = m.enlaces[ids[1]!]!; if (b.tipo !== 'resultado') throw Error('Resultado esperado');
     const { estado: omitido, ...sinEstado } = b; void omitido; m = { ...m, enlaces: { ...m.enlaces, [b.id]: sinEstado } };
     for (const [i, mult] of ['?', '+', '3'].entries()) m = must(fijarMultiplicidad(m, { enlace: ids[i]!, extremo: 'objeto', valor: mult as Multiplicidad })).modelo;
-    const texto = '*Procesar* genera un opcional **Alfa** en `listo`, al menos un **Beta** y 3 **Gamma** en `lleno`.';
+    const texto = '*Procesar* genera un **Alfa** en `listo` opcional, al menos un **Beta** y 3 **Gamma** en `lleno`.';
     expect(generarBloque(m, m.raiz).filter(l => l.hechos.length).map(l => l.texto)).toEqual([texto]);
     const a = analizar(texto)[0]!; expect(a.diagnosticos).toEqual([]);
     expect(a.hechos).toEqual([

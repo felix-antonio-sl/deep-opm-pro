@@ -44,6 +44,13 @@ test('T-191 T-192 T-190 todas dimensiones legales de 15 firmas: auto-reparseo y 
                 const e = { id:'e-prueba',tipo,...campos,...s,...(control?{control}:{}),...(mult? textual?{multOrigen:mult}:{mult}:{}),...(multDestino?{multDestino}:{}),...(ruta?{ruta}:{}),...(etiqueta?{etiqueta}:{}),...(tipo==='etiquetadoBidireccional'?{inversa:'es-conocido'}:{}) } as Enlace;
                 const m:Modelo={...b,cosas:cs,enlaces:{[e.id]:e}}; propuestos[tipo]=(propuestos[tipo]??0)+1;
                 const form=validarForma(m), contexto=form.length?[]:erroresContexto(m), no=form.length?null:noOfrecido(m,e);
+                // Oráculo independiente R-MULT-1A: las mismas propuestas históricas
+                // siguen ejecutándose; las cantidades de procesos ahora son negativas.
+                if (!form.length) {
+                    const cantidadProceso = tipo === 'agregacion' && destino.tipo === 'proceso' && mult !== undefined
+                        || textual && (origen.tipo === 'proceso' && mult !== undefined || destino.tipo === 'proceso' && multDestino !== undefined);
+                    expect(contexto.some(v => v.regla === 'R-MULT-1A')).toBe(cantidadProceso);
+                }
                 const razones=[...form.map(v=>v.regla),...contexto.map(v=>v.regla),...(no?[no.regla]:[])];
                 libro.push({familia:'atómico',tipo,extremos:[a,z],estado:s,control,mult,multDestino,ruta,etiqueta,femenino,esencia,afiliacion,forma:form.map(v=>v.regla),contexto:contexto.map(v=>v.regla),noOfrecido:no?{regla:no.regla,registro:no.registro}:null,admitido:!razones.length});
                 if(razones.length){for(const r of new Set(razones))excluidos[r]=(excluidos[r]??0)+1;continue;}

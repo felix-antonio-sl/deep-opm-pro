@@ -52,15 +52,15 @@ const nominales: readonly [string, string, EnlaceNuevo, string][] = [
  ['T-112','CS6',{tipo:'instrumento',objeto:'o',proceso:'p',control:'c',estado:'o-pend'},'*Procesar* ocurre si **Pedido** está en `pendiente`, de lo contrario *Procesar* se omite.'],
  ['T-116','IV1',{tipo:'invocacion',origen:'p',destino:'q'},'*Procesar* invoca *Archivar*.'],
  ['T-116','IV2',{tipo:'invocacion',origen:'p',destino:'p'},'*Procesar* se invoca a sí mismo.'],
- ['T-119','SE1',{tipo:'etiquetado',origen:'o',destino:'a',etiqueta:'tiene'},'**Pedido** tiene **Cuenta**.'],
- ['T-119','SE2',{tipo:'etiquetado',origen:'o',destino:'a'},'**Pedido** se relaciona con **Cuenta**.'],
- ['T-121','SSE1',{tipo:'etiquetado',origen:'o',destino:'a',estadoOrigen:'o-pend',etiqueta:'tiene'},'**Pedido** en `pendiente` tiene **Cuenta**.'],
- ['T-121','SSE2',{tipo:'etiquetado',origen:'o',destino:'a',estadoDestino:'a-pag',etiqueta:'tiene'},'**Pedido** tiene **Cuenta** en `pagado`.'],
- ['T-121','SSE3',{tipo:'etiquetado',origen:'o',destino:'a',estadoOrigen:'o-pend',estadoDestino:'a-pag',etiqueta:'tiene'},'**Pedido** en `pendiente` tiene **Cuenta** en `pagado`.'],
- ['T-120','SE4',{tipo:'reciproco',origen:'o',destino:'a',etiqueta:'asociados'},'**Pedido** y **Cuenta** son asociados.'],
+ ['T-119','SE1',{tipo:'etiquetado',origen:'o',destino:'a',etiqueta:'tiene'},'**Pedido** «tiene» **Cuenta**.'],
+ ['T-119','SE2',{tipo:'etiquetado',origen:'o',destino:'a'},'**Pedido** «se relaciona con» **Cuenta**.'],
+ ['T-121','SSE1',{tipo:'etiquetado',origen:'o',destino:'a',estadoOrigen:'o-pend',etiqueta:'tiene'},'**Pedido** en `pendiente` «tiene» **Cuenta**.'],
+ ['T-121','SSE2',{tipo:'etiquetado',origen:'o',destino:'a',estadoDestino:'a-pag',etiqueta:'tiene'},'**Pedido** «tiene» **Cuenta** en `pagado`.'],
+ ['T-121','SSE3',{tipo:'etiquetado',origen:'o',destino:'a',estadoOrigen:'o-pend',estadoDestino:'a-pag',etiqueta:'tiene'},'**Pedido** en `pendiente` «tiene» **Cuenta** en `pagado`.'],
+ ['T-120','SE4',{tipo:'reciproco',origen:'o',destino:'a',etiqueta:'asociados'},'**Pedido** y **Cuenta** son «asociados».'],
  ['T-120','SE5',{tipo:'reciproco',origen:'o',destino:'a'},'**Pedido** y **Cuenta** se relacionan.'],
- ['T-121','SSE6',{tipo:'reciproco',origen:'o',destino:'a',estados:{origen:'o-pend',destino:'a-pag'},etiqueta:'asociados'},'**Pedido** en `pendiente` y **Cuenta** en `pagado` son asociados.'],
- ['T-121','SSE7',{tipo:'reciproco',origen:'o',destino:'a',estados:{origen:'o-pend'},etiqueta:'asociados'},'**Cuenta** y **Pedido** en `pendiente` son asociados.'],
+ ['T-121','SSE6',{tipo:'reciproco',origen:'o',destino:'a',estados:{origen:'o-pend',destino:'a-pag'},etiqueta:'asociados'},'**Pedido** en `pendiente` y **Cuenta** en `pagado` son «asociados».'],
+ ['T-121','SSE7',{tipo:'reciproco',origen:'o',destino:'a',estados:{origen:'o-pend'},etiqueta:'asociados'},'**Cuenta** y **Pedido** en `pendiente` son «asociados».'],
  ['T-138','TS3',{tipo:'efecto',objeto:'o',proceso:'p',entrada:'o-pend',salida:'o-pend'},'*Procesar* cambia **Pedido** de `pendiente` a `pendiente`.']
 ];
 for (const [tid, plantilla, enlace, texto] of nominales) test(`${tid} literal ${plantilla} ${texto}`, () => {
@@ -145,8 +145,8 @@ test('T-115 excepciones transportan cotas propias y unidad en singular/plural si
 });
 test('T-128 multiplicidad usa género de objeto cuantificado y no glifos',()=>{
  const base=m();const mod=m([],{cosas:{...base.cosas,o:{...base.cosas.o!,genero:'f'}}});
- expect(lineaDeEnlace(mod,'sd',{tipo:'consumo',objeto:'o',proceso:'p',mult:'?'})!.texto).toBe('*Procesar* consume una opcional **Pedido**.');
- expect(lineaDeEnlace(mod,'sd',{tipo:'consumo',objeto:'o',proceso:'p',mult:'*'})!.texto).toBe('*Procesar* consume opcional (cero o más) **Pedido**.');
+ expect(lineaDeEnlace(mod,'sd',{tipo:'consumo',objeto:'o',proceso:'p',mult:'?'})!.texto).toBe('*Procesar* consume una **Pedido** opcional.');
+ expect(lineaDeEnlace(mod,'sd',{tipo:'consumo',objeto:'o',proceso:'p',mult:'*'})!.texto).toBe('*Procesar* consume **Pedido** opcionales.');
  expect(lineaDeEnlace(mod,'sd',{tipo:'resultado',objeto:'o',proceso:'p',mult:'+'})!.texto).toBe('*Procesar* genera al menos una **Pedido**.');
 });
 
@@ -197,10 +197,10 @@ test('T-118 incompleta declarada preserva parte única y no inventa nombre',()=>
 });
 test('T-120 bidireccionales de etiquetas iguales se normalizan con misma identidad de hecho',()=>{
  const mod=m([{id:'e1',tipo:'etiquetadoBidireccional',origen:'o',destino:'a',etiqueta:'asociados',inversa:'asociados'}]);
- const ls=generarBloque(mod,'sd').filter(l=>l.hechos.length);expect(ls.map(l=>l.texto)).toEqual(['**Pedido** y **Cuenta** son asociados.']);expect(ls[0]!.hechos).toEqual(['e1']);expect(mod.enlaces.e1!.tipo).toBe('etiquetadoBidireccional');
+ const ls=generarBloque(mod,'sd').filter(l=>l.hechos.length);expect(ls.map(l=>l.texto)).toEqual(['**Pedido** y **Cuenta** son «asociados».']);expect(ls[0]!.hechos).toEqual(['e1']);expect(mod.enlaces.e1!.tipo).toBe('etiquetadoBidireccional');
 });
 test('T-120 etiquetado bidireccional simple y con estado emite dos líneas contiguas con IDs estables',()=>{
- for(const estadoOrigen of [undefined,'o-pend']){const mod=m([{id:'e1',tipo:'etiquetadoBidireccional',origen:'o',destino:'a',etiqueta:'tiene',inversa:'pertenece a',...(estadoOrigen?{estadoOrigen}:{})}]);const ls=generarBloque(mod,'sd').filter(l=>l.hechos.length);expect(ls.map(l=>l.texto)).toEqual(estadoOrigen?['**Pedido** en `pendiente` tiene **Cuenta**.','**Cuenta** pertenece a **Pedido** en `pendiente`.']:['**Pedido** tiene **Cuenta**.','**Cuenta** pertenece a **Pedido**.']);expect(ls[0]!.id).not.toBe(ls[1]!.id);expect(ls.every(l=>l.hechos.join()==='e1')).toBe(true);}
+ for(const estadoOrigen of [undefined,'o-pend']){const mod=m([{id:'e1',tipo:'etiquetadoBidireccional',origen:'o',destino:'a',etiqueta:'tiene',inversa:'pertenece a',...(estadoOrigen?{estadoOrigen}:{})}]);const ls=generarBloque(mod,'sd').filter(l=>l.hechos.length);expect(ls.map(l=>l.texto)).toEqual(estadoOrigen?['**Pedido** en `pendiente` «tiene» **Cuenta**.','**Cuenta** «pertenece a» **Pedido** en `pendiente`.']:['**Pedido** «tiene» **Cuenta**.','**Cuenta** «pertenece a» **Pedido**.']);expect(ls[0]!.id).not.toBe(ls[1]!.id);expect(ls.every(l=>l.hechos.join()==='e1')).toBe(true);}
 });
 
 test('T-103 cada oración es una sola línea terminada en punto',()=>{
@@ -366,7 +366,7 @@ test('T-118 colección incompleta en hijo conserva la parte revelada y cola sin 
 for(const operador of ['XOR','OR'] as const)for(const reverso of [false,true])test(`T-057 multiplicidades distintas por rama común P ${operador} permutación ${reverso}`,()=>{
  const enlaces:Enlace[]=[{id:'e1',tipo:'consumo',objeto:'o',proceso:'p',mult:'+'},{id:'e2',tipo:'consumo',objeto:'a',proceso:'p',mult:'?'}],b=m(enlaces),modelo=m(enlaces,{abanicos:{f:{id:'f',operador,enlaces:reverso?['e2','e1']:['e1','e2']}}});
  expect(validarForma(modelo)).toEqual([]);for(const e of enlaces){expect(noOfrecido(modelo,e,modelo.abanicos.f)).toBeNull();expect(violacionesContexto(modelo,e)).toEqual([]);}const antes=JSON.stringify(modelo),l=generarBloque(modelo,'sd').find(l=>l.hechos.length===2)!;
- expect(new Set(l.hechos)).toEqual(new Set(['e1','e2']));expect(l.texto).toContain('al menos un **Pedido**');expect(l.texto).toContain('un opcional **Cuenta**');expect(l.texto).toContain(operador==='XOR'?'exactamente uno de':'al menos uno de');expect(l.refs.map(r=>r.id)).toEqual(expect.arrayContaining(['p','o','a']));expect(JSON.stringify(modelo)).toBe(antes);
+ expect(new Set(l.hechos)).toEqual(new Set(['e1','e2']));expect(l.texto).toContain('al menos un **Pedido**');expect(l.texto).toContain('un **Cuenta** opcional');expect(l.texto).toContain(operador==='XOR'?'exactamente uno de':'al menos uno de');expect(l.refs.map(r=>r.id)).toEqual(expect.arrayContaining(['p','o','a']));expect(JSON.stringify(modelo)).toBe(antes);
 });
 
 import {modeloCon} from '../pruebas/constructores';

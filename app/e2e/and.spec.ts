@@ -36,7 +36,7 @@ test('T-194 T-243 B-41 token del segundo miembro selecciona su enlace, edita só
     })()), ids[1]!)).toBe(true);
     await beta.click(); await expect(opl(page).getByRole('heading', { name: /^consumo: Beta/ })).toBeVisible();
     await expect(opl(page).getByText(ids[1]!, { exact: true })).toBeVisible(); expect((await leer(request, id)).rev).toBe(antes.rev);
-    const cantidad = page.getByRole('textbox', { name: 'Cantidad exacta objeto', exact: true }); await cantidad.fill('3'); await cantidad.press('Tab');
+    const cantidad = page.getByRole('textbox', { name: 'Cantidad o parámetro objeto', exact: true }); await cantidad.fill('3'); await cantidad.press('Tab');
     await guardado(page); await expect.poll(async () => { const e = decodificar((await leer(request, id)).texto).enlaces[ids[1]!]!; return 'mult' in e ? e.mult : undefined; }).toBe('3');
     const despues = decodificar((await leer(request, id)).texto), esperado = previo.enlaces[ids[1]!]!; if (esperado.tipo !== 'consumo') throw Error('Consumo esperado');
     expect(despues).toEqual({ ...previo, enlaces: { ...previo.enlaces, [ids[1]!]: { ...esperado, mult: '3' } } });

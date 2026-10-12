@@ -36,7 +36,7 @@ for (const tipo of ['objeto', 'proceso'] as const) for (const etiqueta of [undef
         const { m, ids } = lista(tipo, n, etiqueta), antes = exportarV0(m), ls = hechos(m);
         const marca = tipo === 'objeto' ? '**' : '*', o = marca + 'Origen' + marca;
         const cola = n === 2 ? `${marca}Alfa${marca} y ${marca}Beta${marca}` : `${marca}Alfa${marca}, ${marca}Beta${marca} e ${marca}Índice${marca}`;
-        expect(ls.map(l => l.texto)).toEqual([`${o} ${etiqueta ?? 'se relaciona con'} ${cola}.`]);
+        expect(ls.map(l => l.texto)).toEqual([`${o} «${etiqueta ?? 'se relaciona con'}» ${cola}.`]);
         expect(ls[0]!.hechos).toEqual(ids);
         for (const id of ids) {
             const e = m.enlaces[id] as Etiquetado;
@@ -60,15 +60,22 @@ for (const [tipo, contexto] of [['objeto', 'simple'], ['proceso', 'simple'], ['o
             const origen = porNombre(m, 'Origen'), ids: string[] = [];
             const estadoOrigen = contexto === 'estado' && origen.tipo === 'objeto' ? origen.estados[0]!.id : undefined;
             for (const [i, nombre] of miembros.entries()) {
-                const r = must(crearEnlace(m, { opd: m.raiz, candidato: { tipo: 'etiquetado', origen: origen.id, destino: porNombre(m, nombre).id,
+                const candidato = { tipo: 'etiquetado' as const, origen: origen.id, destino: porNombre(m, nombre).id,
                     ...((i < 2) === explicitaPrimero ? { etiqueta: 'se relaciona con' } : {}),
-                    ...(estadoOrigen ? { estadoOrigen } : {}), ...(contexto === 'cantidad' ? { multOrigen: '3' as const } : {}) } }));
+                    ...(estadoOrigen ? { estadoOrigen } : {}) };
+                if (contexto === 'cantidad' && tipo === 'proceso') {
+                    const previo = exportarV0(m), rechazo = crearEnlace(m, { opd: m.raiz, candidato: { ...candidato, multOrigen: '3' } });
+                    expect(rechazo.ok).toBe(false); if (rechazo.ok) throw Error('Cantidad en proceso');
+                    expect(rechazo.rechazo.regla).toBe('R-MULT-1A'); expect(exportarV0(m)).toBe(previo);
+                }
+                const r = must(crearEnlace(m, { opd: m.raiz, candidato: { ...candidato,
+                    ...(contexto === 'cantidad' && tipo === 'objeto' ? { multOrigen: '3' as const } : {}) } }));
                 m = r.modelo; ids.push(r.creados[0]!);
             }
             expect(gatesExportacion(m, 'modelo')).toEqual([]);
             const antes = exportarV0(m), ls = hechos(m), marca = tipo === 'objeto' ? '**' : '*';
-            const sujeto = (contexto === 'cantidad' ? '3 ' : '') + marca + 'Origen' + marca + (estadoOrigen ? ' en `listo`' : '');
-            expect(ls.map(l => l.texto)).toEqual([`${sujeto} se relaciona con ${marca}Alfa${marca}, ${marca}Beta${marca}, ${marca}Gamma${marca} e ${marca}Índice${marca}.`]);
+            const sujeto = (contexto === 'cantidad' && tipo === 'objeto' ? '3 ' : '') + marca + 'Origen' + marca + (estadoOrigen ? ' en `listo`' : '');
+            expect(ls.map(l => l.texto)).toEqual([`${sujeto} «se relaciona con» ${marca}Alfa${marca}, ${marca}Beta${marca}, ${marca}Gamma${marca} e ${marca}Índice${marca}.`]);
             expect(ls[0]!.hechos).toEqual(ids);
             for (const [i, id] of ids.entries()) {
                 const e = m.enlaces[id] as Etiquetado;
@@ -89,7 +96,7 @@ for (const anclaje of ['origen', 'destinos', 'ambos'] as const) for (const etiqu
         const { m, ids } = lista('objeto', 3, etiqueta, anclaje), ls = hechos(m);
         const o = '**Origen**' + (anclaje !== 'destinos' ? ' en `listo`' : '');
         const ds = anclaje === 'origen' ? '**Alfa**, **Beta** e **Índice**' : '**Alfa** en `activo`, **Beta** en `pendiente` e **Índice** en `activo`';
-        expect(ls.map(l => l.texto)).toEqual([`${o} ${etiqueta ?? 'se relaciona con'} ${ds}.`]); expect(ls[0]!.hechos).toEqual(ids);
+        expect(ls.map(l => l.texto)).toEqual([`${o} «${etiqueta ?? 'se relaciona con'}» ${ds}.`]); expect(ls[0]!.hechos).toEqual(ids);
         for (const id of ids) {
             const e = m.enlaces[id] as Etiquetado;
             if (e.estadoDestino) expect(ls[0]!.tokens.some(t => t.hecho === id && t.ref?.tipo === 'estado' && t.ref.id === e.estadoDestino)).toBe(true);
@@ -106,7 +113,7 @@ test('T-128 T-194 B-41 bifurcada conserva cantidad común de origen y cantidades
         m = must(fijarMultiplicidad(m, { enlace: id, extremo: 'origen', valor: '3' })).modelo;
         m = must(fijarMultiplicidad(m, { enlace: id, extremo: 'destino', valor: ['?', '+', '4'][i] as '?' | '+' | '4' })).modelo;
     }
-    expect(hechos(m).map(l => l.texto)).toEqual(['3 **Origen** conoce un opcional **Alfa**, al menos un **Beta** y 4 **Índice**.']);
+    expect(hechos(m).map(l => l.texto)).toEqual(['3 **Origen** «conoce» un **Alfa** opcional, al menos un **Beta** y 4 **Índice**.']);
     const doc = generarDocumentoOpl(m), r = must(importarOpl(m.nombre, doc)); expect(generarDocumentoOpl(r.modelo)).toBe(doc);
     expect(planificar(m, 'modelo', doc).acciones).toEqual([]);
 });
@@ -138,7 +145,7 @@ test('T-132 T-194 B-41 lista etiquetada del hijo conserva CX3, modo y enlaces de
     let { m, ids } = lista('objeto', 2, 'conoce'); const origen = porNombre(m, 'Origen').id;
     for (const nombre of destinos.slice(0, 2)) m = must(crearEnlace(m, { opd: m.raiz, candidato: { tipo: 'agregacion', refinable: origen, refinador: porNombre(m, nombre).id } })).modelo;
     const r = must(desplegar(m, { opd: m.raiz, cosa: origen, modo: 'agregacion' })); m = r.modelo; const hijo = r.creados[0]!;
-    expect(hechos(m, hijo).find(l => l.texto === '**Origen** conoce **Alfa** y **Beta**.')?.hechos).toEqual(ids);
+    expect(hechos(m, hijo).find(l => l.texto === '**Origen** «conoce» **Alfa** y **Beta**.')?.hechos).toEqual(ids);
     expect(generarBloque(m, hijo).some(l => l.plantilla === 'CX3')).toBe(true);
     expect(planificar(m, hijo, textoCanonico(generarBloque(m, hijo))).acciones).toEqual([]);
     const nuevo = must(importarOpl(m.nombre, generarDocumentoOpl(m))); expect(generarDocumentoOpl(nuevo.modelo)).toBe(generarDocumentoOpl(m));
@@ -147,14 +154,14 @@ test('T-132 T-194 B-41 lista etiquetada del hijo conserva CX3, modo y enlaces de
 test('T-150 T-194 B-41 lista etiquetada no captura oraciones fundamentales ni inventa tipos', () => {
     const rf = analizar('**Origen** consta de **Alfa** y **Beta**.')[0]!.hechos;
     expect(rf).toHaveLength(2); expect(rf.every(h => h.k === 'enlace' && h.enlace.tipo === 'agregacion')).toBe(true);
-    expect(analizar('**Origen** conoce **Alfa** y *Beta*.')[0]!.hechos).toEqual([]);
+    expect(analizar('**Origen** «conoce» **Alfa** y *Beta*.')[0]!.hechos).toEqual([]);
     expect(analizar('*Origen* conoce *Alfa* y **Beta**.')[0]!.hechos).toEqual([]);
     expect(analizar('*Origen* en `listo` conoce *Alfa* y *Beta*.')[0]!.hechos).toEqual([]);
     expect(analizar('**Origen** conoce `activo` y `pendiente`.')[0]!.hechos).toEqual([]);
 });
 
 test('T-150 T-194 B-41 bifurcada cerrada reconoce nombres opacos y etiqueta del núcleo', () => {
-    const a = analizar('**Origen y Archivo** conoce & usa **Alfa y Beta** e **Índice o Registro**.')[0]!;
+    const a = analizar('**Origen y Archivo** «conoce & usa» **Alfa y Beta** e **Índice o Registro**.')[0]!;
     expect(a.diagnosticos).toEqual([]); expect(a.hechos).toEqual([
         { k: 'enlace', enlace: { tipo: 'etiquetado', origen: { nombre: 'Origen y Archivo', tipo: 'objeto' }, destino: { nombre: 'Alfa y Beta', tipo: 'objeto' }, etiqueta: 'conoce & usa' } },
         { k: 'enlace', enlace: { tipo: 'etiquetado', origen: { nombre: 'Origen y Archivo', tipo: 'objeto' }, destino: { nombre: 'Índice o Registro', tipo: 'objeto' }, etiqueta: 'conoce & usa' } }
@@ -164,7 +171,7 @@ for (const lista of ['**Alfa**, **Beta**', '**Alfa** y **Beta** y **Índice**', 
     test(`T-150 T-194 B-41 bifurcada cerrada rechaza lista mal formada ${lista}`, () => {
         const r = analizar('**Origen** conoce ' + lista + '.')[0]!; expect(r.hechos).toEqual([]); expect(r.diagnosticos).not.toEqual([]);
     });
-for (const texto of ['**Origen** conoce **Alfa** y más.', '**Origen** conoce **Alfa** y **Beta**, ordenados por Nombre.', '**Origen** conoce **Alfa** y **Beta**, ordenados por Nombre, en esa secuencia.', '**Origen** conoce **Alfa** y **Beta**, donde x > 0.'])
+for (const texto of ['**Origen** «conoce» **Alfa** y más.', '**Origen** «conoce» **Alfa** y **Beta**, ordenados por Nombre.', '**Origen** «conoce» **Alfa** y **Beta**, ordenados por Nombre, en esa secuencia.', '**Origen** «conoce» **Alfa** y **Beta**, donde x > 0.'])
     test(`T-156 T-194 B-41 informa forma canónica no representable ${texto}`, () => {
         const r = analizar(texto)[0]!; expect(r.hechos).toEqual([]); expect(r.diagnosticos[0]?.codigo).toBe('unsupported-canonical');
     });
@@ -176,7 +183,7 @@ test('T-121 T-194 B-41 destinos repetidos con estados propios conservan todas su
     const r = must(crearEnlace(m, { opd: m.raiz, candidato: { tipo: 'etiquetado', origen: porNombre(m, 'Origen').id, destino: alfa.id, estadoDestino: alfa.estados[0]!.id, etiqueta: 'conoce' } })); m = r.modelo;
     const ls = hechos(m); expect(ls).toHaveLength(1); expect(ls[0]!.hechos).toHaveLength(3);
     expect(new Set(ls[0]!.hechos)).toEqual(new Set([...ids, r.creados[0]!]));
-    expect(ls[0]!.texto).toBe('**Origen** conoce **Alfa** en `activo`, **Alfa** en `pendiente` y **Beta** en `pendiente`.');
+    expect(ls[0]!.texto).toBe('**Origen** «conoce» **Alfa** en `activo`, **Alfa** en `pendiente` y **Beta** en `pendiente`.');
     const doc = generarDocumentoOpl(m), imp = must(importarOpl(m.nombre, doc)); expect(generarDocumentoOpl(imp.modelo)).toBe(doc); expect(Object.keys(imp.modelo.enlaces)).toHaveLength(3);
     expect(planificar(m, 'modelo', doc).acciones).toEqual([]);
 });
@@ -217,7 +224,7 @@ test('T-057 T-194 B-41 rechaza creación B-04 y no la convierte en miembro ofrec
     expect(intento.ok).toBe(false); if (intento.ok) throw Error('Creación no ofrecida admitida');
     expect(intento.rechazo.regla).toBe('DR-44');
     expect(hechos(m).map(l => l.hechos)).toEqual([ids.slice(0, 2)]);
-    expect(hechos(m)[0]!.texto).toBe('**Origen** conoce **Alfa** y **Beta**.');
+    expect(hechos(m)[0]!.texto).toBe('**Origen** «conoce» **Alfa** y **Beta**.');
 });
 
 

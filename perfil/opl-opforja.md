@@ -614,6 +614,15 @@ Rationale: `reglas §4.10` (RF4, RF4b, R-OPL-RF-4), `§5.5` (R-STRF-3, R-HER-6) 
 
 ### §6.5 Etiquetados — unidireccional, bidireccional y recíproco (SE1–SE5)
 
+**Realización de producto — frontera de etiqueta/cantidad (B-55).** Especificación §4.4.12
+prevalece sobre las descripciones históricas de emisión y reverse de esta sección: cada
+etiqueta se escribe entre `«»`, incluidas las etiquetas de las dos direcciones, las listas UNI
+cerradas y las formas con estado; el UNI por defecto escribe `«se relaciona con»`.
+El recíproco sin etiqueta conserva `se relacionan`. Es extensión declarada de sintaxis,
+no una producción de la PAS: el dato, el rótulo OPD y el token editable siguen intactos.
+La lectura histórica unívoca permanece; una lectura ambigua se diagnostica sin acciones.
+La equivalencia de etiquetas por defecto de B-38 y la identidad T-182 se conservan.
+
 **Emisión**: un enlace `etiquetado` emite `**Origen** <tag> **Destino**` con la etiqueta de usuario como verbo; si no hay etiqueta, emite la etiqueta nula `se relaciona con` (SE2). Un enlace `etiquetadoBidireccional` recíproco sin etiqueta diferencial emite `**Origen** y **Destino** se relacionan` (SE5). La bidireccional con dos etiquetas distintas (SE3) emite dos oraciones, una por dirección (f-tag / b-tag); un bidireccional cuyas dos etiquetas coinciden DEBE tratarse como recíproco con esa etiqueta (R-STRE-1).
 
 - **R-EST-TAG-3** [extensión] (extensión declarada — sufijo de etiqueta de enlace): la herramienta PUEDE adjuntar la etiqueta de usuario de un enlace **procedimental o estructural fundamental** como sufijo `[etiqueta: …]` tras el punto terminal de la oración base: `**Todo** consta de **Parte**. [etiqueta: componente critico]`. Es superficie de producto (no figura en `opm-opl-es`); el parser extrae el sufijo antes de cotejar la oración base y la edición lo aplica vía el patch `fijar-etiqueta-enlace` (§15.3–§15.4). Producción `(* ext §6.5 *)` en §18.
@@ -991,6 +1000,29 @@ nombres tipados o del hueco de etiqueta de una lista cerrada reconocida son opac
 completa de Figura 50 o Anexo A; E/C/EX singulares no constituyen una brecha de listas AND.
 
 ## §10 Multiplicidad y cardinalidad
+
+### §10.1 Realización vigente B-42
+
+[extensión, B-56] Los parámetros simples se emiten entre `«»` en su hueco de cantidad:
+`*Procesar* consume **Alfa** y «genera» **Beta**.`. El valor `genera` permanece intacto
+en JSON, rótulo OPD y token de multiplicidad; la marca es sólo superficie de producto.
+La gramática distingue `«símbolo»` en cantidad de `«etiqueta»` en etiqueta, sin modificar
+las plantillas primarias. P conserva la entrada histórica unívoca y los rechazos de prosa
+mixta no ofrecida; no inventa dos consumos desde `consume **Alfa** y genera **Beta**`.
+La lista AND conserva una oración, sus miembros, cantidades, estados, IDs y referencias.
+No se adopta una excepción de split ni se canoniza este delimitador como literal ISO.
+
+Especificación §4.4.11 concreta los campos string de cantidad: G emite `un/una … opcional`,
+`… opcionales`, `muchos/muchas`, el entero ≥2 o un símbolo global simple; estado antes del
+sufijo, nombre literal conforme a DR12. P conserva prefijos históricos unívocos y símbolos
+sensibles a mayúsculas. Cada referencia `k` designa el mismo parámetro en todo el modelo;
+no hay scopes/IDs de parámetro, valores, ejecución ni equivalencia algebraica inventados.
+Los nombres de parámetro se ofrecen sólo con letras españolas y dígitos, con las palabras de cantidad y los dos literales no finitos
+reservados; es límite del producto, no regla ISO. Matemática y nombres
+compuestos adicionales permanecen en B-10. El rótulo OPD literal `muchos` es realización de
+producto sin glifo ISO acreditado. R-MULT-1A impide cantidades nuevas en procesos y conserva
+con diagnóstico las recuperadas. B-04/DR44 y B-09 no se amplían. Esta realización sustituye
+las descripciones históricas de cardinalidad/orden de §10.3 dentro de este perfil.
 
 ### §10.2 Rangos, intervalos y restricciones
 

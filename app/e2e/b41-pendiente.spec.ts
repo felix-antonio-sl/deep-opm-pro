@@ -25,14 +25,14 @@ test('T-119 T-121 T-173 T-194 T-243 B-41 lista etiquetada permite editar Beta po
     }
     const r = await request.post('/api/modelos', { headers: { Authorization: `Bearer ${TOKEN}`, 'Content-Type': 'application/json' }, data: exportarV0(m) }); expect(r.status(), await r.text()).toBe(201); await abrir(page, id);
     const antes = await leer(request, id), previo = decodificar(antes.texto);
-    const linea = opl(page).locator('[data-linea]').filter({ hasText: /^Origen conoce Alfa y Beta\.$/ }); await expect(linea).toHaveCount(1);
+    const linea = opl(page).locator('[data-linea]').filter({ hasText: /^Origen «conoce» Alfa y Beta\.$/ }); await expect(linea).toHaveCount(1);
     const beta = linea.getByRole('button', { name: 'Beta', exact: true }); await beta.hover(); await realce(page, ids[1]!); await beta.click();
     await expect(opl(page).getByText(ids[1]!, { exact: true })).toBeVisible(); expect((await leer(request, id)).rev).toBe(antes.rev);
     const objeto = porNombre(previo, 'Beta'); if (objeto.tipo !== 'objeto') throw Error('Objeto');
     await page.getByRole('combobox', { name: 'Estado destino', exact: true }).selectOption(objeto.estados[0]!.id); await guardado(page);
     await expect.poll(async () => { const e = decodificar((await leer(request, id)).texto).enlaces[ids[1]!]!; return 'estadoDestino' in e ? e.estadoDestino : undefined; }).toBe(objeto.estados[0]!.id);
     expect(decodificar((await leer(request, id)).texto)).toEqual({ ...previo, enlaces: { ...previo.enlaces, [ids[1]!]: { ...previo.enlaces[ids[1]!]!, estadoDestino: objeto.estados[0]!.id } } });
-    await expect(opl(page).locator('[data-linea]').filter({ hasText: /^Origen conoce Alfa y Beta en pendiente\.$/ })).toHaveCount(1);
+    await expect(opl(page).locator('[data-linea]').filter({ hasText: /^Origen «conoce» Alfa y Beta en pendiente\.$/ })).toHaveCount(1);
     await captura(page, 'b41-etiquetada-estado'); await tecla(page, 'Control+z'); await guardado(page); expect((await leer(request, id)).texto).toBe(antes.texto);
     const doc = generarDocumentoOpl(previo); await aplicarTexto(page, doc.replace('**Alfa** y **Beta**.', '**Alfa** y 4 **Beta**.')); await guardado(page);
     expect(decodificar((await leer(request, id)).texto)).toEqual({ ...previo, enlaces: { ...previo.enlaces, [ids[1]!]: { ...previo.enlaces[ids[1]!]!, multDestino: '4' } } });
@@ -51,7 +51,7 @@ test('T-194 T-243 DEC52 proceso enumerado selecciona su propio agente y no extie
     const revisar = linea.getByRole('button', { name: 'Revisar', exact: true }); await revisar.hover(); await realce(page, ids[1]!); await revisar.click();
     await expect(opl(page).getByText(ids[1]!, { exact: true })).toBeVisible(); expect((await leer(request, id)).rev).toBe(antes.rev);
     await captura(page, 'b41-agente-seleccion');
-    const cantidad = page.getByRole('textbox', { name: 'Cantidad exacta objeto', exact: true }); await cantidad.fill('3'); await cantidad.press('Tab'); await guardado(page);
+    const cantidad = page.getByRole('textbox', { name: 'Cantidad o parámetro objeto', exact: true }); await cantidad.fill('3'); await cantidad.press('Tab'); await guardado(page);
     await expect.poll(async () => { const e = decodificar((await leer(request, id)).texto).enlaces[ids[1]!]!; return 'mult' in e ? e.mult : undefined; }).toBe('3');
     expect(decodificar((await leer(request, id)).texto)).toEqual({ ...previo, enlaces: { ...previo.enlaces, [ids[1]!]: { ...previo.enlaces[ids[1]!]!, mult: '3' } } });
     await expect(opl(page).locator('[data-linea]').filter({ hasText: /^Agente maneja Preparar\.$/ })).toHaveCount(1);

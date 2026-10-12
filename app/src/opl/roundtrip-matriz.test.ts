@@ -64,10 +64,15 @@ test('T-192 retención A/B/A conserva respuesta exacta hasta último uso y liber
 
 test('T-192 corpus completo conserva todos los modelos y argumentos estrictos',()=>{
  // B-39 (DEC50): el bidireccional con estado en destino o en ambos extremos suma 16 modelos admitidos.
- expect(modelosVerificados).toBe(3012);
- expect(importsStrictExactos.size).toBe(2746);
- expect(pendientesStrict).toHaveLength(3008);
- expect(documentos.size).toBe(2748);
+ // B-42: se conservan las 6042 propuestas y se prueban expresamente los 864
+ // negativos nuevos R-MULT-1A; no se eliminan de la enumeración.
+ const cantidadesProcesoRechazadas = libro.filter(c => Array.isArray(c.contexto) && c.contexto.includes('R-MULT-1A'));
+ expect(cantidadesProcesoRechazadas).toHaveLength(864);
+ expect(modelosVerificados).toBe(2148);
+ expect(modelosVerificados + cantidadesProcesoRechazadas.length).toBe(3012);
+ expect(importsStrictExactos.size).toBe(1926);
+ expect(pendientesStrict).toHaveLength(2144);
+ expect(documentos.size).toBe(1928);
  expect(libro).toHaveLength(6042);
  console.log('WP9 corpus completo',{modelosVerificados,entradasStrictExactas:importsStrictExactos.size,documentos:documentos.size});
 });

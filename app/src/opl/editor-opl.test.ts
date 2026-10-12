@@ -50,12 +50,12 @@ test('T-177 T-158 tipo incompatible y nombre ambiguo no mutan ni eligen primer c
  const p=planificar(dup,m.raiz,'**Pedido** es físico.');expect(p.lineas[0]?.razon).toBe('referencia-ambigua');expect(p.acciones).toEqual([]);
 });
 test('T-186 SE3 se combina por bloque antes del ensayo y segunda línea explica su par',()=>{
- const m=vacio(),p=planificar(m,m.raiz,'**Alfa** conoce **Beta**.\n**Beta** pertenece a **Alfa**.');
+ const m=vacio(),p=planificar(m,m.raiz,'**Alfa** «conoce» **Beta**.\n**Beta** «pertenece a» **Alfa**.');
  expect(p.lineas.map(l=>l.estado)).toEqual(['aplicable','aplicable']);expect(p.lineas[1]?.detalle).toContain('par de la línea 1');
  const r=aplicarPlan(m,p);expect(r.ok).toBe(true);if(r.ok)expect(Object.values(r.valor.modelo.enlaces)).toEqual([expect.objectContaining({tipo:'etiquetadoBidireccional',etiqueta:'conoce',inversa:'pertenece a'})]);
 });
 test('T-186 SE3 con la etiqueta por defecto se combina en ambos órdenes, entre objetos y entre procesos',()=>{
- for(const [a,b] of [['**Alfa**','**Beta**'],['*Alfa*','*Beta*']] as const)for(const texto of [`${a} se relaciona con ${b}.\n${b} es relacionado por ${a}.`,`${b} es relacionado por ${a}.\n${a} se relaciona con ${b}.`]){
+ for(const [a,b] of [['**Alfa**','**Beta**'],['*Alfa*','*Beta*']] as const)for(const texto of [`${a} «se relaciona con» ${b}.\n${b} «es relacionado por» ${a}.`,`${b} «es relacionado por» ${a}.\n${a} «se relaciona con» ${b}.`]){
   const m=vacio(),p=planificar(m,m.raiz,texto);
   expect(p.lineas.map(l=>l.estado)).toEqual(['aplicable','aplicable']);
   const r=aplicarPlan(m,p);expect(r.ok).toBe(true);if(!r.ok)continue;
