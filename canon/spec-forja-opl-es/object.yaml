@@ -15,9 +15,9 @@ provenance:
   source_path: artefactos/conocimiento/fxsl/spec-forja-opl-es.md
   source_sha256: 1dd9eca263340cb6cfeed361cf44329d2e6c677f03416d444e81bd847536fcc4
   legacy_state: publicado
-  revision: 2.3.0 local (contenido 2.0.0 sobre ISO/PAS 19450:2015 con la Tabla 27 inferida, DEC50; retira la 2.1.0, DEC47)
+  revision: 2.3.1 local (adopta agente común informativo de ISO/PAS 19450:2015 §14.2.2.4.1/Figura 50; conserva la base 2.3.0, DEC47/50)
   norma: ISO/PAS 19450:2015 (texto del dueño, no versionado); única fuente disponible
   perfil: perfil/opl-opforja.md
 publication:
   status: local
-  sha256: d65c866a77cb7770c15f980e3473007d24965f61132999de718fcfda6928396e
+  sha256: 173ba96b65113e8a2e820089c1e536c7f2778bd5196a387f09ec5fbd849a5867

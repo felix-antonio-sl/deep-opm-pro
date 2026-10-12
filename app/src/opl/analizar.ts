@@ -156,7 +156,7 @@ function compilar(p: Plantilla) {
         for (const m of s.matchAll(/\[([^\[\]]+)\]|\{([^}]+)\}/g)) {
             out += tramo(s.slice(fin, m.index));
             if (m[1] !== undefined){const antes=primerLiteral;out += '(?:' + fragmento(m[1]) + ')?';primerLiteral=antes;}
-            else { keys.push(m[2]!); out += '(' + slot(m[2]!,primerLiteral,p.id.startsWith('AND-')) + ')'; }
+            else { keys.push(m[2]!); out += '(' + slot(m[2]!,primerLiteral,p.id.startsWith('AND-') || p.id === 'SE1L' || p.id === 'SE2L') + ')'; }
             fin = m.index! + m[0].length;
         }
         return out + tramo(s.slice(fin));
@@ -165,7 +165,7 @@ function compilar(p: Plantilla) {
 }
 // Esqueletos específicos primero; SE1/SSE residuales nunca capturan un literal reservado.
 const esqueletos = PLANTILLAS.map(compilar).sort((a, b) => {
-    const residual = (id: string) => /^(?:SE[13]|SSE[12345])$/.test(id) ? 1 : 0;
+    const residual = (id: string) => /^(?:SE[13]|SE1L|SSE[12345])$/.test(id) ? 1 : 0;
     return residual(a.p.id) - residual(b.p.id) || b.peso - a.peso;
 });
 function nombres(texto: string): { plano: string; spans: Span[] } | null {
@@ -251,7 +251,7 @@ function reconocerLinea(texto: string): { plantilla: string; hechos: readonly He
             const k = keys[i]!, s = match[i + 1]; if (s === undefined) continue;
             const v = capturar(k, s, tokens.spans); if (!v) { valido = false; break; }
             let name = k === 'Q' || k === 'Q^' ? 'operador' : k.replace(/^(Ly|Lo|Lista):/, '');
-            if (name.startsWith('m')) name = name.slice(1).replace(/^(O|Olista)e$/, '$1');
+            if (name.startsWith('m')) name = name.slice(1).replace(/^(O|Olista|C[12])e$/, '$1');
             if (h[name]) {
                 const anterior = h[name]!;
                 const identidad = (x: ValorHueco) => Array.isArray(x) ? JSON.stringify(x) : JSON.stringify({ texto: (x as Hueco).texto, marca: (x as Hueco).marca });
@@ -289,9 +289,10 @@ export function analizar(texto: string): readonly LineaAnalizada[] {
         if(!clasificacion){
             // Los límites leen gramática y tipografía, nunca contenido de nombres/estados/ruta.
             const superficieLimites = s.replace(/\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`/gu,span=>span.startsWith('**')?'**N**':span.startsWith('*')?'*N*':'`s`').replace(/^Por ruta [^,\n]+, /u,'Por ruta R, ');
-            const no = [...NO_CANONIZADAS,...NO_SOPORTADAS].find(x => x.patron.test(superficieLimites));
+            const etiquetada = /\bdonde\b|\bordenados por\b/u.test(superficieLimites) ? reconocerLinea(s) : null;
+            const no = [...NO_CANONIZADAS,...NO_SOPORTADAS].find(x => x.patron.test(superficieLimites) && !(x.enEtiqueta && etiquetada?.plantilla === 'SE1L'));
             // Sujetos enumerados del canon no son plural por multiplicidad (B-09).
-            const r = !no || no.registro === 'B-09' ? reconocerLinea(s) : null;
+            const r = !no || no.registro === 'B-09' ? etiquetada ?? reconocerLinea(s) : null;
             const limite = no && r?.plantilla !== 'AND-agente' && r?.plantilla !== 'AND-instrumento-procesos' ? no : undefined;
             clasificacion=limite?{hechos:HECHOS_VACIOS,diagnosticos:diag(limite.codigo,'Construcción fuera del subconjunto inverso soportado.',limite.regla).diagnosticos.map(d=>({...d,linea:0}))}:r?{...r,diagnosticos:[]}:{hechos:HECHOS_VACIOS,diagnosticos:[{codigo:'syntax-error',severidad:'error',linea:0,mensaje:'Forma OPL no reconocida.'}]};
             if(memoClasificacion.size>=2048)memoClasificacion.delete(memoClasificacion.keys().next().value!);

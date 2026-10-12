@@ -63,11 +63,15 @@ const filas: readonly [
     ['AND-invocacion', '{P1} invoca {Ly:Plista}.', 'invocacion'],
     // Canon §4.2: realización informativa de ISO §12.1/Figura 50, fuera del Anexo A.
     ['AND-instrumento-procesos', '{Ly:Plista} requieren {mOe}.', 'habilitadora'],
+    // DEC52/canon §4.1 2.3.1: ejemplo informativo, sólo el agente simple compartido.
+    ['AND-agente-procesos', '{O} maneja {Ly:Plista}.', 'habilitadora'],
     ['ET1', '{mO} inicia {P}, que consume {O}.', 'evento'], ['ETS1', '{mO} en {s} inicia {P}, que consume {O}.', 'evento'], ['ET2', '{mO} inicia {P}, que afecta {O}.', 'evento'], ['ETS2', '{O} en {e} inicia {P}, que cambia {O} de {e} a {s}.', 'evento'], ['ETS3', '{O} en {e} inicia {P}, que cambia {O} de {e}.', 'evento'], ['ETS4', '{O} en cualquier estado inicia {P}, que cambia {O} a {s}.', 'evento'], ['EH1', '{mO} inicia y maneja {P}.', 'evento'], ['EHS1', '{mO} en {s} inicia y maneja {P}.', 'evento'], ['EH2', '{mO} inicia {P}, que requiere {O}.', 'evento'], ['EHS2', '{mO} en {s} inicia {P}, que requiere {O} en {s}.', 'evento'],
     ['CT1', '{P} ocurre si {O} existe, en cuyo caso {O} se consume, de lo contrario {P} se omite.', 'condicion'], ['CS1', '{P} ocurre si {O} está en {s}, en cuyo caso {O} se consume, de lo contrario {P} se omite.', 'condicion'], ['CT2', '{P} ocurre si {O} existe, en cuyo caso {P} afecta {O}, de lo contrario {P} se omite.', 'condicion'], ['CS2', '{P} ocurre si {O} está en {e}, en cuyo caso {P} cambia {O} de {e} a {s}, de lo contrario {P} se omite.', 'condicion'], ['CS3', '{P} ocurre si {O} está en {e}, en cuyo caso {P} cambia {O} de {e}, de lo contrario {P} se omite.', 'condicion'], ['CS4', '{P} ocurre si {O} existe, en cuyo caso {P} cambia {O} a {s}, de lo contrario {P} se omite.', 'condicion'], ['CH1', '{O} maneja {P} si {O} existe, de lo contrario {P} se omite.', 'condicion'], ['CS5', '{O} maneja {P} si {O} está en {s}, de lo contrario {P} se omite.', 'condicion'], ['CH2', '{P} ocurre si {O} existe, de lo contrario {P} se omite.', 'condicion'], ['CS6', '{P} ocurre si {O} está en {s}, de lo contrario {P} se omite.', 'condicion'], ['COND-ALT', 'Si {O} existe entonces {P} ocurre y consume {O}, de lo contrario se omite {P}.', 'condicion', 'P'],
     ['EX1', '{P1} ocurre si duración de {P2} excede {n} {u}.', 'excepcion'], ['EX2', '{P1} ocurre si duración de {P2} es menor que {n} {u}.', 'excepcion'], ['EX1r', '{P1} ocurre si duración de {P2} excede su duración máxima.', 'excepcion'], ['EX2r', '{P1} ocurre si duración de {P2} es menor que su duración mínima.', 'excepcion'], ['IV1', '{P1} invoca {P2}.', 'invocacion'], ['IV2', '{P} se invoca a sí mismo.', 'invocacion'],
     ['RF1', '{vertice} consta de {Ly:mC}.', 'estructural'], ['RF1i', '{vertice} consta de {Lista:mC} y al menos otra parte.', 'estructural'], ['RF2', '{vertice} exhibe {Ly:C}.', 'estructural'], ['RF2b', '{vertice} exhibe {Ly:C} así como {Ly:otro}.', 'estructural'], ['RF2i', '{vertice} exhibe {Lista:C}[ así como {Ly:otro}] y al menos otro rasgo.', 'estructural'], ['RF3', '{Ly:C} son {general}.', 'estructural'], ['RF3b', '{C} es un|una {general}.', 'estructural'], ['RF3i', '{Lista:C} y al menos otra especialización son {general}.', 'estructural'], ['RH1', '{C} es {Ly:articulos}.', 'estructural'], ['RFE', '{Ly:Oe} son {O} en {s}.', 'estructural'], ['RF4', '{C} es una instancia de {general}.', 'estructural'], ['RF4b', '{Ly:C} son instancias de {general}.', 'estructural'],
     ['SE1', '{mC1} {t} {mC2}.', 'etiquetada'], ['SE2', '{mC1} se relaciona con {mC2}.', 'etiquetada'], ['SSE1', '{O1} en {a} {t} {O2}.', 'etiquetada'], ['SSE2', '{O1} {t} {O2} en {b}.', 'etiquetada'], ['SSE3', '{O1} en {a} {t} {O2} en {b}.', 'etiquetada'], ['SE3', '{mC1} {t} {mC2}.', 'etiquetada'], ['SSE4', '{O1} en {a} {t} {O2}.', 'etiquetada'], ['SSE5', '{O2} {t2} {O1} en {a}.', 'etiquetada'], ['SE4', '{mC1} y {mC2} son {t}.', 'etiquetada'], ['SE5', '{mC1} y {mC2} se relacionan.', 'etiquetada'], ['SSE6', '{O1} en {a} y {O2} en {b} son {t}.', 'etiquetada'], ['SSE7', '{O2} y {O1} en {a} son {t}.', 'etiquetada'],
+    // A.4.6.2.2: listas unidireccionales cerradas, sin metadatos de colección inventados.
+    ['SE1L', '{mC1e} {t} {Ly:mC2e}.', 'etiquetada'], ['SE2L', '{mC1e} se relaciona con {Ly:mC2e}.', 'etiquetada'],
     ['FAN5s', '{P} cambia {O} a {Q} {Lo:s}.', 'abanico'], ['FAN5e', '{P} cambia {O} de {Q} {Lo:s}.', 'abanico'], ['FAN5A', '{P} cambia {O} de {e} a {Q} {Lo:s}.', 'abanico'], ['FAN4', '{O} inicia {Q} {Lo:Plista}, y es afectado por el proceso que ocurre.', 'abanico'], ['CFE', '{Q^} {Lo:Plista} ocurre si {O} existe, en cuyo caso afecta {O}, de lo contrario se omite.', 'abanico'], ['C18', '{P} ocurre si {Q} {Lo:Olista} existe, en cuyo caso {P} consume {Q} {Lo:Olista}, de lo contrario {P} se omite.', 'abanico'],
     ['CX1', '{P} se descompone en {Ly:Plista}, en esa secuencia[, así como {Ly:O}].', 'contexto'], ['CX2', '{P} se descompone en paralelo {Ly:Plista}[, así como {Ly:O}].', 'contexto'], ['CXM', '{P} se descompone en {SEC}, en esa secuencia[, así como {Ly:O}].', 'contexto'], ['CXI', '{P} se descompone en {Ly:Plista}, así como {Ly:O}.', 'contexto', 'P'], ['CXN', '{P} desde {padre} se descompone en {opd} en {SEC}, en esa secuencia.', 'contexto', 'P'], ['CX3', '{vertice} se despliega en {opd} en {Ly:C}[, así como {Ly:otro}].', 'contexto'], ['CX3s', '{vertice} se despliega en {Ly:C}.', 'contexto', 'P']
 ];
@@ -408,6 +412,29 @@ export function datosInstrumentoAnd(m: Modelo, es: readonly Enlace[]): HechoGene
         Plista: es.map(e => cosa(m, (e as typeof primero).proceso, e.id)), O: cosa(m, primero.objeto, primero.id, primero.mult, primero.estado)
     } };
 }
+export function claveAgenteAnd(e: Enlace): string | null {
+    return e.tipo === 'agente' && e.estado === undefined && e.mult === undefined && e.control === undefined ? JSON.stringify([e.objeto]) : null;
+}
+export function datosAgenteAnd(m: Modelo, es: readonly Enlace[]): HechoGenerable | null {
+    const primero = es[0];
+    if (!primero || primero.tipo !== 'agente' || es.length < 2 || !claveAgenteAnd(primero) || es.some(e => claveAgenteAnd(e) !== claveAgenteAnd(primero))) return null;
+    return { plantilla: 'AND-agente-procesos', huecos: {
+        O: cosa(m, primero.objeto, primero.id), Plista: es.map(e => cosa(m, (e as typeof primero).proceso, e.id))
+    } };
+}
+export function claveEtiquetadosLista(e: Enlace): string | null {
+    // B-38: ausencia y literal reservado expresan el mismo hecho; los campos guardados no se normalizan.
+    return e.tipo === 'etiquetado' ? JSON.stringify([e.origen, e.estadoOrigen ?? null, e.multOrigen ?? null, e.etiqueta ?? ETIQUETA_POR_DEFECTO]) : null;
+}
+export function datosEtiquetadosLista(m: Modelo, es: readonly Enlace[]): HechoGenerable | null {
+    const primero = es[0];
+    if (!primero || primero.tipo !== 'etiquetado' || es.length < 2 || es.some(e => claveEtiquetadosLista(e) !== claveEtiquetadosLista(primero))) return null;
+    return { plantilla: primero.etiqueta ? 'SE1L' : 'SE2L', huecos: {
+        C1: cosa(m, primero.origen, primero.id, primero.multOrigen, primero.estadoOrigen),
+        C2: es.map(e => { const miembro = e as typeof primero; return cosa(m, miembro.destino, miembro.id, miembro.multDestino, miembro.estadoDestino); }),
+        ...(primero.etiqueta ? { t: { texto: primero.etiqueta, hecho: primero.id, ref: { tipo: 'enlace', id: primero.id } } } : {})
+    } };
+}
 const unidades: Record<UnidadTiempo, readonly [
     string,
     string
@@ -422,8 +449,14 @@ function reconocer(id: string, h: Huecos): readonly HechoTexto[] {
     const x = (k: string) => uno(h, k), nombre = (k: string): NombreTipado => ({ nombre: x(k).texto, tipo: x(k).marca === 'proceso' ? 'proceso' : 'objeto', ...(x(k).genero ? { genero: x(k).genero } : {}) });
     const extremo = (v: Hueco): ExtremoTexto => ({ nombre: v.texto, tipo: v.marca === 'proceso' ? 'proceso' : 'objeto', ...(v.genero ? { genero: v.genero } : {}), ...(v.mult ? { mult: v.mult } : {}), ...(v.estado ? { estado: v.estado.texto } : {}) });
     const ext = (k: string) => extremo(x(k));
+    if (id === 'SE1L' || id === 'SE2L') {
+        const origen = x('C1'), miembros = lista(h, 'C2');
+        if (miembros.length < 2 || !['objeto', 'proceso'].includes(origen.marca ?? '') ||
+            miembros.some(v => v.marca !== origen.marca || v.estado && v.marca !== 'objeto') || origen.estado && origen.marca !== 'objeto') return [];
+        return miembros.map(v => ({ k: 'enlace', enlace: { tipo: 'etiquetado', origen: extremo(origen), destino: extremo(v), ...(h.t ? { etiqueta: x('t').texto } : {}) } }));
+    }
     if (id.startsWith('AND-')) {
-        if (id === 'AND-instrumento-procesos') return lista(h, 'Plista').length < 2 ? [] : lista(h, 'Plista').map(p => ({ k: 'enlace', enlace: { tipo: 'instrumento', objeto: ext('O'), proceso: p.texto } }));
+        if (id === 'AND-instrumento-procesos' || id === 'AND-agente-procesos') return lista(h, 'Plista').length < 2 ? [] : lista(h, 'Plista').map(p => ({ k: 'enlace', enlace: { tipo: id === 'AND-agente-procesos' ? 'agente' : 'instrumento', objeto: ext('O'), proceso: p.texto } }));
         const tipo = id.slice(4);
         const key = tipo === 'cambio' ? 'cambios' : tipo === 'entrada' ? 'entradas' : tipo === 'salida' ? 'salidas' : tipo === 'invocacion' ? 'Plista' : 'O';
         const miembros = lista(h, key);

@@ -957,7 +957,7 @@ Rationale: el operador requiere prosa OPL más prosaica con conectores; BUG-f897
 OPD; `plantillas.ts` es la única fuente de oraciones y `analizar.ts` recupera un hecho por miembro. Consumo,
 resultado, efecto básico/TS3/TS4/TS5, agente, instrumento, invocación con origen común y relaciones fundamentales
 conservan identidad, estados, multiplicidades y tokens. Las rutas comunes agrupan sólo enlaces ajenos a abanicos.
-Las diez producciones AND nuevas reconocen comas intermedias y una única conjunción `y/e` final
+Las once producciones AND y las dos listas etiquetadas cerradas reconocen comas intermedias y una única conjunción `y/e` final
 (A.4.3, R-OPL-LISTA-1); nombres y estados siguen siendo spans opacos. Los esqueletos históricos se conservan.
 
 El instrumento común con procesos enumerados también se ofrece: es la producción informativa adoptada en canon
@@ -974,8 +974,21 @@ no se construye un producto cartesiano de dos listas.
   listas AND actuales, acepta las entradas atómicas anteriores y normaliza su regeneración a listas.
 
 Los controles E/C y las excepciones conservan las producciones singulares de A.4.5.4 y sus reglas de disparo.
-Las listas ilustrativas de procesos con agente común y las listas bifurcadas opcionales de etiquetados no se
-ofrecen en este incremento; no se afirma cobertura de todas las formas de la Figura 50 ni de todo el Anexo A.
+DEC52 ofrece el agente común simple con procesos enumerados: ejemplo informativo adoptado en canon
+spec-OPL 2.3.1 §4.1/EBNF, fuera del Anexo A. Excluye estado, multiplicidad o control en cualquiera de
+sus miembros; tampoco absorbe XOR/OR. Después de agrupar por proceso se agrupan los restantes por agente.
+
+Las listas etiquetadas UNI cerradas de A.4.6.2.2 conservan origen/estado/multiplicidad comunes exactos,
+etiqueta efectiva común y todos los destinos con sus propios tokens, estados, cantidades y hechos.
+Ausencia y «se relaciona con» expresan el mismo hecho (B-38); agruparlas no modifica los campos del modelo/JSON. No absorben medio
+bidireccional ni recíproco. B-04 sigue impidiendo multiplicidad+estado en un mismo enlace; B-09/B-10/B-42
+conservan sus límites. T-182 conserva firma: otro estado por texto agrega el etiquetado nuevo, no reancla
+el anterior; quitar un miembro no borra. No hay cambios a esa lente.
+
+`y más`, criterio/orden/secuencia y restricciones son capacidades opcionales sin representación en v0
+(B-54); no se emiten ni se aplican parcialmente. P informa `unsupported-canonical`. Las palabras dentro de
+nombres tipados o del hueco de etiqueta de una lista cerrada reconocida son opacas. No se afirma cobertura
+completa de Figura 50 o Anexo A; E/C/EX singulares no constituyen una brecha de listas AND.
 
 ## §10 Multiplicidad y cardinalidad
 

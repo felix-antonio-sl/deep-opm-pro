@@ -6,7 +6,7 @@ import type { EnlaceVisto } from '../nucleo/proyeccion';
 import { noOfrecido, violacionesForma, violacionesAbanico, normalizarEtiquetas } from '../nucleo/matriz';
 import type { OpcionesOpl, LineaOpl, TokenOpl } from './linea';
 import { textoDeTokens, refsDeTokens } from './linea';
-import { cosa, estadoHueco, hueco, datosEnlace, tokensPlantilla, datosContexto, PLANTILLAS, claveAnd, datosAnd, claveInstrumentoAnd, datosInstrumentoAnd } from './plantillas';
+import { cosa, estadoHueco, hueco, datosEnlace, tokensPlantilla, datosContexto, PLANTILLAS, claveAnd, datosAnd, claveInstrumentoAnd, datosInstrumentoAnd, claveAgenteAnd, datosAgenteAnd, claveEtiquetadosLista, datosEtiquetadosLista } from './plantillas';
 import type { Huecos, HechoGenerable } from './plantillas';
 const colacionNombre = new Intl.Collator('es',{sensitivity:'base'});
 // Ramas hacia estados del mismo objeto: orden del modelo, no del id (T-101), para que OPL→modelo→OPL sea idéntico.
@@ -222,6 +222,16 @@ function construirBloque(m: Modelo, opd: Id, o?: OpcionesOpl): readonly LineaOpl
         const h = datosInstrumentoAnd(m, g.map(v => v.enlace));
         if (h) { const l = linea(m, opd, h, clave, g.flatMap(v => v.hechos)); for (const v of g) lineasAnd.set(v, l); }
     }
+    const agentes = new Map<string, EnlaceVisto[]>();
+    for (const g of gruposAnd.values()) for (const v of g) {
+        const clave = claveAgenteAnd(v.enlace);
+        if (!clave || lineasAnd.has(v)) continue;
+        const miembros = agentes.get(clave) ?? []; miembros.push(v); agentes.set(clave, miembros);
+    }
+    for (const [clave, g] of agentes) {
+        const h = datosAgenteAnd(m, g.map(v => v.enlace));
+        if (h) { const l = linea(m, opd, h, clave, g.flatMap(v => v.hechos)); for (const v of g) lineasAnd.set(v, l); }
+    }
     for (const v of sorted) {
         if ('refinable' in v.enlace || etiquetados.includes(v) || v.hechos.some(id => invalidos.has(id)))
             continue;
@@ -316,8 +326,24 @@ function construirBloque(m: Modelo, opd: Id, o?: OpcionesOpl): readonly LineaOpl
         }
     }
     etiquetados.sort((a, b) => cmp(m.cosas[extremos(a.enlace).origen]!, m.cosas[extremos(b.enlace).origen]!) || cmp(m.cosas[extremos(a.enlace).destino]!, m.cosas[extremos(b.enlace).destino]!) || a.enlace.id.localeCompare(b.enlace.id));
-    for (const v of etiquetados)
-        enlaces.push(...emitirEnlace(m, opd, v));
+    const gruposEtiquetados = new Map<string, EnlaceVisto[]>(), listasEtiquetadas = new Map<EnlaceVisto, LineaOpl>();
+    for (const v of etiquetados) {
+        const clave = claveEtiquetadosLista(v.enlace);
+        if (!clave || violacionesForma(m, v.enlace).length || noOfrecido(m, v.enlace)) continue;
+        const g = gruposEtiquetados.get(clave) ?? []; g.push(v); gruposEtiquetados.set(clave, g);
+    }
+    for (const [clave, g] of gruposEtiquetados) {
+        const h = datosEtiquetadosLista(m, g.map(v => v.enlace));
+        if (!h) continue;
+        const l = linea(m, opd, h, clave, g.flatMap(v => v.hechos));
+        for (const v of g) listasEtiquetadas.set(v, l);
+    }
+    const emitidasEtiquetadas = new Set<LineaOpl>();
+    for (const v of etiquetados) {
+        const l = listasEtiquetadas.get(v);
+        if (!l) enlaces.push(...emitirEnlace(m, opd, v));
+        else if (!emitidasEtiquetadas.has(l)) { enlaces.push(l); emitidasEtiquetadas.add(l); }
+    }
     const mencionados = new Set([...contexto, ...cosas, ...enlaces].flatMap(l => l.refs.filter(r => r.tipo === 'cosa').map(r => r.id)));
     for (const c of orden)
         if (!mencionados.has(c.id))

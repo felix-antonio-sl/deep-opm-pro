@@ -1,7 +1,7 @@
 ---
 urn: urn:fxsl:kb:spec-forja-opl-es
 nombre: spec-forja-opl-es
-version: 2.3.0
+version: 2.3.1
 estado: local
 descripcion: "Especificación OPL-ES: realización en español de la OPL de ISO 19450 (vocabulario reservado, plantillas de oración por construcción y gramática EBNF traducida del Anexo A)."
 fuente: "ISO/PAS 19450:2015, revisión cláusula por cláusula (2026-10-10); 2.2.0 restablece el contenido 2.0.0 y retira la revisión 2.1.0 (DEC47); 2.3.0 adopta la lectura inferida de la Tabla 27 (DEC50)"
@@ -353,6 +353,7 @@ Un enlace habilitador conecta un objeto habilitador con un proceso: el habilitad
 - **HS1** (ISO §9.4.1, ISO Tabla 4): **Agente** en `estado` maneja *Proceso*. [localización] El estado se pospone al agente.
 - Con multiplicidad (ISO §11.1): `2 **Agentes** manejan *Proceso*.`
 - Con varios agentes (ISO §12.1 Figura 35, §A.4.5.3): `**A** y **B** manejan *Proceso*.`
+- Con varios procesos manejados por un agente único [informativo] (ISO §14.2.2.4.1, Figura 50): `**A** maneja *P1*, *P2* y *P3*.` El agente sigue siendo el sujeto único; los procesos son el complemento. Este ejemplo no agrega una obligación de §12.1 ni una producción del Anexo A.
 - Con evento: EH1 y EHS1 (spec-OPL §5.1). Con condición: CH1 y CS5 (spec-OPL §5.2).
 
 **Oración**: el agente es el sujeto y el proceso el complemento (ISO §9.2.2). Un agente que forma parte de un abanico XOR u OR se expresa con la oración del abanico (ISO §12.2, ISO Tabla 20; spec-OPL §8.1).
@@ -1149,7 +1150,9 @@ oracion_de_agente = ( lista_de_objetos_procedimentales, ( " maneja " | " manejan
     | ( "Al menos uno de ", lista_o_de_objetos, " maneja ", identificador_de_proceso )     (* errata ISO: «handles » sin espacio previo *)
     | ( objeto_con_opcion_de_estado, " maneja al menos uno de ", lista_o_de_procesos )
     | ( "Exactamente ", lista_xor_de_objetos_al_final, " maneja ", identificador_de_proceso )
-    | ( objeto_con_opcion_de_estado, " maneja exactamente ", lista_xor_de_procesos_al_final ) ;
+    | ( objeto_con_opcion_de_estado, " maneja exactamente ", lista_xor_de_procesos_al_final )
+    | ( identificador_de_objeto, " maneja ", lista_de_procesos ) ;
+      (* la última: fuera del Anexo A, ISO §14.2.2.4.1, Figura 50 [informativo]; sin estado, multiplicidad ni control compartidos *)
 oracion_de_instrumento = ( identificador_de_proceso, " requiere ", lista_de_objetos_procedimentales )
     | ( identificador_de_proceso, " requiere al menos uno de ", lista_o_de_objetos )
     | ( "Al menos uno de ", lista_o_de_procesos, " requiere ", objeto_con_opcion_de_estado )

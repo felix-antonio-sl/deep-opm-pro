@@ -205,6 +205,21 @@ que tenemos» (ISO/PAS 19450:2015; no se versiona en el repositorio). Se cita la
     del canon vigente 2.3.0; su cobertura y reservas se declaran en conformidad. La autorización de publicación
     no acredita aceptación del resultado ni autoriza integrar en `main` o desplegar.
 
+
+52. **Continuar B-41 y adoptar agente común informativo.** Mandato directo del dueño, role=user:
+    > Sigamos con lo pendiente de B-41. Contrasta las formas con el canon y conserva el roundtrip, con pruebas completas y revisión independiente. Commit atómico y semántico y push solo a la rama; sin tocar main ni desplegar.
+
+    Respuesta directa a `request_user_input_async`:
+    > Autorizar adopción informativa (recomendado)
+
+    `questionItemId`: `["request_user_input_async","call_d6a90c31077242bea1752dc5d5ec53e7",0]`; ID/fecha del
+    mensaje no observables. Autoriza el parche documental de 75 líneas, SHA256
+    `6d3e4334f2663b00d00bec04c780dcb71a1ae006ecd1dc262a59ae8f818c7e6f`, y su implementación posterior.
+    Spec-OPL 2.3.1 adopta `**A** maneja *P1*, *P2* y *P3*.` como ejemplo informativo de ISO/PAS 19450:2015
+    §14.2.2.4.1/Figura 50, fuera del Anexo A: agente sin estado, multiplicidad ni control compartidos.
+    No modifica XOR/OR, el DEBE de §12.1 ni los otros documentos del canon. La aceptación requiere pruebas
+    completas y revisión independiente; publicación sólo en la rama, sin integración ni despliegue.
+
 ## Resoluciones directas posteriores — vigentes
 
 Frases role=user recibidas textualmente; ID y fecha originales no observables.

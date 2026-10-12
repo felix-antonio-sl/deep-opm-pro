@@ -5,13 +5,14 @@ desde la versión 2.0.0 se revisaron cláusula por cláusula contra ISO/PAS 1945
 `docs/decisiones.md`). La versión 2.2.0 restablece ese contenido y retira la revisión 2.1.0, que se apoyaba
 en una edición 2024 de la que no se dispuso (DEC47, `CAMBIOS-2.2.md`). La 2.3.0 adopta la lectura inferida de
 la Tabla 27 de precedencia (DEC50, `CAMBIOS-2.3.md`). Lo propio de OpForja (producto,
-extensiones, endurecimientos) vive en `perfil/`.
+extensiones, endurecimientos) vive en `perfil/`. La spec-OPL 2.3.1 adopta el ejemplo informativo de agente
+común de §14.2.2.4.1/Figura 50, fuera del Anexo A (`CAMBIOS-2.3.1.md`); los otros tres documentos siguen 2.3.0.
 
 | Slug | Versión | SHA256 de `content.md` | Plano de autoridad |
 |---|---|---|---|
 | `reglas-opm-estrictas-es` | 2.3.0 | `65aa693210b2b07aa23ed0909e73624462ab18e35a1f1c1f9173865154a6e84d` | Reglas: ontología, validez de enlaces, refinamiento, bimodalidad |
 | `spec-forja-opd-es` | 2.3.0 | `f4baa9af2d72dcd860772c2a2de8abe09386eacf99a928abf7d84c63aa30f2bc` | Notación gráfica OPD |
-| `spec-forja-opl-es` | 2.3.0 | `d65c866a77cb7770c15f980e3473007d24965f61132999de718fcfda6928396e` | OPL-ES: vocabulario, plantillas, EBNF |
+| `spec-forja-opl-es` | 2.3.1 | `173ba96b65113e8a2e820089c1e536c7f2778bd5196a387f09ec5fbd849a5867` | OPL-ES: vocabulario, plantillas, EBNF |
 | `metodologia-forja-opm-es` | 2.3.0 | `0d1eb46b848e1bf7fb0f5fee4bb9ad1938600d032968f079d4cd5cdec2cadc9b` | Metodología |
 
 Precedencia: reglas > spec-OPD / spec-OPL > metodología; ante duda manda la norma. El perfil se subordina al

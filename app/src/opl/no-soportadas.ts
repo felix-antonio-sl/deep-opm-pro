@@ -1,5 +1,5 @@
 import type { CodigoOpl } from './analizar';
-interface LimiteOpl { readonly patron: RegExp; readonly codigo: CodigoOpl; readonly regla: string; readonly registro: string; }
+interface LimiteOpl { readonly patron: RegExp; readonly codigo: CodigoOpl; readonly regla: string; readonly registro: string; readonly enEtiqueta?: true; }
 /** Reconocimiento de límites: la prosa no se degrada a un grafo plausible. */
 export const NO_CANONIZADAS: readonly LimiteOpl[] = [
     { patron: /\*[^*]+\* es persistente\.|\*\*[^*]+\*\* es transitori[oa]\./u, codigo: 'non-canonical', regla: 'R-OPL-DESC-1', registro: 'B-16' },
@@ -11,6 +11,8 @@ export const NO_CANONIZADAS: readonly LimiteOpl[] = [
     { patron: /\bexhiben? `s` \*\*N\*\*/u, codigo: 'non-canonical', regla: 'R-ZNC-1', registro: 'B-37' }
 ];
 export const NO_SOPORTADAS: readonly LimiteOpl[] = [
+    // Son metadatos sólo fuera del hueco de etiqueta de una lista cerrada reconocida.
+    { patron: / [ye] más\.$|\bdonde\b|\bordenados por\b/u, codigo: 'unsupported-canonical', regla: 'R-OPL-SE-4', registro: 'B-54', enEtiqueta: true },
     { patron: /\bpuede ser\b/u, codigo: 'unsupported-canonical', regla: 'R-OPL-RF-5', registro: 'B-01' },
     { patron: /\*\*[^*]+\*\* se descompone en\b/u, codigo: 'unsupported-canonical', regla: 'R-OPL-CX-4', registro: 'B-02' },
     { patron: /\b(?:consumen|generan|afectan|requieren|manejan|invocan)\b/u, codigo: 'unsupported-canonical', regla: 'DR-12', registro: 'B-09' },
@@ -19,9 +21,9 @@ export const NO_SOPORTADAS: readonly LimiteOpl[] = [
     { patron: /\bse despliega por (?:partes|especialización|instanciación|rasgos) en\b/u, codigo: 'unsupported-canonical', regla: 'R-IMPORT-5', registro: 'B-11' },
     { patron: /^Por ruta .* (?:maneja|requiere|afecta|invoca|cambia)\b/u, codigo: 'unsupported-canonical', regla: 'R-OPL-RUTA-2', registro: 'B-07' },
     { patron: /\bes (?:persistente|transitoria|transitorio)\.$/u, codigo: 'unsupported-canonical', regla: 'R-IMPORT-5', registro: 'B-16' },
-    { patron: /\bes de tipo\b|\bvaría de\b|\bdonde\b|\ben \{|\b(?:se refina por|se pliega|se recompone|referencia el sub-modelo|vista de sub-modelo|referencia externa)\b/u, codigo: 'unsupported-canonical', regla: 'R-§19-SIM-2', registro: 'B-16' },
+    { patron: /\bes de tipo\b|\bvaría de\b|\ben \{|\b(?:se refina por|se pliega|se recompone|referencia el sub-modelo|vista de sub-modelo|referencia externa)\b/u, codigo: 'unsupported-canonical', regla: 'R-§19-SIM-2', registro: 'B-16' },
     // «X tiene un **Y** opcional» (atributo opcional) no se soporta; «X tiene un opcional **Y**» es un etiquetado con «?».
-    { patron: /\btiene (?:un|una) \*\*[^*]+\*\* opcional\b|\b(?:después de|no maneja|no requiere|no consume|no genera|no afecta|no cambia|ordenados por)\b|\[etiqueta:/u, codigo: 'unsupported-canonical', regla: 'R-IMPORT-5', registro: 'B-16' },
+    { patron: /\btiene (?:un|una) \*\*[^*]+\*\* opcional\b|\b(?:después de|no maneja|no requiere|no consume|no genera|no afecta|no cambia)\b|\[etiqueta:/u, codigo: 'unsupported-canonical', regla: 'R-IMPORT-5', registro: 'B-16' },
     { patron: /^\*[^*]+\* (?:consume|genera|afecta|requiere|cambia) .*?(?:, | [ye] )(?:consume|genera|afecta|requiere|cambia) \*\*/u, codigo: 'unsupported-canonical', regla: 'R-§18-EXT-1', registro: 'B-16' },
     { patron: /\bexcede .* y .*es menor que\b/u, codigo: 'unsupported-canonical', regla: 'R-IMPORT-5', registro: 'B-16' }
 ];
