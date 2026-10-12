@@ -92,10 +92,12 @@ for (const operador of ['XOR', 'OR'] as const)
         expect(r.ok).toBe(true);
         if (!r.ok) throw new Error('Importación');
         expect(r.modelo.abanicos).toEqual({}); expect(r.modelo.enlaces).toEqual(enlaces);
-        expect(generarBloque(r.modelo, 'sd').filter(l => l.hechos.length).map(l => l.texto)).toEqual([
-            '*Procesar* cambia **Pedido** de `pendiente` a `pagado`.',
-            '*Procesar* cambia **Pedido** de `pagado` a `pagado`.'
+        const lineas = generarBloque(r.modelo, 'sd').filter(l => l.hechos.length);
+        expect(lineas.map(l => l.texto)).toEqual([
+            '*Procesar* cambia **Pedido** de `pendiente` a `pagado` y **Pedido** de `pagado` a `pagado`.'
         ]);
+        expect(lineas[0]!.hechos).toEqual(['e1', 'e2']);
+        for (const id of ['e1', 'e2']) expect(lineas[0]!.tokens.some(t => t.hecho === id && t.ref?.tipo === 'cosa' && t.ref.id === 'o')).toBe(true);
         expect(JSON.stringify(modelo)).toBe(antes);
     });
 

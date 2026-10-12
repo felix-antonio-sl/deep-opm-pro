@@ -176,7 +176,7 @@ test('T-127 un refinador emite su oración CX (ISO §10.3.1, A.4.7.4) y bloques 
 test('T-126 despliegue mixto primero clase del refinable sin secuencia ni paralelo',()=>{
  const base=m([{id:'e1',tipo:'exhibicion',refinable:'o',refinador:'a'},{id:'e2',tipo:'exhibicion',refinable:'o',refinador:'p'}]);const mod=congelar({...base,opds:{...base.opds,h:{id:'h',tipo:'despliegue',padre:'sd',cosa:'o',orden:0,modo:'exhibicion',apariciones:{o:ap,a:ap,p:ap}}} as Record<string,Opd>});
  expect(validarForma(mod)).toEqual([]);expect(generarBloque(mod,'h')[0]!.texto).toBe('**Pedido** se despliega en SD1 en **Cuenta**, así como *Procesar*.');
- expect(generarBloque(mod,'h').filter(l=>l.hechos.length).map(l=>l.texto)).toEqual(['**Pedido** exhibe **Cuenta**.','**Pedido** exhibe *Procesar*.']);
+ const ls=generarBloque(mod,'h').filter(l=>l.hechos.length);expect(ls.map(l=>l.texto)).toEqual(['**Pedido** exhibe **Cuenta** así como *Procesar*.']);expect(ls[0]!.hechos).toEqual(['e1','e2']);expect(ls[0]!.tokens.filter(t=>t.hecho&&t.rol==='nombre'&&t.ref?.id!=='o').map(t=>[t.texto,t.hecho])).toEqual([['Cuenta','e1'],['Procesar','e2']]);
 });
 
 test('T-123 salida común de TS3 DEC29 no ofrecida falla cerrado antes de importar',()=>{
@@ -217,11 +217,11 @@ test('T-130 listas estructurales alternan y/e por nombre sin coma Oxford',()=>{
  const base=m();const mod=m([{id:'e1',tipo:'agregacion',refinable:'o',refinador:'a'},{id:'e2',tipo:'agregacion',refinable:'o',refinador:'b'},{id:'e3',tipo:'agregacion',refinable:'o',refinador:'c'}],{cosas:{...base.cosas,b:obj('b','Factura'),c:obj('c','Informe')},opds:{sd:{id:'sd',tipo:'raiz',apariciones:{o:ap,a:ap,b:ap,c:ap}}}});
  expect(generarBloque(mod,'sd').filter(l=>l.hechos.length).map(l=>l.texto)).toEqual(['**Pedido** consta de **Cuenta**, **Factura** e **Informe**.']);
 });
-test('T-132 hijo de refinamiento mantiene oraciones atómicas además de CX',()=>{
- const mod=hijo([['q'],['r']],[]);const es:Record<string,Enlace>={e1:{id:'e1',tipo:'agregacion',refinable:'p',refinador:'q'},e2:{id:'e2',tipo:'agregacion',refinable:'p',refinador:'r'}};const refinado=congelar({...mod,enlaces:es});expect(validarForma(refinado)).toEqual([]);expect(generarBloque(refinado,'h').filter(l=>l.hechos.length).map(l=>l.texto)).toEqual(['*Procesar* consta de *Archivar*.','*Procesar* consta de *Validar*.']);
+test('T-132 hijo de refinamiento conserva CX y agrupa sus relaciones fundamentales',()=>{
+ const mod=hijo([['q'],['r']],[]);const es:Record<string,Enlace>={e1:{id:'e1',tipo:'agregacion',refinable:'p',refinador:'q'},e2:{id:'e2',tipo:'agregacion',refinable:'p',refinador:'r'}};const refinado=congelar({...mod,enlaces:es});expect(validarForma(refinado)).toEqual([]);const ls=generarBloque(refinado,'h');expect(ls.filter(l=>l.hechos.length).map(l=>l.texto)).toEqual(['*Procesar* consta de *Archivar* y *Validar*.']);expect(ls.filter(l=>l.hechos.length)[0]!.hechos).toEqual(['e1','e2']);expect(ls.some(l=>l.plantilla.startsWith('CX'))).toBe(true);
 });
-test('T-133 procedimentales independientes no se comprimen en composición indivisible',()=>{
- const mod=m([{id:'e1',tipo:'consumo',objeto:'o',proceso:'p'},{id:'e2',tipo:'consumo',objeto:'a',proceso:'p'}]);expect(generarBloque(mod,'sd').filter(l=>l.hechos.length).map(l=>l.texto)).toEqual(['*Procesar* consume **Cuenta**.','*Procesar* consume **Pedido**.']);
+test('T-133 procedimentales AND conservan el direccionamiento de cada hecho',()=>{
+ const mod=m([{id:'e1',tipo:'consumo',objeto:'o',proceso:'p'},{id:'e2',tipo:'consumo',objeto:'a',proceso:'p'}]),ls=generarBloque(mod,'sd').filter(l=>l.hechos.length);expect(ls.map(l=>l.texto)).toEqual(['*Procesar* consume **Cuenta** y **Pedido**.']);expect(ls[0]!.hechos).toEqual(['e2','e1']);expect(ls[0]!.tokens.filter(t=>t.rol==='nombre'&&t.marca==='objeto').map(t=>[t.texto,t.hecho])).toEqual([['Cuenta','e2'],['Pedido','e1']]);
 });
 test('T-134 orden por proceso, fuerza y nombre es determinista con IDs estables',()=>{
  const es:Enlace[]=[{id:'e1',tipo:'resultado',objeto:'o',proceso:'p'},{id:'e2',tipo:'consumo',objeto:'a',proceso:'p'},{id:'e3',tipo:'consumo',objeto:'o',proceso:'q'}];const mod=m(es),reordenado=m([...es].reverse());const out=generarBloque(mod,'sd').filter(l=>l.hechos.length);expect(out.map(l=>l.texto)).toEqual(['*Archivar* consume **Pedido**.','*Procesar* consume **Cuenta**.','*Procesar* genera **Pedido**.']);expect(generarBloque(reordenado,'sd').map(l=>l.id)).toEqual(generarBloque(mod,'sd').map(l=>l.id));

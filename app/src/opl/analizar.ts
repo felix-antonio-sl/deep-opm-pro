@@ -133,15 +133,20 @@ function literal(s: string,inicial=false): string {
     const letras=(x:string)=>{const re=escape(x);return inicial?re.replace(/\p{L}/gu,c=>c.toLowerCase()===c.toUpperCase()?c:'['+c.toLowerCase()+c.toUpperCase()+']'):re;};
     return s.split(/([\p{L}]+(?:\|[\p{L}]+)+)/u).map(x=>x.includes('|')?'(?:'+x.split('|').map(letras).join('|')+')':x.split(/( y | o )/).map(t=>t===' y '?inicial?' [yeYE] ':' [ye] ':t===' o '?inicial?' [ouOU] ':' [ou] ':letras(t)).join('')).join('');
 }
-function slot(k: string,inicial=false): string {
+function slot(k: string,inicial=false,listaAnd=false): string {
     if (k === 'Q' || k === 'Q^') return '(?:[Ee]xactamente uno de|[Aa]l menos uno de)';
     if (k === 'SEC') return '.+?';
     const name = k.replace(/^(Ly|Lo|Lista):/, '');
     const list = name !== k, mult = name.startsWith('m'), estado = name.endsWith('e') && name !== 'e';
     if (['r', 't', 't2', 'v', 'esencia', 'afiliacion', 'u', 'n', 'opd', 'padre'].includes(name)) return '.+?';
     const prefijoInicial=prefijo.replace(/un opcional/g,'[Uu]n opcional').replace(/una opcional/g,'[Uu]na opcional').replace(/al menos/g,'[Aa]l menos').replace('dos o más','[Dd]os o más').replace('opcional '+String.fromCharCode(92)+'(','[Oo]pcional '+String.fromCharCode(92)+'(');
-    const item = (mult ? inicial?prefijoInicial:prefijo : name === 'articulos' ? '(?:un|una) ' : '') + atom + '(?: proceso)?' + (estado ? '(?: en ' + atom + ')?' : '');
-    return list ? item + '(?:(?:, | [yeou] )' + item + ')*' : item;
+    const cambio = name === 'cambios' || name === 'entradas' || name === 'salidas';
+    const item = cambio ? atom + (name !== 'salidas' ? ' de ' + atom : '') + (name !== 'entradas' ? ' a ' + atom : '')
+        : (mult ? inicial?prefijoInicial:prefijo : name === 'articulos' ? '(?:un|una) ' : '') + atom + '(?: proceso)?' + (estado ? '(?: en ' + atom + ')?' : '');
+    const conjuncion = k.startsWith('Ly:') ? '[ye]' : k.startsWith('Lo:') ? '[ou]' : '[yeou]';
+    // A.4.3: las listas AND nuevas cierran con una sola conjunción; los spans son opacos.
+    if (list && listaAnd) return item + '(?:, ' + item + ')* ' + conjuncion + ' ' + item;
+    return list ? item + '(?:(?:, | ' + conjuncion + ' )' + item + ')*' : item;
 }
 function compilar(p: Plantilla) {
     const keys: string[] = [];let primerLiteral=true;
@@ -151,7 +156,7 @@ function compilar(p: Plantilla) {
         for (const m of s.matchAll(/\[([^\[\]]+)\]|\{([^}]+)\}/g)) {
             out += tramo(s.slice(fin, m.index));
             if (m[1] !== undefined){const antes=primerLiteral;out += '(?:' + fragmento(m[1]) + ')?';primerLiteral=antes;}
-            else { keys.push(m[2]!); out += '(' + slot(m[2]!,primerLiteral) + ')'; }
+            else { keys.push(m[2]!); out += '(' + slot(m[2]!,primerLiteral,p.id.startsWith('AND-')) + ')'; }
             fin = m.index! + m[0].length;
         }
         return out + tramo(s.slice(fin));
@@ -197,6 +202,17 @@ function capturar(k: string, s: string, spans: readonly Span[]): ValorHueco | nu
         return { texto: s, bandas };
     }
     const name = k.replace(/^(Ly|Lo|Lista):/, ''), base = name.replace(/^m/, '').replace(/e$/, '');
+    if (name === 'cambios' || name === 'entradas' || name === 'salidas') {
+        const re = new RegExp('§(\\d+)§' + (name !== 'salidas' ? ' de §(\\d+)§' : '') + (name !== 'entradas' ? ' a §(\\d+)§' : ''), 'g');
+        const valores: Hueco[] = [];
+        for (const m of s.matchAll(re)) {
+            const objeto = spans[Number(m[1])]!, entrada = name !== 'salidas' ? spans[Number(m[2])] : undefined;
+            const salida = name !== 'entradas' ? spans[Number(m[name === 'salidas' ? 2 : 3])] : undefined;
+            if (objeto.marca !== 'objeto' || entrada && entrada.marca !== 'estado' || salida && salida.marca !== 'estado') return null;
+            valores.push({ ...objeto, ...(entrada ? { entrada } : {}), ...(salida ? { salida } : {}) });
+        }
+        return valores.length ? valores : null;
+    }
     if (['r', 't', 't2', 'v', 'esencia', 'afiliacion', 'u', 'n', 'opd', 'padre'].includes(name)) {
         if (s.includes('§')) return null;
         if (name === 'n' && !/^\d+(?:\.\d+)?$/.test(s)) return null;
@@ -274,8 +290,10 @@ export function analizar(texto: string): readonly LineaAnalizada[] {
             // Los límites leen gramática y tipografía, nunca contenido de nombres/estados/ruta.
             const superficieLimites = s.replace(/\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`/gu,span=>span.startsWith('**')?'**N**':span.startsWith('*')?'*N*':'`s`').replace(/^Por ruta [^,\n]+, /u,'Por ruta R, ');
             const no = [...NO_CANONIZADAS,...NO_SOPORTADAS].find(x => x.patron.test(superficieLimites));
-            const r = no ? diag(no.codigo, 'Construcción fuera del subconjunto inverso soportado.', no.regla) : reconocerLinea(s);
-            clasificacion=no?{hechos:HECHOS_VACIOS,diagnosticos:(r as LineaAnalizada).diagnosticos.map(d=>({...d,linea:0}))}:r?{...r,diagnosticos:[]}:{hechos:HECHOS_VACIOS,diagnosticos:[{codigo:'syntax-error',severidad:'error',linea:0,mensaje:'Forma OPL no reconocida.'}]};
+            // Sujetos enumerados del canon no son plural por multiplicidad (B-09).
+            const r = !no || no.registro === 'B-09' ? reconocerLinea(s) : null;
+            const limite = no && r?.plantilla !== 'AND-agente' && r?.plantilla !== 'AND-instrumento-procesos' ? no : undefined;
+            clasificacion=limite?{hechos:HECHOS_VACIOS,diagnosticos:diag(limite.codigo,'Construcción fuera del subconjunto inverso soportado.',limite.regla).diagnosticos.map(d=>({...d,linea:0}))}:r?{...r,diagnosticos:[]}:{hechos:HECHOS_VACIOS,diagnosticos:[{codigo:'syntax-error',severidad:'error',linea:0,mensaje:'Forma OPL no reconocida.'}]};
             if(memoClasificacion.size>=2048)memoClasificacion.delete(memoClasificacion.keys().next().value!);
             memoClasificacion.set(s,clasificacion);
         }

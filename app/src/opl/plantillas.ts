@@ -15,6 +15,8 @@ export interface Hueco {
     readonly genero?: 'f';
     readonly mult?: Multiplicidad;
     readonly estado?: Hueco;
+    readonly entrada?: Hueco;
+    readonly salida?: Hueco;
 }
 export type ValorHueco = Hueco | readonly Hueco[];
 export interface Huecos {
@@ -53,6 +55,14 @@ const filas: readonly [
     ['VAL', '{O1} de {O2} es {v}.', 'cosa'], ['ATR-E', '{O1} de {O2} puede estar {Lo:s}.', 'cosa', 'P'],
     ['T1', '{P} consume {mO}.', 'transformadora'], ['TS1', '{P} consume {mO} en {s}.', 'transformadora'], ['T2', '{P} genera {mO}.', 'transformadora'], ['TS2', '{P} genera {mO} en {s}.', 'transformadora'], ['T3', '{P} afecta {mO}.', 'transformadora'], ['TS3', '{P} cambia {O} de {e} a {s}.', 'transformadora'], ['TS4', '{P} cambia {O} de {e}.', 'transformadora'], ['TS5', '{P} cambia {O} a {s}.', 'transformadora'],
     ['H1', '{mO} maneja {P}.', 'habilitadora'], ['HS1', '{mO} en {s} maneja {P}.', 'habilitadora'], ['H2', '{P} requiere {mO}.', 'habilitadora'], ['HS2', '{P} requiere {mO} en {s}.', 'habilitadora'],
+    // ISO/PAS A.4.5: listas AND de una misma producción; no son abanicos.
+    ['AND-consumo', '{P} consume {Ly:mOe}.', 'transformadora'], ['AND-resultado', '{P} genera {Ly:mOe}.', 'transformadora'],
+    ['AND-efecto', '{P} afecta {Ly:mO}.', 'transformadora'], ['AND-cambio', '{P} cambia {Ly:cambios}.', 'transformadora'],
+    ['AND-entrada', '{P} cambia {Ly:entradas}.', 'transformadora'], ['AND-salida', '{P} cambia {Ly:salidas}.', 'transformadora'],
+    ['AND-agente', '{Ly:mOe} manejan {P}.', 'habilitadora'], ['AND-instrumento', '{P} requiere {Ly:mOe}.', 'habilitadora'],
+    ['AND-invocacion', '{P1} invoca {Ly:Plista}.', 'invocacion'],
+    // Canon §4.2: realización informativa de ISO §12.1/Figura 50, fuera del Anexo A.
+    ['AND-instrumento-procesos', '{Ly:Plista} requieren {mOe}.', 'habilitadora'],
     ['ET1', '{mO} inicia {P}, que consume {O}.', 'evento'], ['ETS1', '{mO} en {s} inicia {P}, que consume {O}.', 'evento'], ['ET2', '{mO} inicia {P}, que afecta {O}.', 'evento'], ['ETS2', '{O} en {e} inicia {P}, que cambia {O} de {e} a {s}.', 'evento'], ['ETS3', '{O} en {e} inicia {P}, que cambia {O} de {e}.', 'evento'], ['ETS4', '{O} en cualquier estado inicia {P}, que cambia {O} a {s}.', 'evento'], ['EH1', '{mO} inicia y maneja {P}.', 'evento'], ['EHS1', '{mO} en {s} inicia y maneja {P}.', 'evento'], ['EH2', '{mO} inicia {P}, que requiere {O}.', 'evento'], ['EHS2', '{mO} en {s} inicia {P}, que requiere {O} en {s}.', 'evento'],
     ['CT1', '{P} ocurre si {O} existe, en cuyo caso {O} se consume, de lo contrario {P} se omite.', 'condicion'], ['CS1', '{P} ocurre si {O} está en {s}, en cuyo caso {O} se consume, de lo contrario {P} se omite.', 'condicion'], ['CT2', '{P} ocurre si {O} existe, en cuyo caso {P} afecta {O}, de lo contrario {P} se omite.', 'condicion'], ['CS2', '{P} ocurre si {O} está en {e}, en cuyo caso {P} cambia {O} de {e} a {s}, de lo contrario {P} se omite.', 'condicion'], ['CS3', '{P} ocurre si {O} está en {e}, en cuyo caso {P} cambia {O} de {e}, de lo contrario {P} se omite.', 'condicion'], ['CS4', '{P} ocurre si {O} existe, en cuyo caso {P} cambia {O} a {s}, de lo contrario {P} se omite.', 'condicion'], ['CH1', '{O} maneja {P} si {O} existe, de lo contrario {P} se omite.', 'condicion'], ['CS5', '{O} maneja {P} si {O} está en {s}, de lo contrario {P} se omite.', 'condicion'], ['CH2', '{P} ocurre si {O} existe, de lo contrario {P} se omite.', 'condicion'], ['CS6', '{P} ocurre si {O} está en {s}, de lo contrario {P} se omite.', 'condicion'], ['COND-ALT', 'Si {O} existe entonces {P} ocurre y consume {O}, de lo contrario se omite {P}.', 'condicion', 'P'],
     ['EX1', '{P1} ocurre si duración de {P2} excede {n} {u}.', 'excepcion'], ['EX2', '{P1} ocurre si duración de {P2} es menor que {n} {u}.', 'excepcion'], ['EX1r', '{P1} ocurre si duración de {P2} excede su duración máxima.', 'excepcion'], ['EX2r', '{P1} ocurre si duración de {P2} es menor que su duración mínima.', 'excepcion'], ['IV1', '{P1} invoca {P2}.', 'invocacion'], ['IV2', '{P} se invoca a sí mismo.', 'invocacion'],
@@ -73,7 +83,7 @@ const fans: readonly [
     ['instrumento', '{P} requiere {Q} {Lo:mOlistae}.', '{Q^} {Lo:Plista} requiere {mOe}.'],
     ['invocacion', '{Q^} {Lo:Plista} invoca {P}.', '{P} invoca {Q} {Lo:Plista}.']
 ];
-const conRuta = new Set(['T1', 'TS1', 'T2', 'TS2', 'ET1', 'ETS1', 'CT1', 'CS1']);
+const conRuta = new Set(['T1', 'TS1', 'T2', 'TS2', 'ET1', 'ETS1', 'CT1', 'CS1', 'AND-consumo', 'AND-resultado']);
 export const PLANTILLAS: readonly Plantilla[] = Object.freeze([
     ...filas,
     ...fans.flatMap(([tipo, c, d]) => ['XOR', 'OR'].flatMap(op => [[`FAN-${tipo}-convergente-${op}`, c, 'abanico'], [`FAN-${tipo}-divergente-${op}`, d, 'abanico']] as [
@@ -113,6 +123,8 @@ function validarHuecos(patron: string, h: Huecos): boolean {
         if (!valores.length)
             return false;
         if (valores.some(v => typeof v.texto !== 'string'))
+            return false;
+        if (name === 'cambios' && valores.some(v => !v.entrada || !v.salida) || name === 'entradas' && valores.some(v => !v.entrada) || name === 'salidas' && valores.some(v => !v.salida))
             return false;
     }
     return true;
@@ -204,7 +216,10 @@ function componerTokensPlantilla(id: string, h: Huecos): readonly TokenOpl[] {
             const ultimo = i === values.length - 1;
             const superficie = superficieInicial(k, x);
             literal(!match || match[1] === 'Lista' || !ultimo ? ', ' : ` ${match[1] === 'Lo' ? conjuncionO(superficie) : conjuncionY(superficie)} `);
-        } atom(x, mult, est, name === 'articulos'); });
+        } atom(x, mult, est, name === 'articulos');
+            if (name === 'cambios' || name === 'entradas') { literal(' de '); atom(x.entrada!); }
+            if (name === 'cambios' || name === 'salidas') { literal(' a '); atom(x.salida!); }
+        });
     }
     let tramo='';
     for(const seccion of secciones){
@@ -349,6 +364,50 @@ export function datosEnlace(m: Modelo, e: Enlace, inverso = false): HechoGenerab
         throw new Error(`Tipo sin plantilla: ${e.tipo}`);
     return { plantilla: id, huecos: h };
 }
+function tipoAnd(e: Enlace): string | null {
+    if (e.tipo === 'invocacion') return e.origen !== e.destino ? 'invocacion' : null;
+    if (!esProcedimental(e) || 'control' in e && e.control !== undefined) return null;
+    if (e.tipo !== 'efecto') return e.tipo;
+    return e.entrada ? e.salida ? 'cambio' : 'entrada' : e.salida ? 'salida' : 'efecto';
+}
+/** Sólo parámetros compartidos por la producción; estados y multiplicidad son de cada miembro. */
+export function claveAnd(e: Enlace): string | null {
+    const tipo = tipoAnd(e);
+    if (!tipo) return null;
+    return JSON.stringify([tipo, e.tipo === 'invocacion' ? e.origen : esProcedimental(e) ? e.proceso : '', (e.tipo === 'consumo' || e.tipo === 'resultado') ? e.ruta ?? null : null]);
+}
+export function datosAnd(m: Modelo, es: readonly Enlace[]): HechoGenerable | null {
+    const primero = es[0];
+    if (!primero || es.length < 2 || !claveAnd(primero) || es.some(e => claveAnd(e) !== claveAnd(primero))) return null;
+    const tipo = tipoAnd(primero)!, h: Record<string, ValorHueco> = {};
+    if (primero.tipo === 'invocacion') {
+        h.P1 = cosa(m, primero.origen, primero.id);
+        h.Plista = es.map(e => cosa(m, (e as typeof primero).destino, e.id));
+    } else if (esProcedimental(primero)) {
+        h.P = cosa(m, primero.proceso, primero.id);
+        const miembros = es.map(e => {
+            if (!esProcedimental(e)) throw Error('Producción AND incompatible');
+            return { ...cosa(m, e.objeto, e.id, e.tipo === 'efecto' && tipo !== 'efecto' ? undefined : e.mult, 'estado' in e ? e.estado : undefined),
+                ...(e.tipo === 'efecto' && e.entrada ? { entrada: estadoHueco(m, e.entrada, e.id) } : {}),
+                ...(e.tipo === 'efecto' && e.salida ? { salida: estadoHueco(m, e.salida, e.id) } : {}) };
+        });
+        h[tipo === 'cambio' ? 'cambios' : tipo === 'entrada' ? 'entradas' : tipo === 'salida' ? 'salidas' : 'O'] = miembros;
+        if ((primero.tipo === 'consumo' || primero.tipo === 'resultado') && primero.ruta)
+            h.r = { texto: primero.ruta, hecho: primero.id, ref: { tipo: 'enlace', id: primero.id } };
+    }
+    return { plantilla: `AND-${tipo}`, huecos: h };
+}
+/** El complemento común se expresa una vez: identidad, estado y multiplicidad deben coincidir. */
+export function claveInstrumentoAnd(e: Enlace): string | null {
+    return e.tipo === 'instrumento' && tipoAnd(e) === 'instrumento' ? JSON.stringify([e.objeto, e.estado ?? null, e.mult ?? null]) : null;
+}
+export function datosInstrumentoAnd(m: Modelo, es: readonly Enlace[]): HechoGenerable | null {
+    const primero = es[0];
+    if (!primero || primero.tipo !== 'instrumento' || es.length < 2 || !claveInstrumentoAnd(primero) || es.some(e => claveInstrumentoAnd(e) !== claveInstrumentoAnd(primero))) return null;
+    return { plantilla: 'AND-instrumento-procesos', huecos: {
+        Plista: es.map(e => cosa(m, (e as typeof primero).proceso, e.id)), O: cosa(m, primero.objeto, primero.id, primero.mult, primero.estado)
+    } };
+}
 const unidades: Record<UnidadTiempo, readonly [
     string,
     string
@@ -363,6 +422,18 @@ function reconocer(id: string, h: Huecos): readonly HechoTexto[] {
     const x = (k: string) => uno(h, k), nombre = (k: string): NombreTipado => ({ nombre: x(k).texto, tipo: x(k).marca === 'proceso' ? 'proceso' : 'objeto', ...(x(k).genero ? { genero: x(k).genero } : {}) });
     const extremo = (v: Hueco): ExtremoTexto => ({ nombre: v.texto, tipo: v.marca === 'proceso' ? 'proceso' : 'objeto', ...(v.genero ? { genero: v.genero } : {}), ...(v.mult ? { mult: v.mult } : {}), ...(v.estado ? { estado: v.estado.texto } : {}) });
     const ext = (k: string) => extremo(x(k));
+    if (id.startsWith('AND-')) {
+        if (id === 'AND-instrumento-procesos') return lista(h, 'Plista').length < 2 ? [] : lista(h, 'Plista').map(p => ({ k: 'enlace', enlace: { tipo: 'instrumento', objeto: ext('O'), proceso: p.texto } }));
+        const tipo = id.slice(4);
+        const key = tipo === 'cambio' ? 'cambios' : tipo === 'entrada' ? 'entradas' : tipo === 'salida' ? 'salidas' : tipo === 'invocacion' ? 'Plista' : 'O';
+        const miembros = lista(h, key);
+        if (miembros.length < 2) return [];
+        return miembros.map(v => ({ k: 'enlace', enlace: tipo === 'invocacion'
+            ? { tipo: 'invocacion', origen: x('P1').texto, destino: v.texto }
+            : tipo === 'cambio' || tipo === 'entrada' || tipo === 'salida'
+                ? { tipo: 'efecto', objeto: extremo(v), proceso: x('P').texto, ...(v.entrada ? { entrada: v.entrada.texto } : {}), ...(v.salida ? { salida: v.salida.texto } : {}) }
+                : { tipo: tipo as 'consumo' | 'resultado' | 'efecto' | 'agente' | 'instrumento', objeto: extremo(v), proceso: x('P').texto, ...(h.r ? { ruta: x('r').texto } : {}) } }));
+    }
     if (id === 'D1' || id === 'D2')
         return [{ k: 'esencia', cosa: nombre('C'), valor: id === 'D1' ? 'fisica' : 'informacional' }];
     if (id === 'D3' || id === 'D4')

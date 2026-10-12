@@ -6,7 +6,7 @@ import type { EnlaceVisto } from '../nucleo/proyeccion';
 import { noOfrecido, violacionesForma, violacionesAbanico, normalizarEtiquetas } from '../nucleo/matriz';
 import type { OpcionesOpl, LineaOpl, TokenOpl } from './linea';
 import { textoDeTokens, refsDeTokens } from './linea';
-import { cosa, estadoHueco, hueco, datosEnlace, tokensPlantilla, datosContexto, PLANTILLAS } from './plantillas';
+import { cosa, estadoHueco, hueco, datosEnlace, tokensPlantilla, datosContexto, PLANTILLAS, claveAnd, datosAnd, claveInstrumentoAnd, datosInstrumentoAnd } from './plantillas';
 import type { Huecos, HechoGenerable } from './plantillas';
 const colacionNombre = new Intl.Collator('es',{sensitivity:'base'});
 // Ramas hacia estados del mismo objeto: orden del modelo, no del id (T-101), para que OPL→modelo→OPL sea idéntico.
@@ -198,6 +198,30 @@ function construirBloque(m: Modelo, opd: Id, o?: OpcionesOpl): readonly LineaOpl
             fanPorHecho.set(id, fan.id);
     }
     const estructurales = sorted.filter(v => 'refinable' in v.enlace), etiquetados = sorted.filter(v => ['etiquetado', 'etiquetadoBidireccional', 'reciproco'].includes(v.enlace.tipo));
+    const gruposAnd = new Map<string, EnlaceVisto[]>(), lineasAnd = new Map<EnlaceVisto, LineaOpl>(), emitidosAnd = new Set<LineaOpl>();
+    for (const v of sorted) {
+        const clave = claveAnd(v.enlace);
+        if (!clave || v.hechos.some(id => idx.abanicoDeEnlace.has(id) || invalidos.has(id)) || violacionesForma(m, v.enlace).length || noOfrecido(m, v.enlace)) continue;
+        const g = gruposAnd.get(clave) ?? []; g.push(v); gruposAnd.set(clave, g);
+    }
+    for (const [clave, g] of gruposAnd) {
+        const h = datosAnd(m, g.map(v => v.enlace));
+        if (h) {
+            const l = linea(m, opd, h, clave, g.flatMap(v => v.hechos));
+            for (const v of g) lineasAnd.set(v, l);
+        }
+    }
+    // Prioridad determinista: primero proceso común, después instrumento común en los miembros restantes.
+    const instrumentos = new Map<string, EnlaceVisto[]>();
+    for (const g of gruposAnd.values()) for (const v of g) {
+        const clave = claveInstrumentoAnd(v.enlace);
+        if (!clave || lineasAnd.has(v)) continue;
+        const miembros = instrumentos.get(clave) ?? []; miembros.push(v); instrumentos.set(clave, miembros);
+    }
+    for (const [clave, g] of instrumentos) {
+        const h = datosInstrumentoAnd(m, g.map(v => v.enlace));
+        if (h) { const l = linea(m, opd, h, clave, g.flatMap(v => v.hechos)); for (const v of g) lineasAnd.set(v, l); }
+    }
     for (const v of sorted) {
         if ('refinable' in v.enlace || etiquetados.includes(v) || v.hechos.some(id => invalidos.has(id)))
             continue;
@@ -208,10 +232,15 @@ function construirBloque(m: Modelo, opd: Id, o?: OpcionesOpl): readonly LineaOpl
                 agrupados.add(fan);
             }
         }
-        else
-            enlaces.push(...emitirEnlace(m, opd, v));
+        else {
+            const l = lineasAnd.get(v);
+            if (l) {
+                if (!emitidosAnd.has(l)) { enlaces.push(l); emitidosAnd.add(l); }
+            } else enlaces.push(...emitirEnlace(m, opd, v));
+        }
     }
-    if (d.tipo === 'raiz') {
+    // Las listas de una relación fundamental pertenecen a cada párrafo, también a un hijo.
+    if (estructurales.length) {
         const generales = new Map<string, EnlaceVisto[]>();
         for (const v of estructurales) {
             const e = v.enlace;
@@ -286,15 +315,6 @@ function construirBloque(m: Modelo, opd: Id, o?: OpcionesOpl): readonly LineaOpl
             enlaces.push(emit(pid, h, `${e.refinable}:${e.tipo}`, g.flatMap(v => v.hechos)));
         }
     }
-    else
-        for (const v of estructurales) {
-            const e = v.enlace;
-            if ('refinable' in e && vista.incompletas.some(i => i.refinable === e.refinable && i.relacion === e.tipo)) {
-                const datos = datosEnlace(m, e);
-                const pid = e.tipo === 'agregacion' ? 'RF1i' : e.tipo === 'exhibicion' ? 'RF2i' : e.tipo === 'generalizacion' && !e.estados ? 'RF3i' : datos.plantilla;
-                enlaces.push(linea(m, opd, { ...datos, plantilla: pid }, e.id, v.hechos));
-            } else enlaces.push(...emitirEnlace(m, opd, v));
-        }
     etiquetados.sort((a, b) => cmp(m.cosas[extremos(a.enlace).origen]!, m.cosas[extremos(b.enlace).origen]!) || cmp(m.cosas[extremos(a.enlace).destino]!, m.cosas[extremos(b.enlace).destino]!) || a.enlace.id.localeCompare(b.enlace.id));
     for (const v of etiquetados)
         enlaces.push(...emitirEnlace(m, opd, v));

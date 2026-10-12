@@ -694,7 +694,7 @@ Rationale: `reglas §4.11` (CX1, CX2), `§8.1`–`§8.2`, `§8.9` y `opm-opl-es 
 
 **Tokenización**: span de la **cosa** desplegada con `ref`; verbo de la relación fundamental (token del enum §1.1); span de cada **refinador** con `ref`; `así como` separa atributos de operaciones en exhibición; el span `SD1` (CX3) lleva `ref` al OPD persistente, no a la etiqueta (R-CX-2). En plegado: `se pliega en` token-verbo (GAP-PLIEGA); `el OPD padre` referencia al ascendente.
 
-**Composabilidad**: la lista de refinadores es **destino-enumerado** dentro de la única oración de despliegue. Aplica la **zona prohibida de composición en contexto de despliegue** (§7.7): los enlaces estructurales de los refinadores NO se fusionan en plural al desplegar; cada enlace conserva su token-verbo y `ref`. NO DEBE coordinarse con descomposición ni con enlaces procedimentales.
+**Composabilidad**: la lista de refinadores es **destino-enumerado** dentro de la oración de despliegue. Las relaciones fundamentales elegibles se agrupan también en el hijo nuevo, conservando tokens y referencias por enlace (§7.7, B-41). La oración de contexto CX3 coexiste con esas relaciones; NO DEBE sustituirlas ni coordinarse con descomposición o enlaces procedimentales.
 
 **Reverse**: la oración de despliegue por relación fundamental se parsea por las regex estructurales de §6 (`consta de`, `exhibe`, `son`, `son instancias de`) reconstruyendo el refinamiento `despliegue`. `parser.designacionesPlegado.test.ts` defiende el reverse del plegado parcial (designaciones de estado bajo plegado). GAP-PLIEGA: la oración autónoma `se pliega en el OPD padre` (CX5/CX6) tiene verbo canónico pero ningún generador la emite; el parser la reconoce (`parsear.ts·parsearContexto`, familia `plegado`, warning `unsupported-kernel`) sin aplicar plegado (diseño de corte), y la rama `plegado` del parser carece de test propio.
 
@@ -757,27 +757,26 @@ Rationale: `reglas §8.2` (R-REF-SYNC-1, R-REF-SYNC-2) y `opm-opl-es §10.1`–`
 
 Rationale: `reglas §8.4`–`§8.5`, `§8.11` y `opm-opl-es §10`.
 
-### §7.7 Zona prohibida de composición en contexto de refinamiento / despliegue
+### §7.7 Preservación de enlaces y contexto al componer en refinamiento / despliegue
 
-**Reglas duras**:
+Vigencia B-41: las prohibiciones históricas de toda lista en un hijo se subordinan a las listas canónicas
+de ISO §12.1 y canon spec-OPL §9. El defecto BUG-f897bc fue la pérdida de referencias, no la lista en sí.
 
-- **R-CX-COMP-1**: los enlaces de los refinadores (subprocesos de una descomposición, partes/especializaciones/instancias/rasgos de un despliegue) NO DEBEN fusionarse en una oración plural única; cada enlace DEBE emitirse en su propia oración, preservando su **token-verbo** y su **`ref` por enlace**.
+- **R-CX-COMP-1**: cada enlace coordinado DEBE conservar su identidad en `LineaOpl.hechos` y tokens con su
+  propia `ref` y `hecho`. NO DEBE fusionarse opacamente ni perderse la correspondencia de cada refinador
+  con su enlace. Las relaciones fundamentales del mismo vértice se expresan en listas elegibles también
+  en el OPD hijo; los estados y las colecciones incompletas mantienen sus reglas.
+- **R-CX-COMP-2**: la composición canónica se calcula sobre la Vista de cada OPD. NO DEBE reunir hechos de
+  párrafos distintos, absorber miembros de XOR/OR ni alterar distribución o anclajes. La prosa opcional
+  de predicados con verbos distintos (§9.1, eje a) sigue sin ofrecerse.
+- **R-CX-COMP-3**: CX1–CX3 expresan el contexto de un refinamiento en un OPD nuevo y coexisten con las
+  relaciones expresadas en listas. NO DEBEN reemplazarse por una relación ni usarse para adivinar su modo.
+  «Sin oración adicional» en ISO §14.2.1.2/A.4.7.1 corresponde al despliegue dentro del diagrama original;
+  el producto crea un hijo nuevo (DR-24) y conserva CX3 + RF agrupada.
 
-  Correcto: en contexto de despliegue de generalización, los **enlaces** se emiten por enlace — `**Auto** es un **Vehículo**.` seguido de `**Camión** es un **Vehículo**.` (un enlace, una oración, refs preservados) — y COEXISTEN con la oración de despliegue `**Auto** y **Camión** son **Vehículo**.` (un hecho de refinamiento con refs de entidad, refinadores y enlaces; §7.2, R-CX-COMP-3), tal como emite el generador vigente (`refinamiento.ts·oracionDespliegue` + `estructural.ts·oracionEnlaceEstructural`).
-  Incorrecto (zona prohibida): fusionar las N oraciones de enlace a `**Auto** y **Camión** son **Vehículo**.` **en reemplazo de** su emisión atómica, porque la agrupación borra el token-verbo y la `ref` por enlace que el refinamiento necesita para mapear cada refinador a su arista.
-  Rationale: BUG-f897bc — el transformador que REEMPLAZABA las oraciones por enlace con la fusión plural borró tokens/refs por enlace y rompió la bisimetría del refinamiento; la oración de despliegue es un hecho distinto (R-CX-COMP-3) y nunca fue el bug; remite §9.
-
-- **R-CX-COMP-2**: la coordinación copulativa de §9 (predicados con sujeto-proceso compartido, destino-enumerado de estructurales) DEBE excluir explícitamente el contexto de refinamiento/despliegue de su dominio de aplicación. La detección de candidatos a coordinación NO DEBE activarse sobre enlaces que pertenecen a un OPD hijo de refinamiento.
-
-  Rationale: la composabilidad de §3, §5 y §6 declara «zona prohibida de composición en refinamiento/despliegue» precisamente para sellar esta colisión; §9 canoniza la coordinación general bajo esa exclusión.
-
-- **R-CX-COMP-3**: dentro de la **propia** oración de refinamiento (CX1–CX3), la lista de refinadores SÍ es un destino-enumerado legítimo — un solo verbo de refinamiento, sea explícito (`se descompone en`/`se despliega en`) o **reusado de la relación fundamental** del modo de despliegue (`exhibe`, `son`/`es un`, `son instancias de`; §7.2 Emisión), varios spans con `ref` —; lo prohibido es coordinar **los enlaces de esos refinadores entre sí** en una oración plural **en reemplazo de** su emisión atómica. La oración de despliegue superficie-idéntica (p. ej. `**Auto** y **Camión** son **Vehículo**.` como realización del refinamiento) es canónica y COEXISTE con las oraciones por enlace.
-
-  Rationale: distinguir la enumeración de refinadores (un hecho de refinamiento) de la fusión de enlaces hijos (varios hechos de enlace) evita reintroducir BUG-f897bc por sobre-aplicación de R-CX-COMP-1; un verificador literal que ignore los verbos reusados de §7.2 marcaría como zona prohibida la salida canónica del generador (falso positivo).
-
-**Traza a código**: la agrupación por OPD (`bloquesJerarquicos.ts·agruparOracionesPorOpd`) mantiene cada enlace hijo como oración independiente dentro del bloque del OPD; la oración de refinamiento (`refinamiento.ts·oracionDescomposicion`/`oracionDespliegue`) enumera refinadores pero NO coordina sus enlaces. GAP-COMP-GUARDA queda no-aplicable hasta que exista GAP-COMPOSICION: hoy la protección es por construcción atómica (cada enlace genera su propia oración), sin transformador que pueda fusionarlos.
-
-Rationale: BUG-f897bc, `reglas §9` (bisimetría OPD↔OPL) y las cláusulas «zona prohibida» de §3.1–§3.3, §6.3–§6.6.
+Traza actual: `app/src/opl/generar.ts`, `plantillas.ts`, `and.test.ts` y `generar.test.ts` comprueban listas,
+tokens por miembro, plan propio sin acciones, modo/contexto del hijo e importación del documento desde vacío.
+La edición aplica cada línea atómicamente y no borra hechos por ausencia de texto.
 
 ### §7.8 GAPs de cobertura — refinamiento / gestión de contexto
 
@@ -793,7 +792,7 @@ Rationale: BUG-f897bc, `reglas §9` (bisimetría OPD↔OPL) y las cláusulas «z
 
 - GAP-FIXTURE-DESCOMPOSICION: **orden cerrado** — el orden de descomposición tiene roundtrip estricto en `leyes/invocacion-implicita-bimodal.test.ts` (CX1/CX2/mixta sobre `opd.ordenInzoom`, sin rayos); no se añade al catálogo genérico `fixtures-roundtrip.ts` por diseño (los miembros del OPD hijo no se recrean desde la oración). Residual: la materialización de miembros, apoyada en los generadores de `refinamiento.ts` y en `parser.designacionesPlegado.test.ts`.
 
-- GAP-COMP-GUARDA: cerrado-no-aplica hasta que exista GAP-COMPOSICION; la salida actual es atómica por construcción y no coordina enlaces hijos en contexto de refinamiento.
+- GAP-COMP-GUARDA: pendiente sólo para la prosa opcional de verbos distintos. Las listas AND canónicas ya conservan membresía, referencias y contexto en hijos (§7.7, B-41).
 
 ## §8 Combinatoria a nivel de modelo
 
@@ -880,7 +879,10 @@ Las siguientes combinaciones son **silencios de la SSOT** (`reglas §11.2`, R-ZN
 
 ## §9 Composición de oraciones y prosa OPL
 
-[extensión] Las secciones §2–§8 canonizan la realización **atómica**: una oración, un hecho. Esta sección canoniza el **álgebra de composición** que coordina dos o más oraciones atómicas en una **prosa OPL más rica** mediante cópulas y conectores, sin perder direccionabilidad por hecho. La composición es una transformación de superficie: fusiona el **texto**, NUNCA el **mapeo a modelo**. Cada hecho coordinado conserva su `ref` y su sub-span.
+[extensión] La prosa opcional de predicados con verbos distintos coordina oraciones atómicas mediante
+cópulas y conectores, sin perder direccionabilidad por hecho. Se distingue de las listas AND del mismo tipo,
+que pertenecen a la OPL canónica (canon §9, B-41). Toda composición conserva el mapeo al modelo:
+cada hecho coordinado mantiene su `ref`, su `hecho` y su sub-span.
 
 Rationale: el operador requiere prosa OPL más prosaica con conectores; BUG-f897bc demostró que la fusión ingenua (colapsar enlaces en una línea opaca) rompe el resaltado bidireccional, el filtrado y la edición. §9 fija cómo componer **preservando** la direccionabilidad por hecho.
 
@@ -943,7 +945,7 @@ Rationale: el operador requiere prosa OPL más prosaica con conectores; BUG-f897
 
 - **R-COMP-REV-2** (invariante de identidad): **componer → parsear = identidad sobre el conjunto de hechos**. Sea `F = {f1, …, fn}` el conjunto de hechos atómicos; `parsear(componer(F)) = F` como conjunto (no necesariamente como orden de líneas). El roundtrip se defiende sobre el conjunto de hechos, no sobre la cadena de texto.
 
-  Rationale: `roundtrip.test.ts` / `fixtures-roundtrip.ts` defienden bisimetría sobre hechos; la composición es display y NO DEBE alterar el conjunto de hechos recuperado.
+  Rationale: las suites `roundtrip-*.test.ts` y `and.test.ts` defienden la bisimetría sobre hechos. Las listas AND canónicas y la prosa opcional de display NO DEBEN alterar los hechos recuperados.
 
 ### §9.5 Configuración display-vs-canónico
 
@@ -951,21 +953,29 @@ Rationale: el operador requiere prosa OPL más prosaica con conectores; BUG-f897
 
 ### §9.6 Traza a código y GAPs
 
-**Estado actual**: los generadores de `app/src/opl/generadores/` emiten hoy oraciones **atómicas** por hecho procedimental (`procedural.ts·oracionEnlaceSinEtiqueta`), salvo dos casos ya coordinados: la **enumeración estructural de destinos** (`estructural.ts·oracionEstructural`, eje b) y el **abanico** (`abanico.ts` + `refsHints.ts·refsAbanico`/`hintsAbanico`, eje e). La coordinación de **predicados con sujeto-proceso compartido** (eje a) es **capacidad nueva**.
+**Estado actual (B-41)**: `app/src/opl/generar.ts` agrupa las producciones AND elegibles sobre la Vista de cada
+OPD; `plantillas.ts` es la única fuente de oraciones y `analizar.ts` recupera un hecho por miembro. Consumo,
+resultado, efecto básico/TS3/TS4/TS5, agente, instrumento, invocación con origen común y relaciones fundamentales
+conservan identidad, estados, multiplicidades y tokens. Las rutas comunes agrupan sólo enlaces ajenos a abanicos.
+Las diez producciones AND nuevas reconocen comas intermedias y una única conjunción `y/e` final
+(A.4.3, R-OPL-LISTA-1); nombres y estados siguen siendo spans opacos. Los esqueletos históricos se conservan.
 
-- **GAP-COMPOSICION**: no existe hoy un generador que coordine predicados de distinto verbo bajo un sujeto-proceso compartido (eje a, R-COMP-EJE-2). El punto de implementación es una capa de composición que, **sobre el resultado atómico** de `procedural.ts·oracionEnlaceSinEtiqueta`, agrupe `OplLineaPendiente` por sujeto-proceso y produzca una `OplLineaPendiente` única con:
-  - `texto` = predicados concatenados con conector serial es-CL (§9.1 R-COMP-EJE-1);
-  - `refs` = unión de los `refsEnlace` de cada predicado (R-COMP-MAESTRA-2, vía el `refsUnicasPorTipoId` que `crearLineaOplInteractiva` ya aplica);
-  - `hints` = concatenación de los `hintsEnlace` de cada predicado, un sub-span por verbo/objeto/estado (R-COMP-MAESTRA-1).
-  El patrón de referencia es `refsHints.ts·refsAbanico`/`hintsAbanico`: ya construye una línea con unión de refs y un hint por enlace hijo; el eje (a) lo reusa para predicados heterogéneos.
+El instrumento común con procesos enumerados también se ofrece: es la producción informativa adoptada en canon
+§4.2/EBNF, fundada en ISO §12.1/Figura 50, fuera del Anexo A. Exige la misma identidad, estado (o ausencia) y
+multiplicidad del instrumento. Primero se agrupa por proceso común; después por instrumento común entre los
+miembros restantes. Esa prioridad es una política determinista de realización, no una precedencia de ISO;
+no se construye un producto cartesiano de dos listas.
 
-- **GAP-COMP-GUARDA** (remite §7.7): no-aplicable hasta que exista GAP-COMPOSICION. Cuando se implemente la capa de composición del eje (a), DEBE materializar este guard: antes de coordinar, descartar candidatos cuyos enlaces pertenezcan a un OPD hijo de refinamiento, y descartar la fusión si rompería R-COMP-ELEG-4 (spans ambiguos).
+- **GAP-COMPOSICION**: continúa pendiente la prosa opcional de predicados con verbos distintos bajo un sujeto
+  común (eje a, R-COMP-EJE-2). Las listas AND canónicas no pertenecen a esta brecha.
+- **GAP-COMP-GUARDA**: pendiente para esa prosa opcional; R-COMP-ELEG-4 y §7.7 siguen prohibiendo pérdida de
+  direccionabilidad. Las listas actuales tienen membresía y tokens por hecho verificables.
+- **GAP-COMP-REVERSE**: el parser no recupera prosa opcional de verbos distintos; no se emite. Sí recupera las
+  listas AND actuales, acepta las entradas atómicas anteriores y normaliza su regeneración a listas.
 
-  Estado actual: no-aplicable hasta que exista la capa de composición GAP-COMPOSICION. Mientras la salida se mantenga atómica por construcción, los enlaces hijos de refinamiento no se coordinan porque no hay transformador que los fusione.
-
-- **GAP-COMP-REVERSE**: el parser (`parsear.ts`) descompone hoy el abanico (`ABANICO_VERBO_RE_LIST`) y la enumeración estructural, pero NO una línea de predicados coordinados de distinto verbo bajo un sujeto compartido (eje a). R-COMP-REV-1 exige una regla de descomposición que segmente la línea por conector serial y reparse cada predicado contra el sujeto compartido; sin ella, el eje (a) NO DEBE emitirse (R-COMP-ZP-3).
-
-Rationale: BUG-f897bc, `interaccion.ts` (tokens/refs/hints), `refsHints.ts` (`OplLineaPendiente`, `refsAbanico`/`hintsAbanico`), `reglas §9` (bisimetría OPD↔OPL) y §7.7 (zona prohibida en refinamiento).
+Los controles E/C y las excepciones conservan las producciones singulares de A.4.5.4 y sus reglas de disparo.
+Las listas ilustrativas de procesos con agente común y las listas bifurcadas opcionales de etiquetados no se
+ofrecen en este incremento; no se afirma cobertura de todas las formas de la Figura 50 ni de todo el Anexo A.
 
 ## §10 Multiplicidad y cardinalidad
 
@@ -1635,7 +1645,7 @@ Lista consolidada de todos los marcadores `GAP-*` (sección de origen · descrip
 | GAP-CX-PARSER | §7.1 | Orden cerrado: `parsear.ts·parsearContexto` + patch `crear-refinamiento` reconstruyen el refinamiento (idempotente, OPD hijo vacío; miembros no se crean: diagnóstico `info`); la marca `en esa secuencia`/`paralelo` SÍ se reconstruye → `opd.ordenInzoom` (`planificarOrdenInzoom` + `set-orden-inzoom`, verificación por inversa). Residual: materialización de la lista de refinadores (intencional, por gesto). |
 | GAP-FIXTURE-DESCOMPOSICION | §7.1 | Orden cerrado: roundtrip estricto del orden en `leyes/invocacion-implicita-bimodal.test.ts` (CX1/CX2/mixta sobre `opd.ordenInzoom`). Sin fixture en `fixtures-roundtrip.ts` por diseño (miembros del hijo irrecuperables desde modelo vacío). |
 | GAP-DESPLIEGUE-DEDICADO | §7.2 / §18 | Superficies dedicadas A.10 (`se despliega por partes/especialización/instanciación/rasgos en`) derivadas en §18 pero sin generador ni declaración de sustitución; la emisión vigente reusa el verbo de la relación fundamental. |
-| GAP-COMP-GUARDA | §7.7 / §9 | Cerrado-no-aplica: guard pendiente solo cuando exista GAP-COMPOSICION; hoy la protección es por construcción atómica. |
+| GAP-COMP-GUARDA | §7.7 / §9 | Pendiente sólo para prosa opcional de verbos distintos. Las listas AND canónicas conservan membresía, tokens y contexto (B-41). |
 | GAP-FAN-EVENTO | §7.6 | Parcial: efecto con objeto común y procesos alternativos cerrado; otros roles bajo evento siguen sin generador. |
 | GAP-FAN-RESULTADO-COND | §7.6 | Cerrado: fan resultado+condición degrada a fan base; `puede generarse` retirado. |
 | GAP-PROB-SUPERFICIE | §7.6 | Cerrado: export OPL emite `Pr=p` y retira el sufijo porcentual legacy. |

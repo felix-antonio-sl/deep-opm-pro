@@ -196,6 +196,14 @@ que tenemos» (ISO/PAS 19450:2015; no se versiona en el repositorio). Se cita la
       DEC31 y el canon 2.3.0 adopta la lectura inferida de la Tabla 27: cuatro celdas inválidas, P1 anterior a P2.
       Sustituye a DEC44.
     - Despliegue: «No todavía (Recomendado)».
+51. **Implementar B-41 y publicar únicamente en la rama.** Instrucción directa del dueño, role=user,
+    citada íntegramente; ID y fecha del mensaje no observables:
+    > Vamos con B-41. Actualiza la rama y continúa con pruebas completas y revisión independiente. Commit atómico y semántico y push solo a la rama; no toques main ni despliegues.
+
+    Sustituye el abandono del AND agrupado de la respuesta 20 y la retención de B-41 de DEC40. La clasificación
+    compuesta y la prosa opcional de verbos distintos conservan su alcance. La realización de listas se deriva
+    del canon vigente 2.3.0; su cobertura y reservas se declaran en conformidad. La autorización de publicación
+    no acredita aceptación del resultado ni autoriza integrar en `main` o desplegar.
 
 ## Resoluciones directas posteriores — vigentes
 
@@ -849,7 +857,7 @@ realizados se conservan; no acreditan una migración real ni el smoke humano nue
 |---|---|---|---|
 | 1 | Datos de producción con extensiones (`esApunte`, familias por preestado, anclas, notas, piezas, `Estado.duracion`) | El importador descarta cada campo **con su ruta**. La migración escribe un informe por modelo y archiva cada payload original; antes se hace `pg_dump` (§9.4-2). Las familias por preestado dejan varios efectos sobre el mismo par: se **cargan** como `enlace-invalido` (R-ROL-UNIC-1, recuperable), nunca se fusionan en silencio | `codec.test`, `migrar-postgres.test` |
 | 2 | Consumidores externos (`hd-opm`, skill, `mesa`, golden HODOM) | El contrato es JSON v0 + API HTTP + token Bearer (DECISIONS 13), en `formato-v0.md`. El export satisface los tipos v0 actuales; el servidor canonicaliza lo que llega (422 si hay pérdidas); la igualdad byte a byte del HODOM se reemplaza por la ley de punto fijo | `codec-fijo.test`, `principal.test` |
-| 3 | Superficie OPL nueva y AND compuesto | Se abandonan la clasificación compuesta y el AND agrupado en la emisión (DECISIONS 20); el parser acepta ENT3; los `.opl.txt` viejos se retiran | `analizar.test`, `generar.test` |
+| 3 | Superficie OPL nueva y AND compuesto | La clasificación compuesta sigue sin emitirse; el parser acepta ENT3. DEC51 retoma las listas AND canónicas con hechos y tokens por miembro; la prosa opcional de verbos distintos sigue fuera | `analizar.test`, `generar.test`, `and.test` |
 | 4 | Vista del padre derivada (fuerza, R-PREC) | Una prueba por nivel de fuerza y por celda 3×3 en WP-4 p, **antes** de retirar las proyecciones persistidas; el importador las ignora recién en WP-6 | `proyeccion.test` |
 | 5 | Reemplazar JointJS sin red | golden genuinos y diagnósticos diferenciados, observados individualmente; marcadores literales contra el canon; reductor de gestos puro; e2e de estados, enlaces, reanclaje y abanicos; toda la geometría es derivada | `golden.test`, `gestos.test`, e2e 5–13, 22 |
 | 6 | Simulación y probabilidades | Se retiran (DECISIONS 9). El import las descarta con informe; `Pr=` da `unsupported-canonical` o `non-canonical` | `codec.test`, `analizar.test` |
