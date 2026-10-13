@@ -161,3 +161,12 @@ test('WP-13 DES§7.5 botones de ícono se nombran por su acción y conservan ata
  for(const [id,texto] of [['guardar',undefined],['arbol','‹ OPDs'],['columna','Plegar']] as const)expect(props(id,texto)['aria-label']).toBeUndefined();
  ed.cerrar();await ciclos();
 });
+test('T-175 contadores de la UI concuerdan en número: sólo el uno va en singular',async()=>{
+ const {cuenta}=await import('./cuenta'),{modificacionRelativa}=await import('./Biblioteca'),{Franja}=await import('./Franja');
+ expect([0,1,2].map(n=>cuenta(n,'línea','líneas'))).toEqual(['0 líneas','1 línea','2 líneas']);expect(cuenta(1,'OPD','OPDs')).toBe('1 OPD');
+ const ahora=Date.parse('2026-10-13T12:00:00Z'),dia=86400000;
+ expect([1,3].map(n=>modificacionRelativa(new Date(ahora-n*dia).toISOString(),ahora))).toEqual(['hace 1 día','hace 3 días']);
+ const textos=(v:unknown):string[]=>Array.isArray(v)?v.flatMap(textos):typeof v==='string'||typeof v==='number'?[String(v)]:v&&typeof v==='object'?textos((v as {props?:{children?:unknown}}).props?.children):[];
+ const resumen=(n:number)=>{const d=dependencias(),ed=crearEditor(configuracion(d)),traza={regla:'R',mensaje:'Ajuste',refs:[]};const estado={...ed.obtener(),franja:{tipo:'info' as const,texto:'Hecho',trazas:Array.from({length:n},()=>traza)}};return textos(Franja({estado,deshacer:()=>{}})).join('');};
+ expect(resumen(1)).toContain('1 traza');expect(resumen(1)).not.toContain('1 trazas');expect(resumen(2)).toContain('2 trazas');
+});

@@ -4,6 +4,7 @@ import { indice } from '../nucleo/indice';
 import { tiposLegales } from '../nucleo/matriz';
 import type { DatosEtiquetas, OpcionTipo } from '../nucleo/matriz';
 import type { Modelo, Id } from '../nucleo/tipos';
+import { cuenta } from './cuenta';
 import { reducirGesto } from '../editor/gestos';
 import type { Gesto } from '../editor/gestos';
 import { lineaDeEnlace } from '../opl/generar';
@@ -37,7 +38,7 @@ export function MenuTipoEnlace(p: { modelo: Modelo; opd: Id; gesto: Extract<Gest
         {!pendiente ? <><div role="menu" aria-label="Tipo de enlace">{disponibles.map(({o,i})=><div class={`opcion-tipo ${p.gesto.elegida===i?'elegida':''}`}>
             <button role="menuitem" onClick={()=>{if(o.legal==='pendiente'){editar(o);fallar('');}else p.elegir(i);}}><kbd>{i<9?i+1:''}</kbd><span>{textoCompletar(p.modelo,o)??`${o.tipo} · ${o.sentido}`}</span><span class="previa-opl">{o.legal===true?lineaDeEnlace(p.modelo,p.opd,o.candidato)?.tokens.map(t=>t.marca==='objeto'?<strong>{t.texto}</strong>:t.marca==='proceso'?<em>{t.texto}</em>:t.marca==='estado'?<code>{t.texto}</code>:t.texto):o.legal==='pendiente'?`Requiere ${o.requiere.join(' y ')}`:textoCompletar(p.modelo,o)?null:o.motivo.mensaje}</span></button>
             {o.legal===false&&o.alternativa&&o.alternativa.k==='abanicoCon'&&<div><button onClick={()=>p.elegir(i,'XOR')}>Abanico XOR con el existente</button><button onClick={()=>p.elegir(i,'OR')}>Abanico OR con el existente</button></div>}
-        </div>)}</div><details><summary>{no.length} tipos no disponibles</summary>{no.map(o=><p>{o.tipo} · {o.sentido}: {o.legal===false?`${o.motivo.regla}: ${o.motivo.mensaje}`:''}</p>)}</details><p class="ayuda-gesto">↑↓ elegir · 1–9 · ↵ confirmar · Tab otra orientación · ⎋</p></> : <form onSubmit={e=>{e.preventDefault();if(p.datos(pendiente,{etiqueta,...(pendiente.tipo==='etiquetadoBidireccional'?{inversa}:{})}))editar(null);else fallar('Los datos no admiten este enlace; revisa las etiquetas.');}}>
+        </div>)}</div><details><summary>{cuenta(no.length, 'tipo no disponible', 'tipos no disponibles')}</summary>{no.map(o=><p>{o.tipo} · {o.sentido}: {o.legal===false?`${o.motivo.regla}: ${o.motivo.mensaje}`:''}</p>)}</details><p class="ayuda-gesto">↑↓ elegir · 1–9 · ↵ confirmar · Tab otra orientación · ⎋</p></> : <form onSubmit={e=>{e.preventDefault();if(p.datos(pendiente,{etiqueta,...(pendiente.tipo==='etiquetadoBidireccional'?{inversa}:{})}))editar(null);else fallar('Los datos no admiten este enlace; revisa las etiquetas.');}}>
             <label>Etiqueta<input autoFocus value={etiqueta} onInput={e=>nombrar(e.currentTarget.value)} /></label>{pendiente.tipo==='etiquetadoBidireccional'&&<label>Etiqueta inversa<input value={inversa} onInput={e=>invertir(e.currentTarget.value)} /></label>}
             {error&&<p role="alert">{error}</p>}<button>{p.cambio?'Aplicar cambio':'Crear enlace'}</button><button type="button" onClick={()=>editar(null)}>Volver</button>
         </form>}</div>

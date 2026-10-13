@@ -1,11 +1,12 @@
 import { useState } from 'preact/hooks';
 import type { Cliente } from '../editor/cliente';
+import { cuenta } from './cuenta';
 export function Acceso(p: { cliente: Cliente; entrado: (email: string) => void | Promise<void>; reingreso?: boolean }) {
     const [email, correo] = useState(''), [clave, password] = useState(''), [error, fallar] = useState(''), [ocupado, ocupar] = useState(false);
     async function entrar(e: Event) { e.preventDefault(); if (ocupado) return; ocupar(true); fallar('');
         try { const r = await p.cliente.entrar(email, clave); password('');
             if (r === 'ok') await p.entrado(email);
-            else fallar(r === 'credenciales' ? 'Credenciales inválidas' : `Demasiados intentos; espera ${Math.ceil(r.reintentarEn / 60)} minutos`);
+            else fallar(r === 'credenciales' ? 'Credenciales inválidas' : `Demasiados intentos; espera ${cuenta(Math.ceil(r.reintentarEn / 60), 'minuto', 'minutos')}`);
         } catch { fallar('No se pudo conectar. Reintenta sin cerrar esta página.'); } finally { ocupar(false); }
     }
     return <section class="acceso"><div class="marca">opforja<span>Modelador OPM</span></div><h1>{p.reingreso ? 'Sesión vencida' : 'Entrar'}</h1>
