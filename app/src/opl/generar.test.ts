@@ -369,6 +369,12 @@ test('T-085 T-168 efectos de subprocesos paralelos se abstraen igual sea cual se
   expect(generarDocumentoOpl(nuevo.modelo)).toBe(doc);
  }
 });
+test('T-163 T-192 un proceso cuyo nombre termina en «proceso» conserva su nombre y su consumo al reconstruirse',()=>{
+ const mod=congelar(modeloCon({objetos:[['Entrada',[]]],procesos:['Validar proceso'],enlaces:[['consumo','Entrada','Validar proceso']]}));
+ expect(validarForma(mod)).toEqual([]);expect(diagnosticar(mod).filter(d=>d.severidad==='error')).toEqual([]);
+ expect(generarDocumentoOpl(mod)).toContain('*Validar proceso* consume **Entrada**.');
+ expect(admitidoConPuntoFijo(mod)).toBe(true);
+});
 test('T-134 T-192 subprocesos que empatan en la colación no se ordenan por IDs de cosa en el contexto',()=>{
  const variantes=Array.from({length:9},(_,n)=>n).flatMap(n=>[['Zorro','Zórro'],['Zórro','Zorro']].map(([x,y])=>{
   const previos=previosB57(n).map(([c])=>`**${c}** es físico.\n`).join('');

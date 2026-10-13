@@ -583,7 +583,7 @@ Palabras fijas adicionales que aparecen en plantillas canónicas y por tanto per
 | R-OPL-5 | Pasiva refleja: `se consume`, `se omite` (no `es consumido`, `es omitido`). | inf. DEBE |
 | R-OPL-6/7 | Orden sujeto-verbo-complemento de la plantilla; no reordenar si rompe el análisis bidireccional. | DEBE / NO DEBE |
 | R-OPL-8 | Omitir la preposición personal `a` ante objetos directos (`maneja`, `requiere`, `consume` sin «a»). | DEBE |
-| R-OPL-9 | Un proceso PUEDE aparecer como `Nombre` o `Nombre proceso` (el parser acepta el sufijo). | PUEDE |
+| R-OPL-9 | Un proceso PUEDE aparecer como `Nombre` o `Nombre proceso` (el parser acepta el sufijo fuera del nombre tipado, `*Nombre* proceso`; dentro del span, «proceso» es parte del nombre). | PUEDE |
 | R-OPL-EQ-1/4 | Proceso en infinitivo o nominalización: ambas válidas; la herramienta NO DEBE forzar el infinitivo. | PUEDE / NO DEBE |
 | R-COND-RAMA-1/2 | Rama negativa DEBE ser `de lo contrario *Proceso* se omite` (nunca espera ni transformación alterna); rama positiva de consumo en pasiva refleja `**Objeto** se consume`; efecto/cambio en voz activa. | DEBE |
 | R-MOD-NAT-2 | Un enlace sin modificador NO emite rama `de lo contrario … se omite` (su semántica es espera). | NO DEBE |

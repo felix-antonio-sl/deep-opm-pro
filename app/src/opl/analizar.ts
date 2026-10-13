@@ -216,7 +216,8 @@ function nombres(texto: string): { plano: string; spans: Span[]; restricciones: 
             if (citado) return citado;
             if (e === 'Current') return '`Current`';
             if (canon !== undefined && (validarNombreCosa(canon) || validarNombreCosa(o))) invalido = true;
-            const n = (canon ?? o ?? p ?? e).trim().replace(p ? / proceso$/ : /$^/, '');
+            // El span es el nombre completo; el sufijo «proceso» (R-OPL-9) sólo se reconoce fuera de él.
+            const n = (canon ?? o ?? p ?? e).trim();
             const i = spans.push({ texto: n, marca: o !== undefined ? 'objeto' : p !== undefined ? 'proceso' : 'estado', ...(canon !== undefined ? { nombrePlural: o } : {}) }) - 1;
             return `§${i}§`;
         });

@@ -24,8 +24,17 @@ test('T-154 listas tipadas distinguen conectores de nombres y estados de cada du
 test('T-153 condición alternativa y TS3 se reconocen desde la misma plantilla', () => {
     expect(caso('Si **Pedido** existe entonces *Validar* ocurre y consume **Pedido**, de lo contrario se omite *Validar*.').hechos)
         .toEqual([{ k: 'enlace', enlace: { tipo: 'consumo', objeto: { nombre: 'Pedido', tipo: 'objeto' }, proceso: 'Validar', control: 'c' } }]);
-    expect(caso('*Validar proceso* cambia **Pedido** de `nuevo` a `listo`.').hechos)
+    // R-OPL-9: el sufijo «proceso» va fuera del nombre tipado; dentro del span es parte del nombre.
+    expect(caso('*Validar* proceso cambia **Pedido** de `nuevo` a `listo`.').hechos)
         .toEqual([{ k: 'enlace', enlace: { tipo: 'efecto', objeto: { nombre: 'Pedido', tipo: 'objeto' }, proceso: 'Validar', entrada: 'nuevo', salida: 'listo' } }]);
+});
+test('T-163 T-153 el sufijo «proceso» se reconoce fuera del span y nunca recorta el nombre tipado', () => {
+    const consumo = (proceso: string) => [{ k: 'enlace', enlace: { tipo: 'consumo', objeto: { nombre: 'Entrada', tipo: 'objeto' }, proceso } }] as const;
+    expect(caso('*Validar proceso* consume **Entrada**.').hechos).toEqual(consumo('Validar proceso'));
+    expect(caso('*Validar* proceso consume **Entrada**.').hechos).toEqual(consumo('Validar'));
+    expect(caso('*Validar proceso* proceso consume **Entrada**.').hechos).toEqual(consumo('Validar proceso'));
+    expect(caso('*Gestionar* se descompone en *Validar proceso* y *Archivar*, en esa secuencia.').hechos)
+        .toEqual([{ k: 'descomposicion', proceso: 'Gestionar', bandas: [['Validar proceso'], ['Archivar']], internos: [] }]);
 });
 test('T-155 CX mixto conserva bandas y nombres con y dentro del span', () => {
     expect(caso('*Gestionar* se descompone en paralelo *Cargar y Validar* e *Inspeccionar*, *Enviar*, y paralelo *Cobrar* y *Archivar*, en esa secuencia, así como **Registro**.').hechos)
