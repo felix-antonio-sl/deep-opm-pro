@@ -50,32 +50,38 @@ afterEach(() => {
         expect(validarForma(m)).toEqual([]);
 });
 const muestras = [modeloCon({ objetos: [['Pedido', ['nuevo', 'listo']], ['Caja', []]], procesos: ['Procesar'] }), modeloCon({ objetos: [['Agua', ['fria', 'caliente']], ['Peso', ['alto']]], procesos: ['Hervir', 'Medir'], enlaces: [['consumo', 'Agua', 'Hervir']] }), modeloCon({ objetos: [['Pedido', ['creado', 'pagado']], ['Factura', ['emitida']]], procesos: ['Pagar', 'Emitir'], enlaces: [['exhibicion', 'Pedido', 'Factura'], ['instrumento', 'Factura', 'Emitir']] })];
+// Cada discrepancia se acumula y se afirma una vez: el fallo lista todos los casos, no sólo el primero.
+// El modelo está congelado, así que basta comprobar al final que no cambió.
 for (const [i, m] of [...muestras, ...Array.from({ length: 50 }, (_, i) => azar(i + 1, 'completo'))].entries())
     test(`T-040 propiedad exhaustiva ${i < 3 ? 'muestra ' + (i + 1) : 'semilla ' + (i - 2)}: todos pares, 15 tipos, ambas orientaciones`, () => {
         const snapshot = JSON.stringify(m);
         originales.push(m);
         const extremos: ExtremoRef[] = Object.values(m.cosas).flatMap(c => [{ cosa: c.id }, ...(c.tipo === 'objeto' ? c.estados.map(s => ({ cosa: c.id, estado: s.id })) : [])]);
+        const discrepancias: unknown[] = [];
         let evaluados = 0, aceptados = 0, rechazados = 0;
         for (const desde of extremos)
             for (const hacia of extremos) {
                 const opciones = tiposLegales(m, { opd: m.raiz, desde, hacia, etiquetas: { etiqueta: 'conoce', inversa: 'es-conocido' } });
-                expect(opciones).toHaveLength(30);
+                if (opciones.length !== 30) { discrepancias.push({ muestra: i, desde, hacia, opciones: opciones.length }); continue; }
                 for (const tipo of tipos)
                     for (const sentido of ['directo', 'inverso'] as const) {
                         const opcion = opciones.find(x => x.tipo === tipo && x.sentido === sentido)!;
                         const candidato = congelar(intencion(tipo, desde, hacia, sentido));
                         const r = crearEnlace(m, { opd: m.raiz, candidato });
                         evaluados++;
-                        expect(r.ok, JSON.stringify({ muestra: i, tipo, sentido, desde, hacia, candidato, opcion, respuesta: r.ok ? 'ok' : r.rechazo })).toBe(opcion.legal === true);
+                        if (r.ok !== (opcion.legal === true))
+                            discrepancias.push({ muestra: i, tipo, sentido, desde, hacia, candidato, opcion, respuesta: r.ok ? 'ok' : r.rechazo });
                         if (r.ok) {
                             aceptados++;
-                            expect(validarForma(r.valor.modelo)).toEqual([]);
-                            expect(r.valor.creados).toEqual([`e-${m.secuencia}`]);
+                            const forma = validarForma(r.valor.modelo);
+                            if (forma.length || r.valor.creados.length !== 1 || r.valor.creados[0] !== `e-${m.secuencia}`)
+                                discrepancias.push({ muestra: i, tipo, sentido, desde, hacia, forma, creados: r.valor.creados });
                         }
                         else
                             rechazados++;
                     }
             }
+        expect(discrepancias).toEqual([]);
         expect(evaluados).toBe(extremos.length ** 2 * 30);
         expect(aceptados + rechazados).toBe(evaluados);
         expect(JSON.stringify(m)).toBe(snapshot);
@@ -120,18 +126,23 @@ for (const [i, original] of [...muestras, ...Array.from({ length: 50 }, (_, i) =
         const bandas = Array.from({ length: n }, (_, k) => [`Refinar_${i}_${k}`]);
         const m = congelar(must(descomponer(original, { opd: original.raiz, proceso: padre, bandas })).modelo), antes = JSON.stringify(m);
         expect(validarForma(m)).toEqual([]); expect(erroresContexto(m)).toEqual([]);
+        const discrepancias: unknown[] = [];
         for (const opd of Object.values(m.opds)) {
             const extremos: ExtremoRef[] = Object.keys(opd.apariciones).flatMap(id => { const c = m.cosas[id]!; return [{ cosa: id }, ...(c.tipo === 'objeto' ? c.estados.map(s => ({ cosa: id, estado: s.id })) : [])]; });
             for (const desde of extremos) for (const hacia of extremos) {
                 const opciones = tiposLegales(m, { opd: opd.id, desde, hacia, etiquetas: { etiqueta: 'conoce', inversa: 'es-conocido' } });
-                expect(opciones).toHaveLength(30);
+                if (opciones.length !== 30) { discrepancias.push({ i, n, opd: opd.id, desde, hacia, opciones: opciones.length }); continue; }
                 for (const tipo of tipos) for (const sentido of ['directo', 'inverso'] as const) {
                     const candidato = congelar(intencion(tipo, desde, hacia, sentido)), opcion = opciones.find(o => o.tipo === tipo && o.sentido === sentido)!, r = crearEnlace(m, { opd: opd.id, candidato });
-                    expect(r.ok, JSON.stringify({ i, n, opd: opd.id, tipo, sentido, desde, hacia, opcion, respuesta: r.ok ? 'ok' : r.rechazo })).toBe(opcion.legal === true);
-                    if (r.ok) { expect(validarForma(r.valor.modelo)).toEqual([]); expect(erroresContexto(r.valor.modelo)).toEqual([]); expect(r.valor.creados[0]).toBe(`e-${m.secuencia}`); }
-                    expect(JSON.stringify(m)).toBe(antes);
+                    if (r.ok !== (opcion.legal === true)) discrepancias.push({ i, n, opd: opd.id, tipo, sentido, desde, hacia, opcion, respuesta: r.ok ? 'ok' : r.rechazo });
+                    if (r.ok) {
+                        const forma = validarForma(r.valor.modelo), contexto = erroresContexto(r.valor.modelo);
+                        if (forma.length || contexto.length || r.valor.creados[0] !== `e-${m.secuencia}`) discrepancias.push({ i, n, opd: opd.id, tipo, sentido, desde, hacia, forma, contexto, creados: r.valor.creados });
+                    }
                 }
             }
         }
+        expect(discrepancias).toEqual([]);
+        expect(JSON.stringify(m)).toBe(antes);
     }, 120000);
 }
