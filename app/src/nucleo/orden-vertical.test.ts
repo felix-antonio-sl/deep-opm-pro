@@ -119,3 +119,21 @@ test('T-030 B-45 v0 sin orden declarado deriva bandas con la misma tolerancia y 
     expect(hijoDe(ambiguo.modelo).bandas).toEqual([[recibir], [revisar, cobrar], [despachar]]);
     expect(contradicciones(ambiguo.modelo).map(d => d.refs.slice(1).map(r => r.id))).toEqual([[revisar, cobrar, despachar]]);
 });
+
+test('T-030 B-45 una contradicción originada al editar también se diagnostica, bloquea y se repara', () => {
+    // Reducir el contenedor y mover después un subproceso lo confina más arriba (R-OPD-UI-3): la edición no la impide.
+    const b = modeloCon({ objetos: [['Pedido', ['recibido', 'despachado']]], procesos: ['Atender'], enlaces: [['efecto', 'Pedido', 'Atender']] });
+    const m = must(aplicarAcciones(b, [{ op: 'descomponer', args: { opd: b.raiz, proceso: porNombre(b, 'Atender').id, bandas: [['Recibir'], ['Despachar']] } }])).modelo;
+    const h = hijoDe(m), [recibir, despachar] = h.bandas.flat() as [string, string];
+    const n = must(aplicarAcciones(m, [
+        { op: 'redimensionar', args: { opd: h.id, cosa: h.cosa, ancho: h.apariciones[h.cosa]!.ancho, alto: 100 } },
+        { op: 'moverApariciones', args: { opd: h.id, mover: [{ cosa: despachar, x: h.apariciones[despachar]!.x + 10, y: 0 }] } },
+    ])).modelo;
+    expect(validarForma(n)).toEqual([]);
+    expect(hijoDe(n).apariciones[despachar]!.y).toBeLessThan(hijoDe(n).apariciones[recibir]!.y);
+    expect(contradicciones(n)).toEqual([expect.objectContaining({ severidad: 'error', opd: h.id })]);
+    expect(gatesDocumento(n).map(g => g.regla)).toContain('R-INV-2/2A, R-IDP-0A');
+    const reparado = must(aplicarAccion(n, contradicciones(n)[0]!.reparacion!)).modelo;
+    expect(hijoDe(reparado).bandas).toEqual(h.bandas); expect(contradicciones(reparado)).toEqual([]);
+    expect(generarDocumentoOpl(reparado)).toBe(generarDocumentoOpl(m));
+});

@@ -271,8 +271,8 @@ canónica (P7), y toda acción se deshace en un paso.
          nueva antes o después;
        - el arrastre horizontal queda confinado al contenedor;
        - el OPL (CX) se actualiza al soltar.
-       - Un modelo importado puede traer alturas que no realizan sus bandas (por ejemplo, un
-         subproceso posterior dibujado más arriba). El bloqueo `orden-vertical-contradictorio`
+       - Un modelo importado, o una edición que confina un subproceso en un contenedor reducido,
+         puede dejar alturas que no realizan sus bandas (un subproceso posterior más arriba). El bloqueo `orden-vertical-contradictorio`
          (R-INV-2/2A) lo señala y detiene los exports canónicos de ese OPD y del documento.
          «Aplicar reparación» recoloca el OPD según sus bandas, sin cambiarlas, en un paso
          deshacible; el JSON sigue descargable sin cambios.
