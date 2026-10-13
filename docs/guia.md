@@ -261,7 +261,7 @@ canónica (P7), y toda acción se deshace en un paso.
     4. `descomponer` y ese `agregarSubprocesos` comparten `gesto`, así que se deshacen en **un**
        paso (SYNTHESIS §8-10).
     5. Si se pulsa ⎋ sin nombres, la descomposición queda vacía: `refinamiento-trivial` advierte
-       hasta que haya ≥2 subprocesos, y el gate bloquea el export.
+       hasta que haya al menos un subproceso (DEC50, B-43), y el gate bloquea el export.
     6. Más subprocesos: `P` dentro del contenedor (uno por gesto, en la banda bajo el cursor) o `N`
        con el contenedor seleccionado (reabre el campo encadenado).
     7. **Reordenar**:
@@ -357,7 +357,7 @@ canónica (P7), y toda acción se deshace en un paso.
     - «OPL Markdown»;
     - «Modelo JSON».
 
-    Si hay gate, el ítem aparece deshabilitado con los motivos («SD1 tiene 1 subproceso (AP-13) ·
+    Si hay gate, el ítem aparece deshabilitado con los motivos («El refinamiento no tiene hijos (AP-13, R-REF-NTRIV-1/2) ·
     Ir»).
 23. **Deshacer y rehacer.**
     - `Ctrl+Z` y `Ctrl+Mayús+Z` (o `Ctrl+Y`), con 200 pasos por modelo abierto.
