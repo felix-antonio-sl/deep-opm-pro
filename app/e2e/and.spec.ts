@@ -62,11 +62,11 @@ test('T-170 T-174 T-182 T-194 B-41 editar multiplicidad en OPL conserva identida
     await captura(page, 'b41-opl-multiplicidad'); await tecla(page, 'Control+z'); await guardado(page); expect((await leer(request, id)).texto).toBe(antes.texto);
     const revision = (await leer(request, id)).rev, area = await editarOpl(page);
     await area.fill(doc.replace('y **Beta** en `activo`.', 'y **Beta** en `pendiente`.'));
-    await expect(page.getByRole('status').filter({ hasText: /1 no aplicables/ })).toBeVisible();
+    await expect(page.getByRole('status').filter({ hasText: /1 no aplicable\b/ })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Sin cambios aplicables', exact: true })).toBeDisabled();
     expect((await leer(request, id)).rev).toBe(revision); expect((await leer(request, id)).texto).toBe(antes.texto);
     await area.fill(doc.replace('y **Beta** en `activo`.', 'y *Beta* en `activo`.'));
-    await expect(page.getByRole('status').filter({ hasText: /1 no aplicables/ })).toBeVisible();
+    await expect(page.getByRole('status').filter({ hasText: /1 no aplicable\b/ })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Sin cambios aplicables', exact: true })).toBeDisabled();
     await area.press('Escape'); expect((await leer(request, id)).rev).toBe(revision); expect((await leer(request, id)).texto).toBe(antes.texto);
 });
