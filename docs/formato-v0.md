@@ -42,6 +42,10 @@ Estas leyes se prueban sobre todos los fixtures y 200 modelos de `pruebas/azar.t
 
 #### 3.4.2 Etapas del importador (puras; acumulan todas las entradas; P8)
 
+Un campo reconocido con un tipo inesperado nunca desaparece en silencio: un `nombre` presente que
+no es texto (del modelo, de una cosa o de un estado) es rechazo con su ruta, sin convertirse en
+vacío; un campo opcional irrepresentable va a `descartado` con su ruta y su valor original.
+
 1. **Sobre.** `JSON.parse`; si falla, rechazo «JSON inválido». Acepta cuatro formas (CC-08):
    - `{formato:"deep-opm-pro.modelo.v0", modelo}`;
    - el registro persistido `{json: string, …}`, que se desenvuelve;
@@ -87,9 +91,12 @@ Estas leyes se prueban sobre todos los fixtures y 200 modelos de `pruebas/azar.t
      si cambia (DEC56). Se valida con el léxico de cosa después de NFC; no se infiere ni
      se recorta. Tipo no textual, forma inválida o propiedad en proceso rechazan el
      documento, conservando íntegra la entrada; no se descarta la forma para importarlo.
-   - `descripcion` y `genero` (`"f"`) se conservan.
+   - `descripcion` y `genero` (`"f"`) se conservan; una `descripcion` no textual va a `descartado`.
+   - `coleccionIncompleta` que no es arreglo, o con miembros fuera de
+     `agregacion|exhibicion|generalizacion`, va a `descartado`.
    - `valorSlot.valor` pasa a `valor` (texto). `valorSlot` sin valor va a `ignorado`, y su `tipo`
-     distinto de `string` a `descartado`. Un `valor` de un objeto que, tras la etapa 7, no es rasgo
+     distinto de `string` a `descartado`. Un `valorSlot` que no es registro, o con `valor` en un
+     proceso, va a `descartado` (T-020). Un `valor` de un objeto que, tras la etapa 7, no es rasgo
      de ninguna exhibición va a `descartado` (regla T-020: sin exhibidor no hay oración VAL, CC-03).
    - `esAtributo` y `layoutEstados` van a `ignorado` (derivable y visual).
    - `alias`, `unidad`, `imagen`, `urls`, `simulacion`, `estereotipoId`, `anclaje`, `requisito`,
@@ -105,13 +112,16 @@ Estas leyes se prueban sobre todos los fixtures y 200 modelos de `pruebas/azar.t
    - Designaciones: `esInicial`/`esFinal` **o** `designaciones` ∋ `inicial`/`final` (la unión; los
      duplicados van a `normalizado`). `default` o `porDefecto` pasan a `porDefecto` del objeto; si
      hay más de uno, se conserva el primero por orden y el resto va a `descartado`. `current` igual.
-     `suprimido` se conserva.
+     `suprimido` se conserva. Un `orden` no numérico, unas `designaciones` que no son arreglo y una
+     marca (`esInicial`, `esFinal`, `default`, `porDefecto`, `current`, `suprimido`) no booleana
+     van a `descartado`.
    - `duracion` de estado va a `descartado`; `x/y/width/height`, a `ignorado`.
    - Un objeto con un solo estado es válido (R-OBJ-2).
 6. **OPDs.** La raíz es `opdRaizId`. Todo otro OPD se clasifica:
    - **Refinamiento de proceso o de cosa por despliegue.** Una entidad lo apunta en
      `refinamientos.descomposicion|despliegue`; la forma legacy `refinamiento:{tipo, opdId, modo?}`
-     va a `normalizado`. Sin `despliegue.modo`, se usa `agregacion` (`normalizado`).
+     va a `normalizado`. Sin `despliegue.modo`, se usa `agregacion` (`normalizado`). Unos
+     `refinamientos` que no son registro van a `descartado` (F-7).
    - **Descomposición de objeto** (DS-18).
      - Si el objeto no tiene despliegue, se convierte en `OpdDespliegue{modo:'agregacion'}` que
        conserva todas las apariciones y posiciones. **No crea enlaces**. Va a `normalizado`, regla
@@ -148,7 +158,8 @@ Estas leyes se prueban sobre todos los fixtures y 200 modelos de `pruebas/azar.t
    - **Apariciones**:
      - Una duplicada en el OPD conserva la de menor id (`normalizado`, DR-25).
      - Las coordenadas se redondean a entero y un tamaño < 20 pasa a 135×60 (`normalizado`).
-     - `estadosSuprimidos` pasa a `ocultos`, filtrado a estados propios.
+     - `estadosSuprimidos` pasa a `ocultos`, filtrado a estados propios; si no es arreglo, va a
+       `descartado`.
      - `ports`, `modoTamano`, `modoPlegado`, `ordenPartes`, `parteExtraidaDe` e `id` van a
        `ignorado`. `preguntaGuia` y un `nombre` de OPD que no sea etiqueta automática
        (`^SD[\d.]*$`) van a `descartado`.
@@ -168,7 +179,8 @@ Estas leyes se prueban sobre todos los fixtures y 200 modelos de `pruebas/azar.t
      - `O→P` entre entidades es la rama v0 y da T3 (la dirección no es semántica);
      - `efectoEscindido{grupoId, rol, modo:"par"}` con compañero pone `escision{par, mitad}` en
        ambos; `modo:"standalone"`, o un grupo de un solo miembro, queda sin escisión
-       (`normalizado`); `enlacePadreId` va a `ignorado`.
+       (`normalizado`); `enlacePadreId` va a `ignorado`. Un `efectoEscindido` que no es registro, o
+       en un enlace que no es efecto, va a `descartado`.
    - **Par v0 consumo(estado s₁) + resultado(estado s₂)** sobre el mismo (objeto, proceso), sin que
      ninguno sea rama de un abanico **y sin `ruta` ni multiplicidad en ninguno** (la fusión solo se
      hace si no pierde nada, CC-11). Se fusiona en un `efecto` TS3 con el id del consumo,
@@ -231,8 +243,9 @@ Estas leyes se prueban sobre todos los fixtures y 200 modelos de `pruebas/azar.t
      - Una multiplicidad que `noOfrecido` rechaza va a `descartado` (DR-44): junto a `c`, en efecto
        con estados o en etiquetado con estado.
    - **`rutaEtiqueta`** pasa a `ruta` en consumo y resultado (también en ramas de abanico, DS-10).
-     En otro tipo va a `descartado` (DR-19).
-   - Una `etiqueta` no vacía en tipos no etiquetados va a `descartado`.
+     En otro tipo, o si no es texto, va a `descartado` (DR-19).
+   - Una `etiqueta` no vacía en tipos no etiquetados va a `descartado`. Una `etiqueta` o un
+     `backwardTag` no textuales van a `descartado` y cuentan como vacíos.
    - `probabilidad`, `demora`, `tasa`, `unidadesTasa`, `requisitos` y `mostrarRequisitos` van a
      `descartado`; `grupoEstructuralId` y `portId`, a `ignorado`.
 8. **Derivados v0** (`derivado.tipo = "enlace-externo-refinamiento"`), ya resuelta la estructura de
@@ -253,7 +266,7 @@ Estas leyes se prueban sobre todos los fixtures y 200 modelos de `pruebas/azar.t
    - **`origen:"manual"`** es un reanclaje del modelador: el padre toma el extremo del derivado y
      conserva su id. Si hay varios, el primero reancla el padre y los demás quedan como enlaces
      propios con su id (`normalizado`).
-   - Un derivado huérfano va a `descartado`.
+   - Un derivado huérfano va a `descartado`, igual que un `derivado` con otro `tipo`.
    - Esta etapa es **mapeo de datos**, no aplicación de reglas: solo mueve extremos a donde los
      derivados indican. No llama a la distribución de §4.5.3 (que vive en `nucleo/refinamiento.ts`,
      WP-4r). Lo que queda en el contorno contra el canon (un consumo sin derivado, un TS3 sin
@@ -283,7 +296,7 @@ Estas leyes se prueban sobre todos los fixtures y 200 modelos de `pruebas/azar.t
      etiqueta con estados (B-05), cuyos anclajes van a `descartado`.
 10. **Modelo.**
     - `secuencia` según §3.3; `unidadTiempo` ausente toma `min` (`normalizado`); `descripcion` se
-      conserva.
+      conserva y, si no es texto, va a `descartado`.
     - Van a `descartado`, una entrada por campo con conteo: `ontologia`,
       `satisfaccionesRequisito`, `declaracionesNoNucleares`, `familiasEfectosPreestado`,
       `anclasNormativas`, `notasMesa`, `mesaExploracion`, `estereotipos`, `procedencia`,

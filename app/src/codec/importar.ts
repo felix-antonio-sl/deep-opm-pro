@@ -151,6 +151,11 @@ function duracion(v:unknown):Duracion | undefined {
   return { ...(d.min !== undefined ? {min:d.min}:{}), ...(d.esperada !== undefined ? {esperada:d.esperada}:{}), ...(d.max !== undefined ? {max:d.max}:{}), ...(d.unidad ? {unidad:d.unidad}:{}) };
 }
 
+// Campos reconocidos con un tipo inesperado nunca desaparecen en silencio: el nombre obligatorio
+// rechaza con su ruta; un opcional irrepresentable se declara perdido con su valor original.
+function nombreTextual(l:Lectura,v:unknown,ruta:string):boolean { if(v===undefined||typeof v==='string')return true; l.rechazar(ruta,`Nombre no textual: ${jsonInforme(v)}.`); return false; }
+function textoOpcional(l:Lectura,v:unknown,ruta:string,regla?:string):string|undefined { if(v===undefined||typeof v==='string')return v; l.perder(ruta,v,regla,'Texto con tipo no representable'); return undefined; }
+
 type FusionarPares=(data:Record<Col,Record<string,Registro>>,enlaces:Record<string,Enlace>,l:Lectura,alias:Map<string,string>)=>void;
 
 export function importarV0(texto:string):ResultadoImport {
@@ -181,6 +186,7 @@ function construirDocumento(texto:string,l:Lectura,fusionar:FusionarPares|undefi
   const fallo=():ResultadoImport=>({ok:false,informe:l.informe});
   if (!raw) return fallo();
   const entrada=Object.fromEntries(cols.map(k=>[k,coleccion(raw[k],k,l)])) as Record<Col,Record<string,Registro>>;
+  nombreTextual(l,raw.nombre,'nombre');
   if (l.rechazos.length) return fallo();
   let seq=Number.isSafeInteger(raw.nextSeq) && Number(raw.nextSeq)>0 ? Number(raw.nextSeq):1;
   // Un sufijo que no deja una secuencia segura mayor se reasigna como un id inválido (F-9).
@@ -204,7 +210,8 @@ function construirDocumento(texto:string,l:Lectura,fusionar:FusionarPares|undefi
       else if (esRegistro(e[key])) { const v=e[key]; e[key]={...v,id:map(v.kind === 'estado' ? 'estados':'entidades',v.id)}; }
     }
     for (const k of ['estadoEntradaId','estadoSalidaId']) if (e[k] !== undefined) e[k]=map('estados',e[k]);
-    if (esRegistro(e.derivado)) e.derivado={...e.derivado,enlacePadreId:map('enlaces',e.derivado.enlacePadreId),refinamientoId:map('entidades',e.derivado.refinamientoId)};
+    // Sólo el derivado reconocido se remapea; otro conserva su valor original para declararlo perdido.
+    if (esRegistro(e.derivado)&&e.derivado.tipo==='enlace-externo-refinamiento') e.derivado={...e.derivado,enlacePadreId:map('enlaces',e.derivado.enlacePadreId),refinamientoId:map('entidades',e.derivado.refinamientoId)};
   }
   const apps=new Map<string,Registro[]>(), linksOpd=new Map<string,Registro[]>();
   for (const o of Object.values(data.opds)) {
@@ -220,6 +227,7 @@ function construirDocumento(texto:string,l:Lectura,fusionar:FusionarPares|undefi
   for (const e of Object.values(data.entidades)) {
     // Sin prototipo: un tipo legacy `constructor` o `__proto__` es una ranura propia, no una propiedad heredada.
     const refs:Registro=Object.assign(Object.create(null),registro(e.refinamientos));
+    if(e.refinamientos!==undefined&&!esRegistro(e.refinamientos)) l.perder(`entidades.${e.id}.refinamientos`,e.refinamientos,'F-7','Refinamientos no representables');
     if(e.refinamiento!==undefined) { const r=registro(e.refinamiento), t=str(r.tipo); if(!Object.hasOwn(refs,t)) refs[t]={opdId:r.opdId,...(r.modo!==undefined?{modo:r.modo}:{})}; l.norm(`entidades.${e.id}.refinamiento`,'Refinamiento legacy → plural.'); l.desconocidos(r,`entidades.${e.id}.refinamiento`,['tipo','opdId','modo']); }
     for(const [tipo,v] of Object.entries(refs)) { const s=registro(v); slots.push({cosa:str(e.id),opd:map('opds',s.opdId),tipo,...(typeof s.modo==='string'?{modo:s.modo}:{}),ruta:`entidades.${e.id}.refinamientos.${tipo}`}); l.desconocidos(s,`entidades.${e.id}.refinamientos.${tipo}`,['opdId','modo']); }
   }
@@ -242,6 +250,7 @@ function construirDocumento(texto:string,l:Lectura,fusionar:FusionarPares|undefi
   const nfc=(v:unknown,r:string):string=> { const s=str(v), n=s.normalize('NFC'); if(s!==n) l.norm(r,'Nombre convertido a NFC.','T-025'); return n; };
   for(const [id,e] of Object.entries(data.entidades)) {
     if(e.tipo!=='objeto'&&e.tipo!=='proceso') { l.rechazar(`entidades.${id}.tipo`,'Tipo de cosa inválido.'); continue; }
+    if(!nombreTextual(l,e.nombre,`entidades.${id}.nombre`)) continue;
     const base:Registro={id,tipo:e.tipo,nombre:nfc(e.nombre,`entidades.${id}.nombre`)};
     for(const [key,values,def] of [['esencia',['fisica','informacional'],'informacional'],['afiliacion',['sistemica','ambiental'],'sistemica']] as const) {
       base[key]=values.includes(e[key] as never)?e[key]:def;
@@ -251,17 +260,22 @@ function construirDocumento(texto:string,l:Lectura,fusionar:FusionarPares|undefi
       if (e.tipo !== 'objeto' || typeof e.nombrePlural !== 'string' || validarNombreCosa(e.nombrePlural.normalize('NFC'))) l.rechazar(`entidades.${id}.nombrePlural`, 'Forma plural inválida para el objeto.');
       else base.nombrePlural = nfc(e.nombrePlural, `entidades.${id}.nombrePlural`);
     }
-    if(typeof e.descripcion==='string') base.descripcion=e.descripcion;
+    const descripcion=textoOpcional(l,e.descripcion,`entidades.${id}.descripcion`); if(descripcion!==undefined) base.descripcion=descripcion;
     if(e.genero==='f') base.genero='f'; else if(e.genero!==undefined) l.perder(`entidades.${id}.genero`,e.genero);
     if(Array.isArray(e.coleccionIncompleta)) { const valid=e.coleccionIncompleta.filter(v=>['agregacion','exhibicion','generalizacion'].includes(str(v))); if(valid.length) base.incompleta=[...new Set(valid)]; if(valid.length!==e.coleccionIncompleta.length) l.perder(`entidades.${id}.coleccionIncompleta`,e.coleccionIncompleta); }
-    if(e.tipo==='objeto') {
-      base.estados=[];const slot=registro(e.valorSlot);
+    else if(e.coleccionIncompleta!==undefined) l.perder(`entidades.${id}.coleccionIncompleta`,e.coleccionIncompleta);
+    if(e.tipo==='objeto') base.estados=[];
+    // T-020: el valor de slot es de objeto; uno que no es registro o que está en un proceso se declara perdido.
+    const slot=registro(e.valorSlot), rutaSlot=`entidades.${id}.valorSlot`;
+    if(e.valorSlot!==undefined&&e.valorSlot!==null&&!esRegistro(e.valorSlot)) l.perder(rutaSlot,e.valorSlot,'T-020','Valor de slot no representable');
+    else if(e.tipo==='proceso'&&slot.valor!==undefined) l.perder(rutaSlot,e.valorSlot,'T-020','Valor de slot en proceso');
+    else {
       if(slot.valor!==undefined) {
         if(slot.valor===null||typeof slot.valor!=='object')base.valor=String(slot.valor);
-        else l.perder(`entidades.${id}.valorSlot.valor`,slot.valor,'T-020','Valor de slot no textual representable');
-      } else if(e.valorSlot!==undefined)l.ignorar(`entidades.${id}.valorSlot`,e.valorSlot);
-      if(slot.tipo!==undefined&&slot.tipo!=='string')l.perder(`entidades.${id}.valorSlot.tipo`,slot.tipo,'T-020');
-      l.desconocidos(slot,`entidades.${id}.valorSlot`,['tipo','placeholder','valor']);
+        else l.perder(`${rutaSlot}.valor`,slot.valor,'T-020','Valor de slot no textual representable');
+      } else if(e.valorSlot!==undefined)l.ignorar(rutaSlot,e.valorSlot);
+      if(slot.tipo!==undefined&&slot.tipo!=='string')l.perder(`${rutaSlot}.tipo`,slot.tipo,'T-020');
+      l.desconocidos(slot,rutaSlot,['tipo','placeholder','valor']);
     }
     if(e.duracion!==undefined) { const d=duracion(e.duracion); if(e.tipo==='proceso'&&d) base.duracion=d; else l.perder(`entidades.${id}.duracion`,e.duracion,'T-021'); l.desconocidos(e.duracion,`entidades.${id}.duracion`,['min','esperada','max','unidad']); }
     for(const k of ['alias','unidad','imagen','urls','simulacion','estereotipoId','anclaje','requisito','lineal','orderedFundamentalTypes']) if(e[k]!==undefined) l.perder(`entidades.${id}.${k}`,e[k]);
@@ -279,6 +293,10 @@ function construirDocumento(texto:string,l:Lectura,fusionar:FusionarPares|undefi
     for(const s of es) {
       const ruta=`estados.${s.id}`;
       if(c.tipo==='proceso') { estadosRetirados.add(str(s.id)); l.perder(ruta,s,'AP-12','Estado de proceso'); continue; }
+      nombreTextual(l,s.nombre,`${ruta}.nombre`);
+      if(s.orden!==undefined&&typeof s.orden!=='number') l.perder(`${ruta}.orden`,s.orden,'T-015','Orden no numérico');
+      if(s.designaciones!==undefined&&!Array.isArray(s.designaciones)) l.perder(`${ruta}.designaciones`,s.designaciones,'T-016','Designaciones no representables');
+      for(const k of ['esInicial','esFinal','default','porDefecto','current','suprimido']) if(s[k]!==undefined&&typeof s[k]!=='boolean') l.perder(`${ruta}.${k}`,s[k],k==='current'?'T-017':k==='suprimido'?'T-018':'T-016','Marca no booleana');
       const des=Array.isArray(s.designaciones)?s.designaciones:[];
       const invalidas=des.filter(v=>!['default','porDefecto','current','inicial','final'].includes(str(v)));if(invalidas.length)l.perder(`${ruta}.designaciones`,invalidas,'T-016','Designaciones desconocidas');
       if(new Set(des).size!==des.length || s.esInicial===true&&des.includes('inicial') || s.esFinal===true&&des.includes('final')) l.norm(`${ruta}.designaciones`,'Designaciones repetidas unificadas.','T-016');
@@ -301,6 +319,7 @@ function construirDocumento(texto:string,l:Lectura,fusionar:FusionarPares|undefi
   construirAbanicos(data,abanicos,enlaces,remap,l,modelo);
   for(const [id,c] of Object.entries(cosas)) if(c.tipo==='objeto'&&c.valor!==undefined&&!Object.values(enlaces).some(e=>e.tipo==='exhibicion'&&e.refinador===id)) { const {valor,...resto}=c; cosas[id]=resto; l.perder(`entidades.${id}.valorSlot.valor`,valor,'T-020','Valor sin exhibidor'); }
   if(raw.unidadTiempo===undefined) l.norm('unidadTiempo','Default min.'); else if(!unidad(raw.unidadTiempo)) l.perder('unidadTiempo',raw.unidadTiempo,'T-021');
+  textoOpcional(l,raw.descripcion,'descripcion');
   if(!Number.isSafeInteger(raw.nextSeq)||Number(raw.nextSeq)<seq) l.norm('nextSeq',`Secuencia elevada a ${seq}.`,'T-022');
   const result=modelo(); if(result.id!==raw.id) l.norm('id',`Identificador de modelo saneado: ${result.id}.`,'T-022');
   for(const k of ['ontologia','satisfaccionesRequisito','declaracionesNoNucleares','familiasEfectosPreestado','anclasNormativas','notasMesa','mesaExploracion','estereotipos','procedencia','fichaTrabajo','lentesConocimiento','submodelos','pieceLineage','referenciaPadreSubmodelo']) if(raw[k]!==undefined) l.perder(k,raw[k],'T-006',`${count(raw[k])} elementos no representables`);
@@ -354,6 +373,7 @@ function construirOpds(data:Record<Col,Record<string,Registro>>, apps:Map<string
       const dueño=cosas[c], propios=dueño?.tipo==='objeto'?new Set(dueño.estados.map(s=>s.id)):new Set<string>();
       const ocultos=Array.isArray(a.estadosSuprimidos)?[...new Set(a.estadosSuprimidos.filter((x):x is string=>typeof x==='string'&&propios.has(x)))]:[];
       if(Array.isArray(a.estadosSuprimidos)&&ocultos.length!==a.estadosSuprimidos.length) l.norm(`${ar}.estadosSuprimidos`,'Supresión filtrada a estados propios.','T-018');
+      else if(a.estadosSuprimidos!==undefined&&!Array.isArray(a.estadosSuprimidos)) l.perder(`${ar}.estadosSuprimidos`,a.estadosSuprimidos,'T-018','Supresión no representable');
       apariciones[c]={x,y,ancho,alto,...(ocultos.length?{ocultos}:{})};
       for(const k of ['id','ports','modoTamano','modoPlegado','ordenPartes','parteExtraidaDe']) l.ignorar(`${ar}.${k}`,a[k]);
       l.desconocidos(a,ar,['__key','id','entidadId','opdId','x','y','width','height','estadosSuprimidos','contextoRefinamiento','ports','modoTamano','modoPlegado','ordenPartes','parteExtraidaDe']);
@@ -361,7 +381,7 @@ function construirOpds(data:Record<Col,Record<string,Registro>>, apps:Map<string
       for(const k of ['tipo','refinableEntidadId','rol','contenedorAparienciaId','enlacesPadreIds']) l.ignorar(`${ar}.contextoRefinamiento.${k}`,ctx[k]);
     }
     brutoPorCosa.set(id,elegidas);
-    if(typeof o.nombre==='string'&&!/^SD[\d.]*$/.test(o.nombre)) l.perder(`${ruta}.nombre`,o.nombre);
+    if(o.nombre!==undefined&&(typeof o.nombre!=='string'||!/^SD[\d.]*$/.test(o.nombre))) l.perder(`${ruta}.nombre`,o.nombre);
     if(o.preguntaGuia!==undefined) l.perder(`${ruta}.preguntaGuia`,o.preguntaGuia);
     for(const a of valores(o.enlaces,`${ruta}.enlaces`,l)) {
       const ar=`${ruta}.enlaces.${a.__key}`; for(const k of ['id','vertices','symbolPos','symbolAnchors','labelPositions']) l.ignorar(`${ar}.${k}`,a[k]);
@@ -492,6 +512,8 @@ function construirEnlaces(data:Record<Col,Record<string,Registro>>, cosas:Record
     const r=`enlaces.${id}`, a=ext(e.origenId,`${r}.origenId`), b=ext(e.destinoId,`${r}.destinoId`), tipo=str(e.tipo);
     if(e.modificador==='no') {l.perder(r,e,'DS-19','Enlace negado no representable');continue;}
     if(!Object.hasOwn(MATRIZ,tipo)&&tipo!=='excepcionSubSobretiempo') {l.perder(r,e,'F-2','Tipo de enlace desconocido');continue;}
+    for(const k of ['etiqueta','backwardTag']) textoOpcional(l,e[k],`${r}.${k}`);
+    if(e.derivado!==undefined&&registro(e.derivado).tipo!=='enlace-externo-refinamiento') l.perder(`${r}.derivado`,e.derivado,'T-287','Derivado no representable');
     let out:Registro={id,tipo};
     let segundo:Enlace|undefined;
     const ctrl=controles(e,r), mo=mult(e.multiplicidadOrigen,`${r}.multiplicidadOrigen`), md=mult(e.multiplicidadDestino,`${r}.multiplicidadDestino`);
@@ -531,7 +553,7 @@ function construirEnlaces(data:Record<Col,Record<string,Registro>>, cosas:Record
     if(mo) {if(permiteOrigen)out[MATRIZ[internalTipo].familia==='etiquetada'?'multOrigen':'mult']=mo;else l.perder(`${r}.multiplicidadOrigen`,e.multiplicidadOrigen,'R-MULT-1A','Multiplicidad en extremo ilegal');}
     if(md) {if(permiteDestino)out[MATRIZ[internalTipo].familia==='etiquetada'?'multDestino':'mult']=md;else l.perder(`${r}.multiplicidadDestino`,e.multiplicidadDestino,'R-MULT-1A','Multiplicidad en extremo ilegal');}
     if(out.tipo==='reciproco'){const x=out as unknown as Reciproco;out=reciprocoConEstados(x,x.estados?.origen,x.estados?.destino) as unknown as Registro;}
-    if(e.rutaEtiqueta!==undefined) {if(internalTipo==='consumo'||internalTipo==='resultado')out.ruta=str(e.rutaEtiqueta);else l.perder(`${r}.rutaEtiqueta`,e.rutaEtiqueta,'DR-19');}
+    if(e.rutaEtiqueta!==undefined) {if(typeof e.rutaEtiqueta!=='string')textoOpcional(l,e.rutaEtiqueta,`${r}.rutaEtiqueta`,'DR-19');else if(internalTipo==='consumo'||internalTipo==='resultado')out.ruta=e.rutaEtiqueta;else l.perder(`${r}.rutaEtiqueta`,e.rutaEtiqueta,'DR-19');}
     if(MATRIZ[internalTipo].familia!=='etiquetada'&&typeof e.etiqueta==='string'&&e.etiqueta!=='')l.perder(`${r}.etiqueta`,e.etiqueta,'R-OPL-1');
     for(const k of ['probabilidad','demora','tasa','unidadesTasa','requisitos','mostrarRequisitos'])if(e[k]!==undefined)l.perder(`${r}.${k}`,e[k]);
     for(const k of ['subtipoModificador','grupoEstructuralId','portId'])l.ignorar(`${r}.${k}`,e[k]);
@@ -546,7 +568,8 @@ function construirEnlaces(data:Record<Col,Record<string,Registro>>, cosas:Record
   }
   // Un grupo real de mitades, con objetos/estados propios, acredita el par; metadata sola no.
   const grupos=new Map<string,{id:string;meta:Registro}[]>();
-  for(const [id,e] of Object.entries(data.enlaces))if(e.efectoEscindido!==undefined&&enlaces[id]?.tipo==='efecto') {
+  for(const [id,e] of Object.entries(data.enlaces))if(e.efectoEscindido!==undefined&&enlaces[id]) {
+    if(enlaces[id].tipo!=='efecto'||!esRegistro(e.efectoEscindido)) {l.perder(`enlaces.${id}.efectoEscindido`,e.efectoEscindido,'T-032','Escisión no representable');continue;}
     const meta=registro(e.efectoEscindido),g=str(meta.grupoId),xs=grupos.get(g)??[];xs.push({id,meta});grupos.set(g,xs);
     l.ignorar(`enlaces.${id}.efectoEscindido.enlacePadreId`,meta.enlacePadreId);l.desconocidos(meta,`enlaces.${id}.efectoEscindido`,['grupoId','rol','modo','enlacePadreId']);
   }

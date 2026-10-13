@@ -38,6 +38,47 @@ test('T-025 nombres duplicados y fuera del léxico conservan identidad y texto',
 test('T-016 desconocidos en designaciones se declaran sin borrar estados',()=>{
  const d=documento([entidad('o-1')],[],[{id:'s-3',entidadId:'o-1',nombre:'a',designaciones:['inicial','alien']}]);const r=leer(d);expect(r.modelo.cosas['o-1']).toMatchObject({estados:[{inicial:true}]});expect(r.informe.descartado.some(e=>e.ruta==='estados.s-3.designaciones'&&e.mensaje.includes('alien'))).toBe(true);
 });
+test('T-287 nombre no textual de modelo, cosa o estado rechaza con su ruta sin convertirse en vacío',()=>{
+ const m=documento([entidad('o-1')]);m.modelo.nombre=123;
+ const s=documento([entidad('o-1')],[],[{id:'s-1',entidadId:'o-1',nombre:5},{id:'s-2',entidadId:'o-1',nombre:'listo'}]);
+ for(const [d,ruta] of [[m,'nombre'],[documento([entidad('o-1','objeto',{nombre:123})]),'entidades.o-1.nombre'],[documento([entidad('o-1','objeto',{nombre:null})]),'entidades.o-1.nombre'],[s,'estados.s-1.nombre']] as const){
+  const r=importarV0(JSON.stringify(d));expect(r.ok).toBe(false);expect(r.informe.rechazos.map(e=>e.ruta)).toEqual([ruta]);
+ }
+});
+test('T-006 campos reconocidos con tipo o lugar inesperado se declaran perdidos con ruta y valor original',()=>{
+ const estados=(extra:Raw)=>documento([entidad('o-1')],[],[{id:'s-1',entidadId:'o-1',nombre:'nuevo',...extra},{id:'s-2',entidadId:'o-1',nombre:'listo'}]);
+ const consumo=(extra:Raw)=>documento([entidad('o-1'),entidad('p-2','proceso')],[enlace('e-3','consumo','o-1','p-2',extra)]);
+ const conModelo=(campo:string,valor:unknown)=>{const d=documento([entidad('o-1')]);d.modelo[campo]=valor;return d;};
+ const conOpd=(f:(o:Raw)=>void)=>{const d=documento([entidad('o-1')],[],[{id:'s-1',entidadId:'o-1',nombre:'nuevo'},{id:'s-2',entidadId:'o-1',nombre:'listo'}]);f(d.modelo.opds['opd-1']);return d;};
+ const casos:[Raw,string,unknown][]=[
+  [conModelo('descripcion',{x:1}),'descripcion',{x:1}],
+  [documento([entidad('o-1','objeto',{descripcion:{texto:'Conservar'}})]),'entidades.o-1.descripcion',{texto:'Conservar'}],
+  [documento([entidad('o-1','objeto',{coleccionIncompleta:'agregacion'})]),'entidades.o-1.coleccionIncompleta','agregacion'],
+  [documento([entidad('o-1','objeto',{valorSlot:'texto'})]),'entidades.o-1.valorSlot','texto'],
+  [documento([entidad('p-1','proceso',{valorSlot:{tipo:'string',valor:'x'}})]),'entidades.p-1.valorSlot',{tipo:'string',valor:'x'}],
+  [documento([entidad('p-1','proceso',{refinamientos:'x'})]),'entidades.p-1.refinamientos','x'],
+  [estados({esInicial:'true'}),'estados.s-1.esInicial','true'],
+  [estados({suprimido:1}),'estados.s-1.suprimido',1],
+  [estados({default:'true'}),'estados.s-1.default','true'],
+  [estados({current:0}),'estados.s-1.current',0],
+  [estados({designaciones:'inicial'}),'estados.s-1.designaciones','inicial'],
+  [estados({orden:'1'}),'estados.s-1.orden','1'],
+  [consumo({rutaEtiqueta:{texto:'L1'}}),'enlaces.e-3.rutaEtiqueta',{texto:'L1'}],
+  [consumo({etiqueta:5}),'enlaces.e-3.etiqueta',5],
+  [consumo({derivado:'x'}),'enlaces.e-3.derivado','x'],
+  [consumo({derivado:{tipo:'otro'}}),'enlaces.e-3.derivado',{tipo:'otro'}],
+  [consumo({efectoEscindido:{grupoId:'g',rol:'entrada',modo:'par'}}),'enlaces.e-3.efectoEscindido',{grupoId:'g',rol:'entrada',modo:'par'}],
+  [documento([entidad('o-1'),entidad('p-2','proceso')],[enlace('e-3','efecto','p-2','o-1',{efectoEscindido:'x'})]),'enlaces.e-3.efectoEscindido','x'],
+  [documento([entidad('o-1'),entidad('o-2')],[enlace('e-3','etiquetado','o-1','o-2',{etiqueta:5})]),'enlaces.e-3.etiqueta',5],
+  [documento([entidad('o-1'),entidad('o-2')],[enlace('e-3','etiquetadoBidireccional','o-1','o-2',{etiqueta:'une',backwardTag:7})]),'enlaces.e-3.backwardTag',7],
+  [conOpd(o=>{o.nombre=5;}),'opds.opd-1.nombre',5],
+  [conOpd(o=>{o.apariencias['a-opd-1-o-1'].estadosSuprimidos='s-1';}),'opds.opd-1.apariencias.a-opd-1-o-1.estadosSuprimidos','s-1'],
+ ];
+ for(const [d,ruta,valor] of casos){
+  const r=leer(d),e=r.informe.descartado.find(x=>x.ruta===ruta);
+  expect(e?.mensaje).toContain(JSON.stringify(valor));
+ }
+});
 test('T-006 campo perdido entero consume desconocidos anidados sin duplicar pérdida',()=>{
  const d=documento([entidad('p-2','proceso',{duracion:{min:-1,unknown:{detail:5}}})]);const r=leer(d);expect(r.informe.descartado.filter(e=>e.ruta.startsWith('entidades.p-2.duracion')).map(e=>e.ruta)).toEqual(['entidades.p-2.duracion']);
 });
