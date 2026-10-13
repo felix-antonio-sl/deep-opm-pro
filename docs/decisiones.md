@@ -392,6 +392,23 @@ R-EDIT-1 retiraba por id una copia aunque una de las dos fuera rama de un abanic
 una alternativa por una conjunción según los ids. Ahora el error se mantiene, pero sólo se repara en un
 clic cuando ambas copias están fuera de todo abanico; si no, decide el modelador, como en R-CX-DIST-2.
 
+**Evaluación completa y remediación (2026-10-13).** Félix autorizó: «todos los problemas que encuentres
+de ahora en adelante te autorizo para que tu mismo los remedies según tu criterio. tras remediar todo
+vuelve a hacer una evaluación completa de opforja. tras terminar esa nueva evaluación y remediación.
+commitea semántica y atómicamente y pushea. tras ello despliega». Cinco revisiones independientes
+(tramo pendiente, núcleo y OPL, códec y servidor, OPD e interfaz, conformidad) hallaron defectos que se
+corrigieron uno por commit. Las decisiones de criterio que no son simple corrección:
+- D19 sustituye la emisión atómica de la decisión 20: su premisa («reglas 9.2 manda D1/D3») ya no rige,
+  porque el canon 2.3 (spec-OPL R-ENT-3) exige una sola oración de propiedades genéricas. El perfil deja
+  la combinada del eco OPCloud (ENT3, ENT3a) sólo como entrada.
+- DR-48: el empate temporal de efectos paralelos al abstraer lo decide el orden de los estados.
+- B-59 y B-60 declaran como endurecimientos del perfil el resultado al estado inicial (AP-04) y la
+  invocación entre bandas adyacentes (R-INV-2D), que el canon sólo desaconseja o admite; se conserva el
+  comportamiento y se corrige la atribución.
+- CX10 nombra el modo del despliegue sólo cuando CX3 no lo determina (B-11).
+- El respaldo programado se instala fuera del checkout. El temporizador instalado llamaba a un script
+  de PostgreSQL retirado y fallaba a diario; se reemplaza en el despliegue autorizado.
+
 ### 1.6 Decisiones de esta síntesis (DS-n)
 
 Estas son las resoluciones que CANON.md no fija, o que ajustan una DR por una exigencia más fuerte
