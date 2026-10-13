@@ -409,8 +409,10 @@ function ensayar(m: Modelo, alcance: Id | 'modelo', texto: string, basePrivadaVa
                 if(Boolean(actual.opds[o]!.apariciones[id]?.ocultos?.includes(s.id))!==oculta) agregar(t,{op:'suprimirEstado',args:{estado:s.id,opd:o,activa:oculta}},'sincronizar-estados',1,`${id}:${s.id}:visible`);
             }
         }});
-        // Hijos primero: el padre puede reutilizar sus hechos proyectados.
-        for (const t of [...activos].sort((a, b) => profundidad(b.etiqueta) - profundidad(a.etiqueta) || a.l.numero - b.l.numero)) intentar(t, () => {
+        // Hijos primero: el padre puede reutilizar sus hechos proyectados. Las generalizaciones van antes
+        // que todo: dan el contexto heredado (estados, DR-43) con que se validan los demás enlaces.
+        const generaliza = (t: Trabajo) => t.hechos.length > 0 && t.hechos.every(h => h.k === 'enlace' && h.enlace.tipo === 'generalizacion');
+        for (const t of [...activos].sort((a, b) => Number(generaliza(b)) - Number(generaliza(a)) || profundidad(b.etiqueta) - profundidad(a.etiqueta) || a.l.numero - b.l.numero)) intentar(t, () => {
             const candidatos = new Map<HechoTexto, EnlaceNuevo>(), correspondencias = new Map<EnlaceNuevo, Id | false>();
             if (t.l.plantilla === 'SE1L' || t.l.plantilla === 'SE2L') {
                 const grupos = new Map<string, EnlaceNuevo[]>();

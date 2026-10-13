@@ -333,6 +333,14 @@ test('T-133 T-192 B-38 un etiquetado sin etiqueta y su copia con la etiqueta res
  expect(diagnosticar(mod).filter(d=>d.severidad==='error').map(d=>[d.regla,d.refs])).toEqual([['R-EDIT-1',[{tipo:'enlace',id:'e-10'}]]]);
  expect(admitidoConPuntoFijo(mod)).toBe(true);
 });
+test('T-044 T-192 un efecto sustentado en estados heredados vuelve desde vacío aunque G lo escriba antes de la generalización',()=>{
+ const mod=modeloCon({objetos:[['General',['activo']],['Especial',[]]],procesos:['Procesar dato'],enlaces:[['generalizacion','General','Especial'],['efecto','Especial','Procesar dato']]});
+ expect(diagnosticar(mod).filter(d=>d.severidad==='error')).toEqual([]);
+ const doc=generarDocumentoOpl(mod),nuevo=must(importarOpl(mod.nombre,doc));
+ expect(nuevo.plan.lineas.flatMap(l=>l.diagnosticos.map(d=>[l.numero,d.regla]))).toEqual([]);
+ expect(Object.values(nuevo.modelo.enlaces).map(e=>e.tipo).sort()).toEqual(['efecto','generalizacion']);
+ expect(generarDocumentoOpl(nuevo.modelo)).toBe(doc);
+});
 test('T-134 T-192 subprocesos que empatan en la colación no se ordenan por IDs de cosa en el contexto',()=>{
  const variantes=Array.from({length:9},(_,n)=>n).flatMap(n=>[['Zorro','Zórro'],['Zórro','Zorro']].map(([x,y])=>{
   const previos=previosB57(n).map(([c])=>`**${c}** es físico.\n`).join('');
