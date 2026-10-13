@@ -45,7 +45,7 @@ test('T-129 la ruta pertenece a la plantilla y su inversa conserva el campo orig
 });
 
 test('T-106 D4 reconoce los dos géneros y conserva afiliación sistémica sin emisión',()=>{
- const p=tabla.PLANTILLAS.find(p=>p.id==='D4')!;expect(p.estado).toBe('P');expect(p.desde).toBeUndefined();for(const genero of [undefined,'f'] as const)expect(p.hacia({C:{texto:'Cuenta',marca:'objeto',...(genero?{genero}:{})}})).toEqual([{k:'afiliacion',cosa:{nombre:'Cuenta',tipo:'objeto',...(genero?{genero}:{})},valor:'sistemica'}]);expect(p.patron).toContain('sistémico|sistémica');
+ const p=tabla.PLANTILLAS.find(p=>p.id==='D4')!;expect(p.estado).toBe('P');expect(p.desde).toBeUndefined();for(const genero of [undefined,'f'] as const)expect(p.hacia({C:{texto:'Cuenta',marca:'objeto',...(genero?{genero}:{})}})).toEqual([{k:'afiliacion',cosa:{nombre:'Cuenta',tipo:'objeto',...(genero?{genero}:{})},valor:'sistemica',marcaGenero:true}]);expect(p.patron).toContain('sistémico|sistémica');
 });
 test('T-115 la cota se escribe como decimal sin exponente que P lee y que reconstruye el mismo número',()=>{
  const p=tabla.PLANTILLAS.find(p=>p.id==='EX1')!,base={P1:{texto:'Archivar',marca:'proceso' as const},P2:{texto:'Procesar',marca:'proceso' as const},u:{texto:'segundos'}};

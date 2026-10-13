@@ -154,7 +154,7 @@ function ensayar(m: Modelo, alcance: Id | 'modelo', texto: string, basePrivadaVa
     const registros = new Map<string, { numero: number; contenido: string; hecho?: HechoTexto }[]>();
     // El género es metadato que sólo algunas formas marcan (B-38): RF3 «son» calla lo que RH1 dice con su
     // artículo. Aplicarlo nunca depende del orden, así que no distingue hechos (R-OPL-FALLO-6).
-    const sinGenero = (x: unknown): unknown => x && typeof x === 'object' ? Array.isArray(x) ? x.map(sinGenero) : Object.fromEntries(Object.entries(x).filter(([k]) => k !== 'genero').map(([k, v]) => [k, sinGenero(v)])) : x;
+    const sinGenero = (x: unknown): unknown => x && typeof x === 'object' ? Array.isArray(x) ? x.map(sinGenero) : Object.fromEntries(Object.entries(x).filter(([k]) => k !== 'genero' && k !== 'marcaGenero').map(([k, v]) => [k, sinGenero(v)])) : x;
     const mismoHecho = (a?: HechoTexto, b?: HechoTexto) => !!a && !!b && estable(sinGenero(a)) === estable(sinGenero(b));
     const registrar = (k: string, contenido: string, numero: number, miembrosDeLista = false, hecho?: HechoTexto) => {
         const previos = registros.get(k) ?? [];
@@ -393,7 +393,7 @@ function ensayar(m: Modelo, alcance: Id | 'modelo', texto: string, basePrivadaVa
                 }
                 if (h.k === 'esencia' || h.k === 'afiliacion') {
                     const id = asegurar(t, h.cosa);
-                    if ((t.l.plantilla === 'D1' || t.l.plantilla === 'D4') && !h.cosa.genero && actual.cosas[id]!.genero === 'f') agregar(t,{op:'fijarGenero',args:{cosa:id,genero:'m'}},'crear-entidad',1,`${id}:genero`);
+                    if (h.marcaGenero && !h.cosa.genero && actual.cosas[id]!.genero === 'f') agregar(t,{op:'fijarGenero',args:{cosa:id,genero:'m'}},'crear-entidad',1,`${id}:genero`);
                     if (actual.cosas[id]![h.k] !== h.valor) agregar(t, h.k === 'esencia' ? { op: 'fijarEsencia', args: { cosa: id, esencia: h.valor } } : { op: 'fijarAfiliacion', args: { cosa: id, afiliacion: h.valor } }, h.k === 'esencia' ? 'cambiar-esencia' : 'cambiar-afiliacion', 1, id + ':' + h.k);
                 }
                 for (const e of h.k === 'enlace' ? [h.enlace] : h.k === 'abanico' ? h.ramas : []) {

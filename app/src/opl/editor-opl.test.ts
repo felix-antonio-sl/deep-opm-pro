@@ -120,6 +120,12 @@ test('T-150 género masculino literal revierte designación léxica femenina sin
  const b=modeloCon({objetos:[['Pedido',[]]]}),id=Object.keys(b.cosas)[0]!,m=must(aplicarAcciones(b,[{op:'fijarGenero',args:{cosa:id,genero:'f'}}])).modelo;
  const p=planificar(m,m.raiz,'**Pedido** es físico.');expect(p.resumen.noAplicables).toBe(0);const r=aplicarPlan(m,p);expect(r.ok).toBe(true);if(r.ok)expect(r.valor.modelo.cosas[id]?.genero).toBeUndefined();expect(m.cosas[id]?.genero).toBe('f');
 });
+test('T-150 D19 con adjetivo masculino revierte el femenino; sin adjetivo con género no decide',()=>{
+ const b=modeloCon({objetos:[['Pedido',[]]]}),id=Object.keys(b.cosas)[0]!,m=must(aplicarAcciones(b,[{op:'fijarGenero',args:{cosa:id,genero:'f'}},{op:'fijarAfiliacion',args:{cosa:id,afiliacion:'ambiental'}}])).modelo;
+ for(const texto of ['**Pedido** es físico y ambiental.','**Pedido** es ambiental y físico.']){const p=planificar(m,m.raiz,texto);expect(p.resumen.noAplicables).toBe(0);expect(must(aplicarPlan(m,p)).modelo.cosas[id]?.genero).toBeUndefined();}
+ const informacional=planificar(m,m.raiz,'**Pedido** es informacional y ambiental.');expect(must(aplicarPlan(m,informacional)).modelo.cosas[id]?.genero).toBe('f');
+ expect(m.cosas[id]?.genero).toBe('f');
+});
 test('T-176 abanico común en estado no ofrecido es warning y línea entera sin acciones',()=>{
  const b=vacio(),text='Exactamente uno de *Validar* o *Archivar* consume **Pedido** en `nuevo`.',before=JSON.stringify(b),p=planificar(b,b.raiz,text);
  expect(p.lineas[0]).toMatchObject({estado:'sin-cambio',razon:'inversa-no-soportada'});expect(p.lineas[0]?.diagnosticos).toEqual([expect.objectContaining({codigo:'unsupported-canonical',severidad:'warning'})]);expect(p.acciones).toEqual([]);expect(JSON.stringify(b)).toBe(before);

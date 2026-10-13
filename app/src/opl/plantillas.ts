@@ -594,14 +594,15 @@ function reconocer(id: string, h: Huecos): readonly HechoTexto[] {
                 : { tipo: tipo as 'consumo' | 'resultado' | 'efecto' | 'agente' | 'instrumento', objeto: extremo(v), proceso: x('P').texto, ...(h.r ? { ruta: x('r').texto } : {}) } }));
     }
     if (id === 'D1' || id === 'D2')
-        return [{ k: 'esencia', cosa: nombre('C'), valor: id === 'D1' ? 'fisica' : 'informacional' }];
+        return [{ k: 'esencia', cosa: nombre('C'), valor: id === 'D1' ? 'fisica' : 'informacional', ...(id === 'D1' ? { marcaGenero: true as const } : {}) }];
     if (id === 'D3' || id === 'D4')
-        return [{ k: 'afiliacion', cosa: nombre('C'), valor: id === 'D3' ? 'ambiental' : 'sistemica' }];
+        return [{ k: 'afiliacion', cosa: nombre('C'), valor: id === 'D3' ? 'ambiental' : 'sistemica', ...(id === 'D4' ? { marcaGenero: true as const } : {}) }];
     if (id === 'D19' || id === 'D19i') {
         // El género sólo sale de la concordancia del adjetivo (R-OPL-1), como en D1 y D4.
         const esencia = x('esencia').texto, afiliacion = x('afiliacion').texto;
         const sujeto = { ...nombre('C'), ...(esencia === 'física' || afiliacion === 'sistémica' ? { genero: 'f' as const } : {}) };
-        return [{ k: 'esencia', cosa: sujeto, valor: esencia === 'informacional' ? 'informacional' : 'fisica' }, { k: 'afiliacion', cosa: sujeto, valor: afiliacion === 'ambiental' ? 'ambiental' : 'sistemica' }];
+        const marca = esencia !== 'informacional' || afiliacion !== 'ambiental' ? { marcaGenero: true as const } : {};
+        return [{ k: 'esencia', cosa: sujeto, valor: esencia === 'informacional' ? 'informacional' : 'fisica', ...marca }, { k: 'afiliacion', cosa: sujeto, valor: afiliacion === 'ambiental' ? 'ambiental' : 'sistemica', ...marca }];
     }
     if (['D5', 'D6', 'ATR-E'].includes(id)) {
         const O = id === 'ATR-E' ? 'O1' : 'O';

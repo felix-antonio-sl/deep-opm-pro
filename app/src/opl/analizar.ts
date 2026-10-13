@@ -48,10 +48,12 @@ export type HechoTexto = { readonly k: 'plural'; readonly objeto: string; readon
     readonly k: 'esencia';
     readonly cosa: NombreTipado;
     readonly valor: Esencia;
+    readonly marcaGenero?: true; // la oración lleva un adjetivo con género (físico/física, sistémico/sistémica)
 } | {
     readonly k: 'afiliacion';
     readonly cosa: NombreTipado;
     readonly valor: Afiliacion;
+    readonly marcaGenero?: true;
 } | {
     readonly k: 'mencion';
     readonly cosa: NombreTipado;
