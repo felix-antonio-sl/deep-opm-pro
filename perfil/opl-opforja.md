@@ -265,7 +265,7 @@ Rationale: `reglas §2.7` (R-INS-1..6) y `opm-opl-es §3`.
 
 **Plantillas**: la esencia se realiza en la oración de propiedades genéricas D19 junto con la afiliación (canon R-ENT-3; §2.8): `**Cosa** es {esencia} y {afiliacion}.`; sola, con D1 (`es física`) / D2 (`es informacional`), sus formas de una propiedad (`reglas §4.4`). La combinada del eco OPCloud (ENT3) es entrada válida, no emitida.
 
-**Emisión**: `oracionEntidad` incluye la esencia en la oración combinada cuando la visibilidad es `siempre`, o cuando la esencia **difiere del default** (informacional). Bajo `solo-difiere`, si solo la esencia difiere, la oración combinada lleva solo la esencia (`**Cosa** es un objeto físico.`).
+**Emisión**: el generador emite la esencia cuando **difiere del default** (informacional): en D19 junto con la afiliación si ésta también difiere (`**Sensor** es físico y ambiental.`), y si no con D1 (`**Sensor** es físico.`). La visibilidad `siempre` sólo añade el default en el panel, no en el texto canónico (T-139).
 
 **Reverse**: la oración de esencia se parsea como asignación de propiedad genérica.
 
@@ -279,7 +279,7 @@ Rationale: `reglas §2.2` (R-OBJ-3, R-OBJ-5..6), `§4.4` (D1, D2) y `opm-opl-es 
 
 **Plantillas**: la afiliación se realiza en la misma oración de propiedades genéricas D19 que la esencia (§2.7, canon R-ENT-3): `**Cosa** es {esencia} y {afiliacion}.`; sola, con D3 (`es ambiental`) / D4 (`es sistémica`). ENT3/ENT3a del eco OPCloud son entrada válida, no emitida.
 
-**Emisión**: `oracionEntidad` incluye la afiliación en la oración combinada cuando la visibilidad es `siempre`, o cuando la afiliación **difiere del default** (sistémica). Bajo `solo-difiere`, si solo la afiliación difiere, la oración lleva solo la afiliación (`**Cosa** es un objeto ambiental.`).
+**Emisión**: el generador emite la afiliación cuando **difiere del default** (sistémica): en D19 junto con la esencia si ésta también difiere, y si no con D3 (`**Sensor** es ambiental.`). ENT3/ENT3a (`**Cosa** es un objeto ambiental.`) son sólo entrada.
 
 **Supresión**: con visibilidad `oculta` no se emite. [endurecimiento] Un atributo de objeto ambiental DEBE ser ambiental; un *proceso* ejecutado por cosa ambiental DEBE modelarse ambiental.
 
