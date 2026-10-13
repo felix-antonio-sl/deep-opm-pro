@@ -36,8 +36,9 @@ web y servidor deben llevar la misma OPFORJA_VERSION. envDir:false protege Vite.
   - `clave` cambia la clave y sube `versionCredencial`, lo que cierra las sesiones;
   - `cerrar-sesiones` sube `versionCredencial`.
   - Las tres órdenes leen, cambian y publican la cuenta bajo un cerrojo exclusivo
-    (`/datos/.cuenta.lock`), así que dos órdenes simultáneas no se pisan. Un cerrojo de más de
-    10 s se da por abandonado; si no se obtiene en 15 s, la orden falla sin cambiar nada.
+    (`/datos/.cuenta.lock`), así que dos órdenes simultáneas no se pisan. El cerrojo nunca se
+    retira por antigüedad: si no se obtiene en 15 s, la orden falla sin cambiar nada. Si un
+    proceso caído lo dejó, bórrelo a mano cuando ninguna orden de cuenta esté en curso.
 
   Todas aceptan `--datos <dir>`. El CLI consume stdin hasta EOF y no desactiva
   el eco: el operador captura su clave de forma protegida y la proporciona por

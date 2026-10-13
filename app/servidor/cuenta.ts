@@ -1,5 +1,5 @@
 import { randomBytes, scryptSync, timingSafeEqual } from 'node:crypto';
-import { readFile, mkdir, open, rename, unlink, stat, link } from 'node:fs/promises';
+import { readFile, mkdir, open, rename, unlink, stat } from 'node:fs/promises';
 import { join, basename } from 'node:path';
 export interface Cuenta {
     readonly email: string;
@@ -85,44 +85,20 @@ async function escribir(datos: string, c: Cuenta, nueva: boolean) {
 // El renombrado atómico no basta: dos operaciones que parten de la misma lectura pueden restaurar
 // la clave anterior o perder un incremento de versión. Toda lectura, modificación y publicación de
 // la cuenta ocurre bajo un cerrojo creado en exclusiva ('wx'), compartido entre procesos.
-const CERROJO = '.cuenta.lock', CERROJO_VENCIDO_MS = 10_000, ESPERA_MAX_MS = 15_000, PAUSA_MS = 20;
+// El cerrojo nunca se retira por antigüedad: una operación lenta lo sigue teniendo, y quitárselo dejaría
+// publicar a dos a la vez. Si un proceso caído lo dejó, la orden falla sin cambios y el operador lo borra.
+const CERROJO = '.cuenta.lock', ESPERA_MAX_MS = 15_000, PAUSA_MS = 20;
 const ocupado = (e: unknown) => typeof e === 'object' && e !== null && 'code' in e && e.code === 'EEXIST';
-// Un cerrojo más viejo que cualquier operación quedó de un proceso caído: se aparta con un nombre
-// único y sólo se borra si es el mismo archivo observado; si otro lo renovó, se devuelve intacto.
-async function retirarVencido(ruta: string): Promise<void> {
-    let antes;
-    try {
-        antes = await stat(ruta);
-    }
-    catch (e) {
-        if (ausente(e))
-            return;
-        throw e;
-    }
-    if (Date.now() - antes.mtimeMs < CERROJO_VENCIDO_MS)
-        return;
-    const apartado = `${ruta}.vencido-${randomBytes(8).toString('hex')}`;
-    try {
-        await rename(ruta, apartado);
-    }
-    catch (e) {
-        if (ausente(e))
-            return;
-        throw e;
-    }
-    const movido = await stat(apartado);
-    if (movido.ino !== antes.ino || movido.dev !== antes.dev)
-        await link(apartado, ruta).catch(() => {
-        });
-    await unlink(apartado);
-}
-async function conCerrojo<T>(datos: string, operar: () => Promise<T>): Promise<T> {
+export async function conCerrojo<T>(datos: string, operar: () => Promise<T>, espera = ESPERA_MAX_MS): Promise<T> {
     await mkdir(datos, {
         recursive: true
     });
-    const ruta = join(datos, CERROJO), limite = Date.now() + ESPERA_MAX_MS;
+    const ruta = join(datos, CERROJO), limite = Date.now() + espera;
     let propio;
     for (;;) {
+        // El plazo se mira antes de cada intento: pasado el plazo, ninguna operación entra.
+        if (Date.now() > limite)
+            throw new Error(`Otra orden de cuenta sigue en curso o dejó ${ruta}; si ninguna lo está, borra ese archivo.`);
         try {
             const f = await open(ruta, 'wx', 0o600);
             try {
@@ -137,16 +113,13 @@ async function conCerrojo<T>(datos: string, operar: () => Promise<T>): Promise<T
             if (!ocupado(e))
                 throw e;
         }
-        await retirarVencido(ruta);
-        if (Date.now() > limite)
-            throw new Error('Otra operación de cuenta sigue en curso');
         await Bun.sleep(PAUSA_MS);
     }
     try {
         return await operar();
     }
     finally {
-        // Sólo se libera el cerrojo propio, nunca uno que otro proceso haya creado después.
+        // Sólo se libera el cerrojo propio; nadie más lo retira mientras la operación dura.
         const actual = await stat(ruta).catch(() => undefined);
         if (actual && actual.ino === propio.ino && actual.dev === propio.dev)
             await unlink(ruta).catch(() => {

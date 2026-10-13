@@ -566,8 +566,10 @@ Reglas de las rutas:
 
   Todas aceptan `--datos <dir>`. Cada una lee, modifica y publica la cuenta bajo el cerrojo
   exclusivo `<dir>/.cuenta.lock`, compartido entre procesos: dos operaciones concurrentes se
-  aplican una tras otra y ninguna restaura la clave o la versión anterior. Un cerrojo de más de
-  10 s se considera abandonado y se retira; tras 15 s de espera, la operación falla sin cambios.
+  aplican una tras otra y ninguna restaura la clave o la versión anterior. El cerrojo nunca se
+  retira por antigüedad, porque una operación lenta lo sigue teniendo: tras 15 s de espera la
+  orden falla sin cambios, y ninguna entra pasado ese plazo. Si un proceso caído lo dejó, el
+  operador lo borra cuando ninguna orden de cuenta está en curso.
 - **Sesión**: la cookie es `opforja_sesion=<b64url({"v":versionCredencial,"exp":epoch})>.<b64url(HMAC-SHA256)>`,
   con `HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=2592000` (30 días; `Secure` se omite solo
   en `localhost`). Se verifica en tiempo constante; un `v` distinto del de la cuenta da 401.

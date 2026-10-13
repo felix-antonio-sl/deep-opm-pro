@@ -2,7 +2,7 @@ import {test,expect,afterEach} from 'bun:test';
 import {mkdtemp,rm,readFile,writeFile,readdir,utimes} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
-import {hashPassword,verifyPassword,leerCuenta,ejecutarCuenta} from './cuenta';
+import {hashPassword,verifyPassword,leerCuenta,ejecutarCuenta,conCerrojo} from './cuenta';
 const vector = {"email": "operador@example.test", "clave": "Solo-prueba-WP11-2026", "hashClave": "scrypt$16384$8$1$X4SjTVHnKHoxcZYA7vLQjA$s_YgLWfNWaoyEzhJYpjkWMOUH6z6DSC4kFGXkxbxmLd_H6WgAQCcB9vHnD53Rp9ux6Ppl2zoq8CptXel4X31Ew", "versionCredencial": 1};
 const dirs:string[]=[];
 afterEach(async()=>{await Promise.all(dirs.splice(0).map(d=>rm(d,{recursive:true,force:true})));});
@@ -45,12 +45,16 @@ test('WP-11 §8.2 clave y cerrar-sesiones intercaladas se serializan: conservan 
   expect(await readdir(d)).toEqual(['cuenta.json']);
  }
 });
-test('WP-11 §8.2 un cerrojo de cuenta vencido se retira y la operación continúa',async()=>{
+test('WP-11 §8.2 un cerrojo ajeno nunca se retira por antigüedad: vencido el plazo, la orden falla sin cambios',async()=>{
  const d=await datos();await ejecutarCuenta(['crear','prueba@example.test','--datos',d],'clave-sintetica-larga\nclave-sintetica-larga\n');
+ // Un cerrojo viejo puede ser de una operación lenta todavía en curso: quitárselo dejaría publicar a dos a la vez.
  const cerrojo=join(d,'.cuenta.lock');await writeFile(cerrojo,'sintetico');const viejo=new Date(Date.now()-3600_000);await utimes(cerrojo,viejo,viejo);
- expect(await ejecutarCuenta(['cerrar-sesiones','--datos',d],'')).toBe(0);expect((await leerCuenta(d))?.versionCredencial).toBe(2);expect(await readdir(d)).toEqual(['cuenta.json']);
+ let entro=false;
+ await expect(conCerrojo(d,async()=>{entro=true;},60)).rejects.toThrow('.cuenta.lock');
+ expect(entro).toBe(false);expect(await readFile(cerrojo,'utf8')).toBe('sintetico');expect((await leerCuenta(d))?.versionCredencial).toBe(1);
+ // Liberado el cerrojo, la orden vuelve a entrar y sólo retira el suyo.
+ await rm(cerrojo);expect(await conCerrojo(d,async()=>'hecho',60)).toBe('hecho');expect(await readdir(d)).toEqual(['cuenta.json']);
 });
-
 test('WP-11 §8.2 CLI real por stdin sintético y --datos: crear, clave, cerrar-sesiones',async()=>{
  const raiz=await mkdtemp(join(tmpdir(),'opforja-cuenta-entry-prueba-'));dirs.push(raiz);
  const ejecutar=async(args:string[],entrada:string)=>{const h=Bun.spawn([process.execPath,'--no-env-file',join(import.meta.dir,'cuenta.ts'),...args,'--datos',raiz],{env:{PATH:'/tmp/opforja-rehacer-tools:/usr/bin:/bin'},stdin:new Blob([entrada]),stdout:'pipe',stderr:'pipe'});const [texto,error,codigo]=await Promise.all([new Response(h.stdout).text(),new Response(h.stderr).text(),h.exited]);expect(texto).not.toContain('clave-entry-sintetica');expect(error).toBe('');return codigo;};
