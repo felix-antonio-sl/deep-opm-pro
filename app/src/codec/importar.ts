@@ -7,7 +7,7 @@ import { MATRIZ, noOfrecido, esMultiplicidad, violacionesContexto } from '../nuc
 import { indice, describirEnlace } from '../nucleo/indice';
 import { validarNombreCosa } from '../nucleo/lexico';
 import { proyectar } from '../nucleo/proyeccion';
-import { colocar } from '../nucleo/colocacion';
+import { colocar, TOLERANCIA_ALTURA } from '../nucleo/colocacion';
 import { sufijoId } from '../nucleo/ids';
 import { sha256 } from './sha256';
 import { exportarV0 } from './exportar';
@@ -414,7 +414,7 @@ function construirOpds(data:Record<Col,Record<string,Registro>>, apps:Map<string
       const faltantes=candidatos.filter(p=>!usados.has(p)).sort((a,b)=>o.apariciones[a]!.y-o.apariciones[b]!.y||natural(a,b)); faltantes.forEach(p=>bandas.push([p]));
       if(JSON.stringify(bandas)!==JSON.stringify(orden))l.norm(`opds.${id}.ordenInzoom`,'Bandas filtradas y completadas con internos.','T-030');
     } else {
-      for(const c of candidatos.sort((a,b)=>o.apariciones[a]!.y-o.apariciones[b]!.y||natural(a,b))) { const ultima=bandas.at(-1); if(ultima&&Math.abs(o.apariciones[c]!.y-o.apariciones[ultima[0]!]!.y)<=4)ultima.push(c);else bandas.push([c]); }
+      for(const c of candidatos.sort((a,b)=>o.apariciones[a]!.y-o.apariciones[b]!.y||natural(a,b))) { const ultima=bandas.at(-1); if(ultima&&Math.abs(o.apariciones[c]!.y-o.apariciones[ultima[0]!]!.y)<=TOLERANCIA_ALTURA)ultima.push(c);else bandas.push([c]); }
       l.norm(`opds.${id}.ordenInzoom`,'Bandas derivadas de geometría (tolerancia 4 px).','T-030');
     }
     opds[id]={...o,bandas,objetosInternos:objetoIds};

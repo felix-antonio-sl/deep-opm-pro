@@ -53,12 +53,15 @@ function hodom(semilla: number): Modelo {
     const proceso = () => { const p = id('p'); cosas[p] = { id: p, tipo: 'proceso', nombre: `Procesar_${p.slice(2)}`, esencia: 'informacional', afiliacion: 'sistemica' }; return p; };
     const posicion = (i: number) => ({ x: (i % 4) * 240 + siguiente() % 15, y: Math.floor(i / 4) * 170 + siguiente() % 15, ancho: 180, alto: 110 });
     const apariciones = (ids: readonly string[]) => Object.fromEntries(ids.map((p, i) => [p, posicion(i)]));
+    // R-INV-2/2A (B-45): la altura de cada subproceso realiza su banda; la secuencia aleatoria no cambia.
+    const enBandas = (apps: Record<string, import('../nucleo/tipos').Aparicion>, bandas: readonly (readonly string[])[]) =>
+        ({ ...apps, ...Object.fromEntries(bandas.flatMap((b, k) => b.map(p => [p, { ...apps[p]!, y: 170 * (k + 1) }]))) });
     const raiz = id('opd'), padres = Array.from({ length: 5 }, proceso);
     opds[raiz] = { id: raiz, tipo: 'raiz', apariciones: apariciones(padres) };
     let hoja = 0, estados = 0, estructurales = 0;
     for (const [orden, padre] of padres.entries()) {
         const hijo = id('opd'), partes = Array.from({ length: 6 }, proceso);
-        opds[hijo] = { id: hijo, tipo: 'descomposicion', padre: raiz, cosa: padre, orden, bandas: [partes], objetosInternos: [], apariciones: apariciones([padre, ...partes]) };
+        opds[hijo] = { id: hijo, tipo: 'descomposicion', padre: raiz, cosa: padre, orden, bandas: [partes], objetosInternos: [], apariciones: enBandas(apariciones([padre, ...partes]), [partes]) };
         for (const [ordenHoja, parte] of partes.entries()) {
             const opd = id('opd'), procesos = Array.from({ length: 2 }, proceso), objetos: string[] = [];
             for (let i = 0; i < (hoja < 17 ? 6 : 5); i++) {
@@ -74,7 +77,7 @@ function hodom(semilla: number): Modelo {
             for (let i = 1; i < objetos.length && estructurales < 99; i++, estructurales++) {
                 const e = id('e'); enlaces[e] = { id: e, tipo: 'agregacion', refinable: objetos[0]!, refinador: objetos[i]! };
             }
-            opds[opd] = { id: opd, tipo: 'descomposicion', padre: hijo, cosa: parte, orden: ordenHoja, bandas: procesos.map(p => [p]), objetosInternos: objetos, apariciones: apariciones([parte, ...procesos, ...objetos]) };
+            opds[opd] = { id: opd, tipo: 'descomposicion', padre: hijo, cosa: parte, orden: ordenHoja, bandas: procesos.map(p => [p]), objetosInternos: objetos, apariciones: enBandas(apariciones([parte, ...procesos, ...objetos]), procesos.map(p => [p])) };
             hoja++;
         }
     }

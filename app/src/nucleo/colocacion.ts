@@ -40,6 +40,21 @@ export function colocar(m: Modelo, opd: Id, tam: {
     }
     return { x: Math.ceil(maxX + 24), y: Math.round(p.y) };
 }
+/** Tolerancia admisible de R-INV-2A al leer la altura de los subprocesos: la misma con que v0 deriva bandas (T-030). */
+export const TOLERANCIA_ALTURA = 4;
+/** R-INV-2/2A, R-IDP-0A: la altura del punto superior de cada subproceso realiza sus bandas declaradas.
+ *  Devuelve los subprocesos de las bandas que no la realizan: dispersión dentro de una banda o una banda
+ *  que no queda por debajo de la anterior, siempre con la tolerancia admisible. */
+export function alturasContradictorias(o: OpdDescomposicion): readonly Id[] {
+    const alturas = o.bandas.map(b => b.flatMap(id => o.apariciones[id] ? [o.apariciones[id].y] : []));
+    const malas = new Set<number>();
+    alturas.forEach((ys, k) => {
+        if (ys.length && Math.max(...ys) - Math.min(...ys) > TOLERANCIA_ALTURA) malas.add(k);
+        const previas = alturas[k - 1];
+        if (k && ys.length && previas?.length && Math.min(...ys) - Math.max(...previas) <= TOLERANCIA_ALTURA) { malas.add(k - 1); malas.add(k); }
+    });
+    return o.bandas.flatMap((b, k) => malas.has(k) ? b : []);
+}
 export function colocarDescomposicion(m: Modelo, o: OpdDescomposicion): Readonly<Record<Id, Aparicion>> {
     const cajas: {
         [id: Id]: Aparicion;

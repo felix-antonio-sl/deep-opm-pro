@@ -363,6 +363,16 @@ un commit local sin push. La implementación aplica el mismo orden persistido al
 dentro de un RFE, el único empate de la familia estructural que la clave del grupo no separa
 (especificación §4.5).
 
+**B-45.** Mandato directo de Félix tras el cierre de RF5: «Sigamos con B-45». Las bandas siguen
+siendo la fuente del orden; la altura que no las realiza se diagnostica, bloquea los exports
+canónicos y se repara de forma explícita (DR-47). No autoriza despliegue ni otras brechas.
+
+**Integración de sesiones paralelas.** Félix pidió a la sesión de RF5: «toma control además e integra
+todo el trabajo de las sesiones claude» (RH1/RF3, colección incompleta derivada y B-57). En la sesión de
+B-57 había indicado además «integra la rama en main». Sus commits, no publicados y sobre `6ba88bd5`, entran
+en main en ese orden por avance rápido y cherry-pick, sin merges ni reescritura de historia publicada,
+seguidos de B-45. La integración no autoriza despliegue.
+
 ### 1.6 Decisiones de esta síntesis (DS-n)
 
 Estas son las resoluciones que CANON.md no fija, o que ajustan una DR por una exigencia más fuerte

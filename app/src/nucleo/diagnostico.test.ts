@@ -15,7 +15,8 @@ function modelo(cosas: Cosa[] = [objeto('o'), proceso('p')], enlaces: Enlace[] =
         cosas: Object.fromEntries(cosas.map(c => [c.id, c])), enlaces: Object.fromEntries(enlaces.map(e => [e.id, e])), abanicos: {},
         opds: Object.fromEntries([{ id: 'sd', tipo: 'raiz', apariciones: Object.fromEntries(cosas.filter(c => !internos.has(c.id)).map(c => [c.id, ap])) } as Opd, ...hijos].map(o => [o.id, o])) });
 }
-function hijo(bandas: string[][] = [['p1'], ['p2']]): Opd { return { id: 'h', tipo: 'descomposicion', padre: 'sd', cosa: 'p', orden: 0, bandas, objetosInternos: [], apariciones: Object.fromEntries(['p', 'o', ...bandas.flat()].map(id => [id, ap])) }; }
+// R-INV-2/2A (B-45): cada banda a su altura, por debajo de la anterior.
+function hijo(bandas: string[][] = [['p1'], ['p2']]): Opd { return { id: 'h', tipo: 'descomposicion', padre: 'sd', cosa: 'p', orden: 0, bandas, objetosInternos: [], apariciones: Object.fromEntries([...['p', 'o'].map(id => [id, ap]), ...bandas.flatMap((b, k) => b.map(id => [id, { ...ap, y: 100 * (k + 1) }]))]) }; }
 function refinado(enlaces: Enlace[] = [], bandas = [['p1'], ['p2']]): Modelo { return modelo([objeto('o'), proceso('p'), proceso('p1', 'Preparar Pedido'), proceso('p2', 'Entregar Pedido')], enlaces, [hijo(bandas)]); }
 function cambiar(m: Modelo, datos: Partial<Modelo>): Modelo { return congelar({ ...m, ...datos }); }
 function cosa(m: Modelo, id: string, datos: Partial<Cosa>): Modelo { return cambiar(m, { cosas: { ...m.cosas, [id]: { ...m.cosas[id]!, ...datos } as Cosa } }); }
@@ -31,7 +32,7 @@ function ex(ambiental: boolean, cota: boolean): Modelo { return modelo([proceso(
 function densidad(n: number): Modelo { return modelo([proceso('p'), ...Array.from({ length: n - 1 }, (_, i) => objeto(`o${i}`, `Pedido${i}`))]); }
 function despliegue(relaciones: boolean): Modelo { return modelo([objeto('o'), objeto('a', 'Cuenta'), objeto('b', 'Saldo')], [{ id: 'e1', tipo: 'agregacion', refinable: 'o', refinador: 'b' }, { id: 'e2', tipo: relaciones ? 'exhibicion' : 'agregacion', refinable: 'a', refinador: 'b' }], [{ id: 'h', tipo: 'despliegue', padre: 'sd', cosa: 'o', orden: 0, modo: 'agregacion', apariciones: { o: ap, b: ap } }, { id: 'h2', tipo: 'despliegue', padre: 'sd', cosa: 'a', orden: 1, modo: relaciones ? 'exhibicion' : 'agregacion', apariciones: { a: ap, b: ap } }]); }
 const metadata = [
-        ['error', 'gramatical'], ['error', 'gramatical'], ['error', 'identidad'], ['error', 'gramatical'], ['error', 'identidad'], ['error', 'gramatical'], ['error', 'gramatical'], ['error', 'contencion'], ['warning', 'contencion'], ['warning', 'metodologica'], ['warning', 'metodologica'], ['warning', 'contencion'], ['info', 'contencion'], ['warning', 'sugerencia'], ['warning', 'sugerencia'], ['warning', 'metodologica'], ['warning', 'metodologica'], ['warning', 'metodologica'], ['warning', 'metodologica'], ['warning', 'metodologica'], ['warning', 'contencion'], ['info', 'sugerencia'], ['warning', 'metodologica'], ['warning', 'metodologica'], ['warning', 'metodologica'], ['warning', 'metodologica'], ['warning', 'metodologica'], ['info', 'gramatical'], ['info', 'metodologica'], ['info', 'metodologica'], ['info', 'metodologica'], ['info', 'sugerencia'], ['warning', 'identidad'], ['warning', 'identidad'], ['warning', 'gramatical'],
+        ['error', 'gramatical'], ['error', 'gramatical'], ['error', 'identidad'], ['error', 'gramatical'], ['error', 'identidad'], ['error', 'gramatical'], ['error', 'gramatical'], ['error', 'contencion'], ['warning', 'contencion'], ['warning', 'metodologica'], ['warning', 'metodologica'], ['warning', 'contencion'], ['info', 'contencion'], ['warning', 'sugerencia'], ['warning', 'sugerencia'], ['warning', 'metodologica'], ['warning', 'metodologica'], ['warning', 'metodologica'], ['warning', 'metodologica'], ['warning', 'metodologica'], ['warning', 'contencion'], ['info', 'sugerencia'], ['warning', 'metodologica'], ['warning', 'metodologica'], ['warning', 'metodologica'], ['warning', 'metodologica'], ['warning', 'metodologica'], ['info', 'gramatical'], ['info', 'metodologica'], ['info', 'metodologica'], ['info', 'metodologica'], ['info', 'sugerencia'], ['warning', 'identidad'], ['warning', 'identidad'], ['warning', 'gramatical'], ['error', 'contencion'],
     ] as const;
 // Oráculos literales transcritos de DESIGN §4.4; nunca derivados de CATALOGO/proyectar.
 const pares: readonly [
@@ -75,6 +76,7 @@ const pares: readonly [
     ['cosa-sin-aparicion', 'T-262', () => cambiar(modelo(), { opds: { sd: { id: 'sd', tipo: 'raiz', apariciones: { p: ap } } } }), () => modelo()],
     ['enlace-sin-vista', 'T-262', () => cambiar(modelo(undefined, [c('e')]), { opds: { sd: { id: 'sd', tipo: 'raiz', apariciones: { p: ap } } } }), () => modelo(undefined, [c('e')])],
     ['forma-plural-faltante', 'T-128', () => modelo(undefined, [{ ...c('e'), mult: '2' }]), () => cosa(modelo(undefined, [{ ...c('e'), mult: '2' }]), 'o', { nombrePlural: 'Pedidos' })],
+    ['orden-vertical-contradictorio', 'T-030', () => { const m = refinado(), h = m.opds.h!; return cambiar(m, { opds: { ...m.opds, h: { ...h, apariciones: { ...h.apariciones, p1: { ...ap, y: 200 }, p2: { ...ap, y: 100 } } } } }); }, () => refinado()],
 ];
 for (const [codigo, tid, positivo, negativo] of pares) {
     test(`${tid} ${codigo}: positivo literal y ausencia cercana`, () => {

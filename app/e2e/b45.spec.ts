@@ -1,0 +1,57 @@
+import { test, expect, TOKEN, abrir, leer, guardado, tecla, opl, captura, navegar, cosa, descargar } from './soporte';
+import { modeloCon, must, porNombre } from '../src/pruebas/constructores';
+import { aplicarAcciones } from '../src/nucleo/operaciones';
+import type { OpdDescomposicion } from '../src/nucleo/tipos';
+import { exportarV0 } from '../src/codec/exportar';
+
+test('T-030 T-283 B-45 la altura que contradice las bandas se diagnostica, bloquea exports canónicos y se repara explícitamente', async ({ page, request }) => {
+    const id = 'e2e-b45-orden-vertical';
+    const b = { ...modeloCon({ objetos: [['Pedido', ['recibido', 'despachado']]], procesos: ['Atender'], enlaces: [['efecto', 'Pedido', 'Atender']] }), id, nombre: 'E2E B-45 orden vertical' };
+    const m = must(aplicarAcciones(b, [{ op: 'descomponer', args: { opd: b.raiz, proceso: porNombre(b, 'Atender').id, bandas: [['Recibir'], ['Revisar'], ['Despachar']] } }])).modelo;
+    const hijo = Object.values(m.opds).find((o): o is OpdDescomposicion => o.tipo === 'descomposicion')!;
+    const [recibir, , despachar] = hijo.bandas.flat() as [string, string, string];
+    const v0 = JSON.parse(exportarV0(m)), apariencias = Object.values(v0.modelo.opds[hijo.id].apariencias as Record<string, { entidadId: string; y: number }>);
+    const a = apariencias.find(x => x.entidadId === recibir)!, z = apariencias.find(x => x.entidadId === despachar)!;
+    [a.y, z.y] = [z.y, a.y];
+    const texto = JSON.stringify(v0, null, 2) + '\n';
+    const creado = await request.post('/api/modelos', { headers: { Authorization: `Bearer ${TOKEN}`, 'Content-Type': 'application/json' }, data: texto });
+    expect(creado.status(), await creado.text()).toBe(201); await abrir(page, id);
+    const antes = await leer(request, id); expect(antes.texto).toBe(texto);
+    await navegar(page, /SD1 Atender/);
+    const altura = async (nombre: string) => (await cosa(page, nombre).boundingBox())!.y;
+    expect(await altura('Despachar')).toBeLessThan(await altura('Recibir'));
+    // El OPL sigue las bandas declaradas; la altura incidental no lo reordena.
+    await expect(opl(page)).toContainText('Atender se descompone en Recibir, Revisar y Despachar, en esa secuencia.');
+    await page.getByRole('tab', { name: /Diagnóstico/ }).click();
+    const aviso = page.getByRole('article').filter({ hasText: /R-INV-2\/2A, R-IDP-0A/ });
+    await expect(aviso).toHaveCount(1); await expect(aviso).toContainText('no realiza el orden declarado');
+    await captura(page, 'b45-contradiccion');
+    await page.getByRole('button', { name: 'Exportar ▾', exact: true }).click();
+    const exportacion = page.getByRole('dialog', { name: 'Exportar', exact: true });
+    await expect(exportacion.getByRole('button', { name: 'OPD SVG · canon-diagrama' })).toBeDisabled();
+    await expect(exportacion.getByRole('button', { name: 'Documento HTML · canon-documento' })).toBeDisabled();
+    await expect(exportacion.getByText(/R-INV-2\/2A, R-IDP-0A:/).first()).toBeVisible();
+    await expect(exportacion.getByRole('button', { name: 'Modelo JSON', exact: true })).toBeEnabled();
+    expect(await descargar(page, exportacion.getByRole('button', { name: 'Modelo JSON', exact: true }))).toBe(antes.texto);
+    await exportacion.getByRole('button', { name: 'Cerrar diálogo' }).click();
+    expect((await leer(request, id)).texto).toBe(antes.texto);
+
+    await aviso.getByRole('button', { name: 'Aplicar reparación', exact: true }).click(); await guardado(page);
+    const reparado = JSON.parse((await leer(request, id)).texto);
+    expect(reparado.modelo.opds[hijo.id].ordenInzoom).toEqual(v0.modelo.opds[hijo.id].ordenInzoom);
+    expect(reparado.modelo.enlaces).toEqual(v0.modelo.enlaces); expect(reparado.modelo.entidades).toEqual(v0.modelo.entidades);
+    expect(await altura('Recibir')).toBeLessThan(await altura('Despachar'));
+    await expect(page.getByRole('article').filter({ hasText: /R-INV-2\/2A, R-IDP-0A/ })).toHaveCount(0);
+    await page.getByRole('tab', { name: 'OPL', exact: true }).click();
+    await expect(opl(page)).toContainText('Atender se descompone en Recibir, Revisar y Despachar, en esa secuencia.');
+    await page.getByRole('button', { name: 'Exportar ▾', exact: true }).click();
+    await expect(exportacion.getByRole('button', { name: 'OPD SVG · canon-diagrama' })).toBeEnabled();
+    const svg = await descargar(page, exportacion.getByRole('button', { name: 'OPD SVG · canon-diagrama' }));
+    expect(svg).toContain('>Recibir</text>'); expect(svg).not.toMatch(/data-ref|data-capa-ui|seleccion-ui/);
+    await exportacion.getByRole('button', { name: 'Cerrar diálogo' }).click();
+    await captura(page, 'b45-reparado');
+    const despues = await leer(request, id);
+    await tecla(page, 'Control+z'); await guardado(page); expect((await leer(request, id)).texto).toBe(antes.texto);
+    await tecla(page, 'Control+Shift+z'); await guardado(page); expect((await leer(request, id)).texto).toBe(despues.texto);
+    await page.reload(); await guardado(page); expect((await leer(request, id)).texto).toBe(despues.texto);
+});

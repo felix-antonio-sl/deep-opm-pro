@@ -136,6 +136,9 @@ Estas leyes se prueban sobre todos los fixtures y 200 modelos de `pruebas/azar.t
        en bandas nuevas al final, ordenadas por Y (`normalizado`).
      - Sin él, se derivan de la geometría (porte de `agruparSubprocesosParalelos`): internos por la
        `y` del borde superior, misma banda si |Δy| ≤ 4 px (`normalizado`).
+     - Las posiciones se conservan tal como llegan: no se recolocan ni se reordenan las bandas por
+       la `y`. Si las alturas no realizan las bandas con esa tolerancia (`TOLERANCIA_ALTURA`),
+       `diagnosticar` informa `orden-vertical-contradictorio` como error recuperable (B-45, DR-47).
    - **Internos**: se leen de `contextoRefinamiento.rol` (`contorno` es el contenedor; `interno`;
      `externo`). Sin contexto, se usa el porte de `aparienciaEsInternaDeRefinamiento`: dentro del
      bbox del contorno y sin aparición en el padre (`normalizado`). Un interno que aparece fuera de

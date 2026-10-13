@@ -8,6 +8,7 @@ import { generales } from './herencia';
 import { validarNombreCosa, validarNombreEstado, validarEtiqueta, sugerirNombre } from './lexico';
 import { violacionesContexto, violacionesAbanico, violacionesForma, REGLAS_CONTEXTO, noOfrecido } from './matriz';
 import { proyectar } from './proyeccion';
+import { alturasContradictorias } from './colocacion';
 export type Severidad = 'error' | 'warning' | 'info';
 export type FamiliaDiagnostico = 'gramatical' | 'metodologica' | 'identidad' | 'contencion' | 'sugerencia';
 export interface Diagnostico {
@@ -70,6 +71,7 @@ export const CATALOGO = Object.freeze([
     fila('cosa-sin-aparicion', 'T-262, A8.2', 'warning', 'identidad', 'Buscar › Traer esta cosa a un OPD'),
     fila('enlace-sin-vista', 'A8.2', 'warning', 'identidad', 'Trae a un OPD el extremo faltante del enlace'),
     fila('forma-plural-faltante', 'DEC56/DR-12', 'warning', 'gramatical', 'Declara la forma plural del objeto en Propiedades'),
+    fila('orden-vertical-contradictorio', 'R-INV-2/2A, R-IDP-0A', 'error', 'contencion', 'Recoloca los subprocesos según sus bandas declaradas'),
 ] as const);
 export type CodigoDiagnostico = (typeof CATALOGO)[number]['codigo'];
 const porCodigo = new Map<CodigoDiagnostico, FilaCatalogo>(CATALOGO.map(f => [f.codigo, f]));
@@ -144,6 +146,12 @@ export function diagnosticar(m: Modelo): readonly Diagnostico[] {
             // ISO §10.3.1: un refinamiento elabora el refinable en uno o más refinados.
             if (hijos < 1)
                 añadir('refinamiento-trivial', [ref('opd', id), ref('cosa', o.cosa)], 'El refinamiento no tiene hijos.', { opd: id });
+        }
+        // B-45: la disposición vertical denota el orden (R-INV-2/2A); las bandas declaradas lo representan (R-IDP-0A).
+        if (o.tipo === 'descomposicion') {
+            const contradictorios = alturasContradictorias(o);
+            if (contradictorios.length)
+                añadir('orden-vertical-contradictorio', [ref('opd', id), ...contradictorios.map(c => ref('cosa', c))], 'La altura de los subprocesos no realiza el orden declarado: el OPD y su OPL expresarían órdenes distintos.', { opd: id, reparacion: { op: 'fijarBandas', args: { opd: id, bandas: o.bandas } } });
         }
         for (const c of vista.cosas) {
             const parcial = vista.incompletas.some(x => x.refinable === c.cosa && !x.declarada);
