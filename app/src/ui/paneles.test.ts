@@ -148,3 +148,16 @@ for(const ocultar of ['global','local','parcial'] as const)test(`T-011 T-193 B-3
 for(const designacion of ['inicial','final','porDefecto','current'] as const)test(`T-192 B-36 designación individual ${designacion} expresada se recupera desde vacío`,async()=>{
  const {expresarEstadosOmitidos,prepararExportaciones}=await import('./MenuExportar'),{aplicarAccion}=await import('../nucleo/operaciones'),{importarOpl,generarDocumentoOpl}=await import('../opl/documento'),{m,o}=await estadosOcultos('global'),n=must(aplicarAccion(m,{op:'designar',args:{estado:o.estados[0]!.id,designacion,activa:true}})).modelo,d=dependencias();d.documento(exportarV0(n));const ed=crearEditor(configuracion(d));await ed.abrir(n.id);expect(expresarEstadosOmitidos(ed,n.id)?.ok).toBe(true);const t=prepararExportaciones(ed.obtener().modelo!,n.raiz).opl,r=importarOpl(n.nombre,t);expect(r.ok).toBe(true);if(r.ok){expect(r.valor.plan.resumen.noAplicables).toBe(0);expect(generarDocumentoOpl(r.valor.modelo)).toBe(t);const objeto=porNombre(r.valor.modelo,'Pedido');if(objeto.tipo!=='objeto')throw Error('Objeto');if(designacion==='inicial'||designacion==='final')expect(objeto.estados[0]![designacion]).toBe(true);else expect(objeto[designacion]).toBe(objeto.estados[0]!.id);}ed.cerrar();await ciclos();
 });
+test('WP-13 DES§7.5 botones de ícono se nombran por su acción y conservan atajo o motivo como descripción',async()=>{
+ const {botonComando}=await import('./Editor'),{COMANDOS}=await import('../editor/comandos'),d=dependencias(),ed=crearEditor(configuracion(d));await ed.abrir(d.m.id);
+ const comando=(id:string)=>COMANDOS.find(c=>c.id===id)!,props=(id:string,texto?:string)=>(botonComando(comando(id),ed.obtener(),ed,texto) as unknown as {props:Record<string,unknown>}).props;
+ expect(props('deshacer','↶')).toMatchObject({'aria-label':'Deshacer',title:'No hay cambios para deshacer.',disabled:true,children:'↶'});
+ ed.ejecutar({op:'renombrarModelo',args:{nombre:'Editado'}});
+ expect(props('deshacer','↶')).toMatchObject({'aria-label':'Deshacer',title:'Ctrl+Z',disabled:false,children:'↶'});
+ expect(props('rehacer','↷')).toMatchObject({'aria-label':'Rehacer',title:'No hay cambios para rehacer.',children:'↷'});
+ expect(props('ayuda','?')).toMatchObject({'aria-label':'Ayuda',title:'?',children:'?'});
+ expect(props('arbol','›')).toMatchObject({'aria-label':'Mostrar árbol',children:'›'});
+ // Un texto con palabras ya nombra la acción: no se sustituye su nombre visible.
+ for(const [id,texto] of [['guardar',undefined],['arbol','‹ OPDs'],['columna','Plegar']] as const)expect(props(id,texto)['aria-label']).toBeUndefined();
+ ed.cerrar();await ciclos();
+});

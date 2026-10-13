@@ -455,6 +455,8 @@ hay dos comandos con la misma tecla en el mismo contexto.
 - **Accesibilidad**:
   - Cada cosa del lienzo es enfocable (`Tab` en orden de nombre), con `role="img"` y
     `aria-label="Objeto Pedido, físico"`.
+  - Un botón de ícono de la cabecera (↶, ↷, ?, ›) se nombra por su acción («Deshacer», «Rehacer»,
+    «Ayuda», «Mostrar árbol»); el atajo, o el motivo si está deshabilitado, queda como descripción.
   - El foco es visible en crimson; se respeta `prefers-reduced-motion`; la UI tiene contraste AA.
   - La severidad del diagnóstico se muestra con texto e ícono, no solo con color.
 

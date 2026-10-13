@@ -2,6 +2,7 @@ import type { ComponentType } from 'preact';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import type { Editor as Controlador, EstadoEditor } from '../editor/estado';
 import { COMANDOS } from '../editor/comandos';
+import type { Comando } from '../editor/comandos';
 import { despacharAtajo } from '../editor/atajos';
 import { diagnosticar } from '../nucleo/diagnostico';
 import { etiquetaOpd } from '../nucleo/proyeccion';
@@ -13,12 +14,18 @@ export interface DatosRanura { readonly editor: Controlador; readonly estado: Es
 export interface RanurasEditor { readonly lienzo?: ComponentType<DatosRanura>; readonly arbol?: ComponentType<DatosRanura>; readonly propiedades?: ComponentType<DatosRanura>; readonly opl?: ComponentType<DatosRanura>; readonly diagnostico?: ComponentType<DatosRanura>; readonly solicitud?: ComponentType<DatosRanura> }
 const GUARDADO = { guardado: 'Guardado', pendiente: 'Cambios sin guardar', guardando: 'Guardando…', 'sin-conexion': 'Sin conexión', conflicto: 'Conflicto', 'sesion-vencida': 'Sesión vencida', error: 'No se pudo guardar', eliminado: 'Eliminado en otra sesión', 'version-nueva': 'Versión nueva: recarga' };
 const titulos = { lienzo: 'Lienzo', arbol: 'OPDs', propiedades: 'Propiedades', opl: 'OPL', diagnostico: 'Diagnóstico' };
+/** Botón de un comando del registro. Un glifo sin letras (↶, ↷, ?, ›) no nombra la acción: su nombre accesible es el
+ *  título del comando, y el atajo, o el motivo si está deshabilitado, queda como descripción (guía §7.5). */
+export function botonComando(c: Comando, estado: EstadoEditor, editor: Controlador, texto?: string) {
+    const razon = c.disponible(estado), glifo = texto !== undefined && !/\p{L}/u.test(texto);
+    return <button aria-label={glifo ? c.titulo : undefined} title={razon === true ? c.atajo : razon} disabled={razon !== true} onClick={() => c.ejecutar(editor)}>{texto ?? c.titulo}</button>;
+}
 export function Editor(p: { editor: Controlador; estado: EstadoEditor; salir: () => void; ranuras?: RanurasEditor }) {
     const [zona, cambiar] = useState<keyof typeof titulos>('lienzo'), [menu, exportacion] = useState(false), [rutaAbierta,abrirRuta]=useState(false), [renombre, renombrar] = useState(false), [nombre, nombrar] = useState('');
     const [ancho, anchura] = useState(() => { try { return Math.max(280, Math.min(700, Number(localStorage.getItem('opforja.columna')) || 400)); } catch { return 400; } }), derecha = useRef<HTMLElement>(null);
     const m = p.estado.modelo!, ds = diagnosticar(m), bloqueos = ds.filter(d => d.severidad === 'error').length, avisos = ds.filter(d => d.severidad === 'warning').length;
     const comando = (id: string) => COMANDOS.find(c => c.id === id)!;
-    const boton = (id: string, texto?: string) => { const c = comando(id), razon = c.disponible(p.estado); return <button title={razon === true ? c.atajo : razon} disabled={razon !== true} onClick={() => c.ejecutar(p.editor)}>{texto ?? c.titulo}</button>; };
+    const boton = (id: string, texto?: string) => botonComando(comando(id), p.estado, p.editor, texto);
     useEffect(() => {
         const tecla = (e: KeyboardEvent) => {
             const target = e.target instanceof HTMLElement ? e.target : null;
