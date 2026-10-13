@@ -1,5 +1,5 @@
 import type { Modelo, Id, RelacionIncompleta, Enlace, Operador, EnlaceProcedimental, Control, Opd } from './tipos';
-import { esProcedimental, extremos } from './tipos';
+import { esProcedimental, extremos, esCaracterizacionConEstado, refinadorPorModo } from './tipos';
 import { noOfrecido } from './matriz';
 import { indice } from './indice';
 import type { Indice } from './indice';
@@ -174,8 +174,10 @@ function alcance(m: Modelo, o: Opd): ReadonlySet<Id> {
     if (o.tipo === 'raiz') return new Set();
     if (o.tipo === 'descomposicion') return new Set([o.cosa, ...o.objetosInternos, ...o.bandas.flat()]);
     const ids = new Set([o.cosa]);
-    for (const e of Object.values(m.enlaces))
-        if (e.tipo === o.modo && 'refinable' in e && e.refinable === o.cosa) ids.add(e.refinador);
+    for (const e of Object.values(m.enlaces)) {
+        const r = refinadorPorModo(e, o.modo, o.cosa);
+        if (r) ids.add(r);
+    }
     return ids;
 }
 
@@ -183,6 +185,7 @@ function estados(e: Enlace): readonly Id[] {
     switch (e.tipo) {
         case 'consumo': case 'resultado': case 'agente': case 'instrumento': return e.estado ? [e.estado] : [];
         case 'efecto': return [e.entrada, e.salida].filter((s): s is Id => s !== undefined);
+        case 'exhibicion': return e.estado ? [e.estado] : [];
         case 'generalizacion': return e.estados ? [e.estados.general, e.estados.especializacion] : [];
         case 'etiquetado': return [e.estadoOrigen, e.estadoDestino].filter((s): s is Id => s !== undefined);
         case 'etiquetadoBidireccional': return [e.estadoOrigen, e.estadoDestino].filter((s): s is Id => s !== undefined);
@@ -330,7 +333,7 @@ function colecciones(m: Modelo, o: Opd): Vista['incompletas'] {
     for (const id of Object.keys(o.apariciones))
         for (const relacion of m.cosas[id]?.incompleta ?? []) lista.set(JSON.stringify([id, relacion]), { refinable: id, relacion, declarada: true });
     for (const e of Object.values(m.enlaces)) {
-        if (!('refinable' in e) || e.tipo === 'clasificacion' || !Object.hasOwn(o.apariciones, e.refinable) || Object.hasOwn(o.apariciones, e.refinador)) continue;
+        if (!('refinable' in e) || e.tipo === 'clasificacion' || esCaracterizacionConEstado(e) || !Object.hasOwn(o.apariciones, e.refinable) || Object.hasOwn(o.apariciones, e.refinador)) continue;
         const key = JSON.stringify([e.refinable, e.tipo]);
         if (!lista.has(key)) lista.set(key, { refinable: e.refinable, relacion: e.tipo, declarada: false });
     }

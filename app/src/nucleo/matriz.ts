@@ -14,7 +14,7 @@ type BorradorNuevo = EnlaceNuevo | Omit<Extract<EnlaceNuevo, { tipo: 'etiquetado
 type Borrador = Enlace | BorradorNuevo;
 export interface DatosEtiquetas { readonly etiqueta?: string | null; readonly inversa?: string | null }
 type Clase = 'objeto' | 'proceso' | 'cosa';
-export type EstadosFila = 'ninguno' | 'objeto' | 'entradaSalida' | 'parGeneralizacion' | 'origenDestino' | 'simetrico';
+export type EstadosFila = 'ninguno' | 'objeto' | 'entradaSalida' | 'parGeneralizacion' | 'origenDestino' | 'simetrico' | 'refinador';
 export interface FilaMatriz {
     readonly familia: Familia;
     readonly roles: readonly [
@@ -60,7 +60,7 @@ export const MATRIZ: Readonly<Record<TipoEnlace, FilaMatriz>> = Object.freeze({
     instrumento: fila({ familia: "habilitadora", roles: ["objeto", "proceso"], clases: ["objeto", "proceso"], mismoTipo: false, reflexivo: false, estados: "objeto", control: true, abanico: true, ruta: false, mult: "objeto", etiquetas: "ninguna", plantillas: ["H2", "HS2", "EH2", "EHS2", "CH2", "CS6"], menu: 5 }),
     invocacion: fila({ familia: "invocacion", roles: ["origen", "destino"], clases: ["proceso", "proceso"], mismoTipo: true, reflexivo: true, estados: "ninguno", control: false, abanico: true, ruta: false, mult: "ninguno", etiquetas: "ninguna", plantillas: ["IV1", "IV2"], menu: 6 }),
     agregacion: fila({ familia: "estructural", roles: ["refinable", "refinador"], clases: ["cosa", "cosa"], mismoTipo: true, reflexivo: false, estados: "ninguno", control: false, abanico: false, ruta: false, mult: "refinador", etiquetas: "ninguna", plantillas: ["RF1", "RF1i"], menu: 7 }),
-    exhibicion: fila({ familia: "estructural", roles: ["refinable", "refinador"], clases: ["cosa", "cosa"], mismoTipo: false, reflexivo: false, estados: "ninguno", control: false, abanico: false, ruta: false, mult: "ninguno", etiquetas: "ninguna", plantillas: ["RF2", "RF2b", "RF2i"], menu: 8 }),
+    exhibicion: fila({ familia: "estructural", roles: ["refinable", "refinador"], clases: ["cosa", "cosa"], mismoTipo: false, reflexivo: false, estados: "refinador", control: false, abanico: false, ruta: false, mult: "ninguno", etiquetas: "ninguna", plantillas: ["RF2", "RF2b", "RF2i", "RF5"], menu: 8 }),
     generalizacion: fila({ familia: "estructural", roles: ["refinable", "refinador"], clases: ["cosa", "cosa"], mismoTipo: true, reflexivo: false, estados: "parGeneralizacion", control: false, abanico: false, ruta: false, mult: "ninguno", etiquetas: "ninguna", plantillas: ["RF3", "RF3b", "RF3i", "RH1", "RFE"], menu: 9 }),
     clasificacion: fila({ familia: "estructural", roles: ["refinable", "refinador"], clases: ["cosa", "cosa"], mismoTipo: true, reflexivo: false, estados: "ninguno", control: false, abanico: false, ruta: false, mult: "ninguno", etiquetas: "ninguna", plantillas: ["RF4", "RF4b"], menu: 10 }),
     etiquetado: fila({ familia: "etiquetada", roles: ["origen", "destino"], clases: ["cosa", "cosa"], mismoTipo: true, reflexivo: true, estados: "origenDestino", control: false, abanico: false, ruta: false, mult: "ambos", etiquetas: "opcional", plantillas: ["SE1", "SE2", "SSE1", "SSE2", "SSE3"], menu: 11 }),
@@ -217,6 +217,15 @@ function duplicaHeredado(m: Modelo, e: Enlace, idx: Indice): boolean {
     }
     return false;
 }
+// R-STRE-2 (ISO §10.4.1): RF5 da a una especialización un valor del atributo discriminante de su
+// general. Como DR-43, consulta la cadena de generales (transitiva, múltiple) sin materializar herencia.
+function sinAtributoDelGeneral(m: Modelo, e: Enlace, idx: Indice): boolean {
+    if (e.tipo !== 'exhibicion' || e.estado === undefined) return false;
+    return !generales(m, e.refinable).some(g => (idx.enlacesDeCosa.get(g) ?? []).some(id => {
+        const x = m.enlaces[id]!;
+        return x.tipo === 'exhibicion' && x.refinable === g && x.refinador === e.refinador;
+    }));
+}
 const regla = (r: ReglaContexto): ReglaContexto => Object.freeze({ ...r, tipos: Object.freeze([...r.tipos]) });
 export const REGLAS_CONTEXTO: readonly ReglaContexto[] = Object.freeze([
     regla({ id: 'R-MULT-1A', tipos: ['agregacion', 'etiquetado', 'etiquetadoBidireccional', 'reciproco'], severidad: 'error', accion: 'Retira la cantidad del proceso o modela repetición mediante proceso recurrente o subprocesos', viola(m, e) {
@@ -225,6 +234,7 @@ export const REGLAS_CONTEXTO: readonly ReglaContexto[] = Object.freeze([
         return null;
     } }),
     regla({ id: 'AP-29', tipos: [...PROCEDIMENTALES, 'agregacion', 'exhibicion', 'etiquetado', 'etiquetadoBidireccional', 'reciproco'], severidad: 'error', accion: 'Conserva el hecho del general; no dupliques explícitamente un enlace heredado', viola(m, e, idx) { return duplicaHeredado(m, e, idx) ? 'El enlace duplica un hecho heredado del general (R-HER-8).' : null; } }),
+    regla({ id: 'R-STRE-2', tipos: ['exhibicion'], severidad: 'error', accion: 'Declara la especialización y la exhibición del atributo por su general, o retira el valor', viola(m, e, idx) { return sinAtributoDelGeneral(m, e, idx) ? 'La caracterización con estado especificado (RF5) exige que un general de la especialización exhiba el atributo.' : null; } }),
     regla({ id: 'R-ESCIND-2', tipos: ['efecto'], severidad: 'error', accion: 'Conserva la mitad de entrada antes de la salida al ordenar bandas', viola(m, e, idx) { return escisionInvertida(m, e, idx) ? 'La mitad de salida precede a la mitad de entrada del par escindido (R-ESCIND-3).' : null; } }),
     regla({ id: 'R-AG-1', tipos: ['agente'], severidad: 'error', accion: 'Usa instrumento para máquinas, software o IA; si es humano, márcalo físico', viola(m, e) { return e.tipo === 'agente' && cosa(m, e.objeto)?.esencia !== 'fisica' ? 'El agente debe ser un objeto físico (proxy declarado de humano).' : null; } }),
     regla({ id: 'R-EFE-1', tipos: ['efecto'], severidad: 'error', accion: 'Agrega estados al objeto o usa consumo/resultado', viola(m, e) {
@@ -411,6 +421,7 @@ function anclajes(e: Borrador): readonly (readonly [
         case 'agente':
         case 'instrumento': return e.estado ? [[e.estado, e.objeto]] : [];
         case 'efecto': return [...(e.entrada ? [[e.entrada, e.objeto] as const] : []), ...(e.salida ? [[e.salida, e.objeto] as const] : [])];
+        case 'exhibicion': return e.estado ? [[e.estado, e.refinador]] : [];
         case 'generalizacion': return e.estados ? [[e.estados.general, e.refinable], [e.estados.especializacion, e.refinador]] : [];
         case 'etiquetado':
         case 'etiquetadoBidireccional': return [...(e.estadoOrigen ? [[e.estadoOrigen, e.origen] as const] : []), ...(e.estadoDestino ? [[e.estadoDestino, e.destino] as const] : [])];
@@ -423,7 +434,7 @@ export function violacionesForma(m: Modelo, e: Enlace | EnlaceNuevo): readonly V
 const camposEstado: Readonly<Record<EstadosFila, readonly string[]>> = {
     ninguno: [], objeto: ['estado'], entradaSalida: ['entrada', 'salida'],
     parGeneralizacion: ['estados'], origenDestino: ['estadoOrigen', 'estadoDestino'],
-    simetrico: ['estados'],
+    simetrico: ['estados'], refinador: ['estado'],
 };
 function forma(m: Modelo, e: Borrador): readonly Violacion[] {
     const vs: Violacion[] = [], f = MATRIZ[e.tipo], [a, b] = roles(e), ca = cosa(m, a), cb = cosa(m, b), idx = indice(m);
@@ -435,6 +446,9 @@ function forma(m: Modelo, e: Borrador): readonly Violacion[] {
             fallo('R-EDIT-2', 'El estado debe pertenecer al objeto del extremo.');
     if (e.tipo === 'generalizacion' && e.estados && (ca?.tipo !== 'objeto' || cb?.tipo !== 'objeto' || !e.estados.general || !e.estados.especializacion))
         fallo('R-OPL-RF-3', 'La generalización de estado exige el par completo entre objetos.');
+    // ISO §10.4.1, EBNF de RF5: un objeto especializado exhibe un atributo objeto en uno de sus valores.
+    if (e.tipo === 'exhibicion' && e.estado !== undefined && (ca?.tipo !== 'objeto' || cb?.tipo !== 'objeto'))
+        fallo('R-STRE-2', 'La caracterización con estado especificado une dos objetos.');
     // Datos no tipables pueden llegar de un import; no se aceptan modificadores ajenos a la fila.
     const datos: Readonly<Record<string, unknown>> = { ...e };
     if (['estado', 'entrada', 'salida', 'estadoOrigen', 'estadoDestino'].some(k => datos[k] !== undefined && (typeof datos[k] !== 'string' || !datos[k])))
@@ -470,8 +484,9 @@ function candidato(tipo: TipoEnlace, desde: ExtremoRef, hacia: ExtremoRef, senti
             return { tipo, objeto: obj.cosa, proceso: proc.cosa, ...(desde.estado && desde.cosa === obj.cosa ? { entrada: desde.estado } : {}), ...(hacia.estado && hacia.cosa === obj.cosa ? { salida: hacia.estado } : {}) };
         }
         case 'agregacion':
-        case 'exhibicion':
         case 'clasificacion': return { tipo, refinable: a.cosa, refinador: b.cosa };
+        // RF5: el valor sólo puede estar en la base (rasgo), nunca en el vértice.
+        case 'exhibicion': return { tipo, refinable: a.cosa, refinador: b.cosa, ...(b.estado ? { estado: b.estado } : {}) };
         case 'generalizacion': return { tipo, refinable: a.cosa, refinador: b.cosa, ...(a.estado && b.estado ? { estados: { general: a.estado, especializacion: b.estado } } : {}) };
         case 'etiquetado': return { tipo, origen: a.cosa, destino: b.cosa, ...(a.estado ? { estadoOrigen: a.estado } : {}), ...(b.estado ? { estadoDestino: b.estado } : {}) };
         case 'etiquetadoBidireccional': return { tipo, origen: a.cosa, destino: b.cosa, ...(a.estado ? { estadoOrigen: a.estado } : {}), ...(b.estado ? { estadoDestino: b.estado } : {}) };

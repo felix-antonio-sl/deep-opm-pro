@@ -113,6 +113,8 @@ function cosasEnlace(e: EnlaceTexto): NombreTipado[] {
 interface Trabajo { l: LineaAnalizada; hechos: readonly HechoTexto[]; etiqueta: string; }
 // SD es la raíz; SD1 y SD2 son hijos; SD1.1 es nieto.
 const profundidad = (etiqueta: string): number => etiqueta === 'SD' ? 0 : etiqueta.split('.').length;
+// RF5 depende de la especialización y de la exhibición de su general (R-STRE-2), en cualquier línea u OPD.
+const esRF5 = (e: EnlaceTexto): boolean => e.tipo === 'exhibicion' && e.refinador.estado !== undefined;
 export function planificar(m: Modelo, alcance: Id | 'modelo', texto: string): Plan {
     return ensayar(m, alcance, texto).plan;
 }
@@ -265,7 +267,7 @@ function ensayar(m: Modelo, alcance: Id | 'modelo', texto: string, basePrivadaVa
                 const es = st(e.objeto);
                 return { ...base, tipo: e.tipo, ...(es ? { estado: es } : {}), ...(e.ruta ? { ruta: e.ruta } : {}) };
             }
-            if ('refinable' in e) return { tipo: e.tipo, refinable: id(e.refinable), refinador: id(e.refinador), ...(e.tipo === 'agregacion' && e.refinador.mult ? { mult: e.refinador.mult } : {}), ...(e.tipo === 'generalizacion' && e.refinable.estado && e.refinador.estado ? { estados: { general: st(e.refinable)!, especializacion: st(e.refinador)! } } : {}) };
+            if ('refinable' in e) return { tipo: e.tipo, refinable: id(e.refinable), refinador: id(e.refinador), ...(e.tipo === 'agregacion' && e.refinador.mult ? { mult: e.refinador.mult } : {}), ...(e.tipo === 'generalizacion' && e.refinable.estado && e.refinador.estado ? { estados: { general: st(e.refinable)!, especializacion: st(e.refinador)! } } : {}), ...(e.tipo === 'exhibicion' && e.refinador.estado ? { estado: st(e.refinador)! } : {}) };
             if (e.tipo === 'invocacion' || e.tipo === 'excepcionSobretiempo' || e.tipo === 'excepcionSubtiempo') return { tipo: e.tipo, origen: id({ nombre: e.origen, tipo: 'proceso' }), destino: id({ nombre: e.destino as string, tipo: 'proceso' }) };
             if (!('etiqueta' in e) && typeof e.origen === 'string') throw new Fallo('type-mismatch', 'Extremos tipados requeridos.');
             const et = e as Extract<EnlaceTexto, { tipo: 'etiquetado' | 'etiquetadoBidireccional' | 'reciproco' }>;
@@ -346,7 +348,7 @@ function ensayar(m: Modelo, alcance: Id | 'modelo', texto: string, basePrivadaVa
                 const ids = agregar(t, { op: 'descomponer', args: { opd: padre, proceso: c, bandas: h.bandas } }, 'crear-refinamiento', 1, c);
                 d = actual.opds[ids.find(id => actual.opds[id])!]!;
             } else if (!d && h.k === 'despliegue') {
-                const tipos = new Set(activos.flatMap(x => x.hechos).filter((x): x is Extract<HechoTexto, { k: 'enlace' }> => x.k === 'enlace').map(x => x.enlace).filter(e => 'refinable' in e && claveNombre(e.refinable.nombre) === claveNombre(n.nombre) && h.refinadores.some(r => claveNombre(r.nombre) === claveNombre(e.refinador.nombre))).map(e => e.tipo));
+                const tipos = new Set(activos.flatMap(x => x.hechos).filter((x): x is Extract<HechoTexto, { k: 'enlace' }> => x.k === 'enlace').map(x => x.enlace).filter(e => 'refinable' in e && !esRF5(e) && claveNombre(e.refinable.nombre) === claveNombre(n.nombre) && h.refinadores.some(r => claveNombre(r.nombre) === claveNombre(e.refinador.nombre))).map(e => e.tipo));
                 if (tipos.size !== 1) throw new Fallo('ambiguous-symbol', 'El despliegue requiere una relación fundamental inequívoca.');
                 const modo = [...tipos][0] as ModoDespliegue;
                 const ids = agregar(t, { op: 'desplegar', args: { opd: padre, cosa: c, modo } }, 'crear-refinamiento', 1, c); d = actual.opds[ids[0]!]!;
@@ -427,7 +429,7 @@ function ensayar(m: Modelo, alcance: Id | 'modelo', texto: string, basePrivadaVa
                 }
             }
             for (const h of t.hechos) {
-                if (h.k === 'enlace') { const c = candidatos.get(h) ?? candidato(t, h.enlace); enlace(t, c, undefined, correspondencias.get(c)); }
+                if (h.k === 'enlace' && !esRF5(h.enlace)) { const c = candidatos.get(h) ?? candidato(t, h.enlace); enlace(t, c, undefined, correspondencias.get(c)); }
                 if (h.k === 'abanico') {
                     let primero:Id|undefined;
                     const cs=h.ramas.map(e=>candidato(t,e));
@@ -452,6 +454,9 @@ function ensayar(m: Modelo, alcance: Id | 'modelo', texto: string, basePrivadaVa
                     if (c.duracion?.[h.campo] !== h.n || (c.duracion?.unidad ?? actual.unidadTiempo) !== h.unidad) agregar(t, { op: 'fijarDuracion', args: { proceso: id, duracion: { ...c.duracion, [h.campo]: h.n, unidad: h.unidad } } }, 'fijar-cota', 2, id + ':' + h.campo);
                 }
             }
+        });
+        for (const t of [...activos].sort((a, b) => profundidad(b.etiqueta) - profundidad(a.etiqueta) || a.l.numero - b.l.numero)) intentar(t, () => {
+            for (const h of t.hechos) if (h.k === 'enlace' && esRF5(h.enlace)) enlace(t, candidato(t, h.enlace));
         });
         for (const t of activos) intentar(t, () => { for (const h of t.hechos) if (h.k === 'abanico') {
             const ids = h.ramas.map(e => enlace(t, candidato(t, e)));

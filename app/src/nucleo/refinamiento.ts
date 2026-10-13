@@ -1,5 +1,5 @@
 import type { Id, Modelo, TipoCosa, Enlace, Opd, OpdDescomposicion, OpdDespliegue, Ref, ModoDespliegue } from './tipos';
-import { esProcedimental, extremos } from './tipos';
+import { esProcedimental, extremos, refinadorPorModo } from './tipos';
 import type { Operacion, Tx, CodigoRechazo, Respuesta, Hecho, Traza } from './resultado';
 import { transaccion } from './resultado';
 import { indice, claveNombre } from './indice';
@@ -29,7 +29,7 @@ function precondicion(tx: Tx, oid: Id, cid: Id, tipo: 'descomposicion' | 'despli
     for (let actual = o; actual.tipo !== 'raiz'; actual = tx.m.opds[actual.padre]!) {
         if (actual.cosa === cid) negar(tx, 'ciclo', 'R-REF-1', 'No se refina una cosa dentro de su propio árbol.', [ref(cid), ro(oid)]);
     }
-    const propio = o.tipo === 'raiz' || (o.tipo === 'descomposicion' ? indice(tx.m).internoDe.get(cid) === oid : Object.values(tx.m.enlaces).some(e => e.tipo === o.modo && 'refinable' in e && e.refinable === o.cosa && 'refinador' in e && e.refinador === cid));
+    const propio = o.tipo === 'raiz' || (o.tipo === 'descomposicion' ? indice(tx.m).internoDe.get(cid) === oid : Object.values(tx.m.enlaces).some(e => refinadorPorModo(e, o.modo, o.cosa) === cid));
     if (!propio) negar(tx, 'externo-no-refinable', 'R-HIJO-5', 'Un externo no se refina desde el OPD hijo.', [ref(cid), ro(oid)]);
     if (indice(tx.m).refinamientosDe.get(cid)?.[tipo]) negar(tx, 'ya-refinado', 'T-078', 'La cosa ya tiene este refinamiento.', [ref(cid)]);
     return o;
@@ -161,7 +161,7 @@ function refinadoresEnTx(tx: Tx, a: { opd: Id; nombres: readonly string[]; tipo?
 export const desplegar: Operacion<{ opd: Id; cosa: Id; modo: ModoDespliegue; refinadores?: readonly string[] }> = (m, a) => transaccion(m, tx => {
     precondicion(tx, a.opd, a.cosa, 'despliegue');
     if (!['agregacion', 'exhibicion', 'generalizacion', 'clasificacion'].includes(a.modo)) negar(tx, 'tipo-incompatible', 'R-REF-MEC-1', 'Se requiere una relación fundamental.', [ref(a.cosa)]);
-    const id = tx.nuevoId('opd'), ids = Object.values(m.enlaces).filter(e => e.tipo === a.modo && 'refinable' in e && e.refinable === a.cosa).map(e => 'refinador' in e ? e.refinador : '');
+    const id = tx.nuevoId('opd'), ids = Object.values(m.enlaces).flatMap(e => refinadorPorModo(e, a.modo, a.cosa) ?? []);
     const nuevo: OpdDespliegue = { id, tipo: 'despliegue', padre: a.opd, cosa: a.cosa, modo: a.modo, orden: indice(m).hijosDe.get(a.opd)?.length ?? 0, apariciones: Object.fromEntries([a.cosa, ...ids].map(c => [c, m.opds[a.opd]!.apariciones[c] ?? { x: 0, y: 0, ancho: 135, alto: 60 }])) };
     tx.poner('opds', { ...nuevo, apariciones: colocarDespliegue(tx.m, nuevo) });
     if (a.refinadores?.length) refinadoresEnTx(tx, { opd: id, nombres: a.refinadores }); formaFinal(tx);

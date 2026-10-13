@@ -1,5 +1,5 @@
 import type { Cosa, Enlace, Modelo, Multiplicidad, Operador, Ref, UnidadTiempo } from '../nucleo/tipos';
-import { esProcedimental } from '../nucleo/tipos';
+import { esProcedimental, refinadorPorModo } from '../nucleo/tipos';
 import { esParametroMultiplicidad } from '../nucleo/matriz';
 import { analizarMultiplicidad, multiplicidadDesdeOpl, requierePlural } from '../nucleo/multiplicidad';
 import { indice } from '../nucleo/indice';
@@ -74,7 +74,7 @@ const filas: readonly [
     ['ET1', '{mO} inicia {P}, que consume {O}.', 'evento'], ['ETS1', '{mO} en {s} inicia {P}, que consume {O}.', 'evento'], ['ET2', '{mO} inicia {P}, que afecta {O}.', 'evento'], ['ETS2', '{O} en {e} inicia {P}, que cambia {O} de {e} a {s}.', 'evento'], ['ETS3', '{O} en {e} inicia {P}, que cambia {O} de {e}.', 'evento'], ['ETS4', '{O} en cualquier estado inicia {P}, que cambia {O} a {s}.', 'evento'], ['EH1', '{mO} inicia y maneja {P}.', 'evento'], ['EHS1', '{mO} en {s} inicia y maneja {P}.', 'evento'], ['EH2', '{mO} inicia {P}, que requiere {O}.', 'evento'], ['EHS2', '{mO} en {s} inicia {P}, que requiere {O} en {s}.', 'evento'],
     ['CT1', '{P} ocurre si {O} existe, en cuyo caso {O} se consume, de lo contrario {P} se omite.', 'condicion'], ['CS1', '{P} ocurre si {O} está en {s}, en cuyo caso {O} se consume, de lo contrario {P} se omite.', 'condicion'], ['CT2', '{P} ocurre si {O} existe, en cuyo caso {P} afecta {O}, de lo contrario {P} se omite.', 'condicion'], ['CS2', '{P} ocurre si {O} está en {e}, en cuyo caso {P} cambia {O} de {e} a {s}, de lo contrario {P} se omite.', 'condicion'], ['CS3', '{P} ocurre si {O} está en {e}, en cuyo caso {P} cambia {O} de {e}, de lo contrario {P} se omite.', 'condicion'], ['CS4', '{P} ocurre si {O} existe, en cuyo caso {P} cambia {O} a {s}, de lo contrario {P} se omite.', 'condicion'], ['CH1', '{O} maneja {P} si {O} existe, de lo contrario {P} se omite.', 'condicion'], ['CS5', '{O} maneja {P} si {O} está en {s}, de lo contrario {P} se omite.', 'condicion'], ['CH2', '{P} ocurre si {O} existe, de lo contrario {P} se omite.', 'condicion'], ['CS6', '{P} ocurre si {O} está en {s}, de lo contrario {P} se omite.', 'condicion'], ['COND-ALT', 'Si {O} existe entonces {P} ocurre y consume {O}, de lo contrario se omite {P}.', 'condicion', 'P'],
     ['EX1', '{P1} ocurre si duración de {P2} excede {n} {u}.', 'excepcion'], ['EX2', '{P1} ocurre si duración de {P2} es menor que {n} {u}.', 'excepcion'], ['EX1r', '{P1} ocurre si duración de {P2} excede su duración máxima.', 'excepcion'], ['EX2r', '{P1} ocurre si duración de {P2} es menor que su duración mínima.', 'excepcion'], ['IV1', '{P1} invoca {P2}.', 'invocacion'], ['IV2', '{P} se invoca a sí mismo.', 'invocacion'],
-    ['RF1', '{vertice} consta de {Ly:mC}.', 'estructural'], ['RF1i', '{vertice} consta de {Lista:mC} y al menos otra parte.', 'estructural'], ['RF2', '{vertice} exhibe {Ly:C}.', 'estructural'], ['RF2b', '{vertice} exhibe {Ly:C} así como {Ly:otro}.', 'estructural'], ['RF2i', '{vertice} exhibe {Lista:C}[ así como {Ly:otro}] y al menos otro rasgo.', 'estructural'], ['RF3', '{Ly:C} son {general}.', 'estructural'], ['RF3b', '{C} es un|una {general}.', 'estructural'], ['RF3i', '{Lista:C} y al menos otra especialización son {general}.', 'estructural'], ['RH1', '{C} es {Ly:articulos}.', 'estructural'], ['RFE', '{Ly:Oe} son {O} en {s}.', 'estructural'], ['RF4', '{C} es una instancia de {general}.', 'estructural'], ['RF4b', '{Ly:C} son instancias de {general}.', 'estructural'],
+    ['RF1', '{vertice} consta de {Ly:mC}.', 'estructural'], ['RF1i', '{vertice} consta de {Lista:mC} y al menos otra parte.', 'estructural'], ['RF2', '{vertice} exhibe {Ly:C}.', 'estructural'], ['RF5', '{O1} exhibe {O2} en {s}.', 'estructural'], ['RF2b', '{vertice} exhibe {Ly:C} así como {Ly:otro}.', 'estructural'], ['RF2i', '{vertice} exhibe {Lista:C}[ así como {Ly:otro}] y al menos otro rasgo.', 'estructural'], ['RF3', '{Ly:C} son {general}.', 'estructural'], ['RF3b', '{C} es un|una {general}.', 'estructural'], ['RF3i', '{Lista:C} y al menos otra especialización son {general}.', 'estructural'], ['RH1', '{C} es {Ly:articulos}.', 'estructural'], ['RFE', '{Ly:Oe} son {O} en {s}.', 'estructural'], ['RF4', '{C} es una instancia de {general}.', 'estructural'], ['RF4b', '{Ly:C} son instancias de {general}.', 'estructural'],
     ['SE1', '{mC1} {t} {mC2}.', 'etiquetada'], ['SE2', '{mC1} se relaciona con {mC2}.', 'etiquetada'], ['SSE1', '{O1} en {a} {t} {O2}.', 'etiquetada'], ['SSE2', '{O1} {t} {O2} en {b}.', 'etiquetada'], ['SSE3', '{O1} en {a} {t} {O2} en {b}.', 'etiquetada'], ['SE3', '{mC1} {t} {mC2}.', 'etiquetada'], ['SSE4', '{O1} en {a} {t} {O2}.', 'etiquetada'], ['SSE5', '{O2} {t2} {O1} en {a}.', 'etiquetada'], ['SE4', '{mC1} y {mC2} son {t}.', 'etiquetada'], ['SE5', '{mC1} y {mC2} se relacionan.', 'etiquetada'], ['SSE6', '{O1} en {a} y {O2} en {b} son {t}.', 'etiquetada'], ['SSE7', '{O2} y {O1} en {a} son {t}.', 'etiquetada'],
     // A.4.6.2.2: listas unidireccionales cerradas, sin metadatos de colección inventados.
     ['SE1L', '{mC1e} {t} {Ly:mC2e}.', 'etiquetada'], ['SE2L', '{mC1e} se relaciona con {Ly:mC2e}.', 'etiquetada'],
@@ -374,6 +374,13 @@ export function datosEnlace(m: Modelo, e: Enlace, inverso = false): HechoGenerab
         id = { agregacion: 'RF1', exhibicion: 'RF2', generalizacion: 'RF3b', clasificacion: 'RF4' }[e.tipo];
         if (e.tipo === 'agregacion' || e.tipo === 'exhibicion')
             h.C = [c(e.refinador, e.tipo === 'agregacion' ? e.mult : undefined)];
+        if (e.tipo === 'exhibicion' && e.estado) {
+            // RF5 (ISO §10.4.1): oración propia, nunca miembro de una lista RF2.
+            id = 'RF5';
+            h.O1 = c(e.refinable);
+            h.O2 = c(e.refinador);
+            h.s = s(e.estado);
+        }
         if (e.tipo === 'generalizacion' && e.estados) {
             id = 'RFE';
             h.O = c(e.refinable);
@@ -665,6 +672,8 @@ function reconocer(id: string, h: Huecos): readonly HechoTexto[] {
     }
     if (id === 'RH1')
         return lista(h, 'articulos').map(p => ({ k: 'enlace', enlace: { tipo: 'generalizacion', refinable: extremo(p), refinador: ext('C') } }));
+    if (id === 'RF5')
+        return [{ k: 'enlace', enlace: { tipo: 'exhibicion', refinable: ext('O1'), refinador: { ...ext('O2'), estado: x('s').texto } } }];
     if (id.startsWith('RF') || id === 'RH1') {
         const result: HechoTexto[] = [];
         const hijos = id === 'RF2b' || id === 'RF2i' ? [...lista(h, 'C'), ...lista(h, 'otro')] : lista(h, id === 'RFE' ? 'Oe' : 'C');
@@ -727,9 +736,7 @@ export function datosContexto(m: Modelo, opd: string): HechoGenerable | null {
         // P es el contenedor y Plista la colección; no comparten un hueco ambiguo.
         return { plantilla: id, huecos: h };
     }
-    const refinadores = [...new Set(Object.values(m.enlaces).filter(e => 'refinable' in e && e.tipo === d.modo && e.refinable === d.cosa).map(e => (e as Extract<Enlace, {
-        refinador: string;
-    }>).refinador).filter(id => Object.hasOwn(d.apariciones, id)))];
+    const refinadores = [...new Set(Object.values(m.enlaces).flatMap(e => refinadorPorModo(e, d.modo, d.cosa) ?? []).filter(id => Object.hasOwn(d.apariciones, id)))];
     if (refinadores.length < 1)
         return null;
     const tipo = m.cosas[d.cosa]!.tipo, principal = refinadores.filter(id => m.cosas[id]!.tipo === tipo).sort(cmp), otros = refinadores.filter(id => m.cosas[id]!.tipo !== tipo).sort(cmp);

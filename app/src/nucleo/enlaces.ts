@@ -87,6 +87,7 @@ function anclas(e: Enlace): readonly Id[] {
         case 'agente':
         case 'instrumento': return e.estado ? [e.estado] : [];
         case 'efecto': return [e.entrada, e.salida].filter((x): x is Id => x !== undefined);
+        case 'exhibicion': return e.estado ? [e.estado] : [];
         case 'generalizacion': return e.estados ? [e.estados.general, e.estados.especializacion] : [];
         case 'etiquetado':
         case 'etiquetadoBidireccional': return [e.estadoOrigen, e.estadoDestino].filter((x): x is Id => x !== undefined);
@@ -246,12 +247,13 @@ export const fijarEstados: Operacion<{
     estados: EstadosEnlace;
 }> = (m, a) => transaccion(m, tx => {
     const e = obtener(tx, a.enlace), f = MATRIZ[e.tipo], s = a.estados as unknown as Record<string, unknown>;
-    const esperados = f.estados === 'objeto' ? ['estado'] : f.estados === 'entradaSalida' ? ['entrada', 'salida'] : f.estados === 'parGeneralizacion' ? ['generalizacion'] : ['origen', 'destino'];
+    const esperados = f.estados === 'objeto' || f.estados === 'refinador' ? ['estado'] : f.estados === 'entradaSalida' ? ['entrada', 'salida'] : f.estados === 'parGeneralizacion' ? ['generalizacion'] : ['origen', 'destino'];
     if (f.estados === 'ninguno' || Object.keys(s).length !== esperados.length || esperados.some(k => !Object.hasOwn(s, k)))
         negar(tx, 'tipo-incompatible', 'R-EDIT-2', 'La forma de estados no corresponde al tipo de enlace.', [ref(e.id)]);
     let n = e;
     switch (f.estados) {
         case 'objeto':
+        case 'refinador':
             n = cambiarCampo(e, 'estado', s.estado);
             break;
         case 'entradaSalida':
@@ -354,7 +356,7 @@ export const cambiarTipoEnlace: Operacion<{
         permitidos.push('multOrigen', 'multDestino');
     else if (f.mult !== 'ninguno')
         permitidos.push('mult');
-    const porEstado = { ninguno: [], objeto: ['estado'], entradaSalida: ['entrada', 'salida'], parGeneralizacion: ['estados'], origenDestino: ['estadoOrigen', 'estadoDestino'], simetrico: ['estados'] } as const;
+    const porEstado = { ninguno: [], objeto: ['estado'], entradaSalida: ['entrada', 'salida'], parGeneralizacion: ['estados'], origenDestino: ['estadoOrigen', 'estadoDestino'], simetrico: ['estados'], refinador: ['estado'] } as const;
     if (MATRIZ[e.tipo].estados === f.estados)
         permitidos.push(...porEstado[f.estados]);
     for (const k of permitidos)
@@ -396,6 +398,7 @@ export const cambiarTipoEnlace: Operacion<{
     if (a.sentido !== undefined) {
         const estados: [Id | undefined, Id | undefined] = [undefined, undefined];
         if ('estado' in e && e.estado && esProcedimental(e)) estados[e.tipo === 'resultado' ? 1 : 0] = e.estado;
+        if (e.tipo === 'exhibicion' && e.estado) estados[1] = e.estado;
         if ('estadoOrigen' in e) estados[0] = e.estadoOrigen;
         if ('estadoDestino' in e) estados[1] = e.estadoDestino;
         if ('estados' in e && e.estados) {
@@ -424,6 +427,9 @@ export const cambiarTipoEnlace: Operacion<{
                 break;
             case 'parGeneralizacion':
                 if (origen && destino) campos.estados = { general: origen, especializacion: destino };
+                break;
+            case 'refinador':
+                if (destino && indice(m).estadoDe.get(destino)?.objeto === campos.refinador) campos.estado = destino;
                 break;
             case 'origenDestino':
                 if (origen) campos.estadoOrigen = origen;
@@ -510,6 +516,13 @@ export const reanclarExtremo: Operacion<{
             }
             else
                 n = cambiarCampo(n, 'estados', null);
+        }
+        else if (e.tipo === 'exhibicion') {
+            // RF5: sólo la base se ancla a un valor; soltarla sobre la cosa retira el valor.
+            if (a.extremo === 'destino')
+                n = cambiarCampo(n, 'estado', a.hacia.estado);
+            else if (a.hacia.estado)
+                negar(tx, 'forma', 'R-EDIT-2', 'El vértice de la exhibición no se ancla a un estado.', [ref(e.id), { tipo: 'estado', id: a.hacia.estado }]);
         }
         else if (a.hacia.estado)
             negar(tx, 'forma', 'R-EDIT-2', 'Esta relación estructural no ancla estados.', [ref(e.id), { tipo: 'estado', id: a.hacia.estado }]);

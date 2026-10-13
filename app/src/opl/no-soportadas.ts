@@ -11,8 +11,6 @@ export const NO_CANONIZADAS: readonly LimiteOpl[] = [
     { patron: /\bexhiben? `s` \*\*N\*\*/u, codigo: 'non-canonical', regla: 'R-ZNC-1', registro: 'B-37' }
 ];
 export const NO_SOPORTADAS: readonly LimiteOpl[] = [
-    // RF5 (§6.2): la forma tipada completa prima sobre SSE5; «exhibe» citado sigue siendo etiqueta.
-    { patron: /^\*\*N\*\* [Ee][Xx][Hh][Ii][Bb][Ee] \*\*N\*\* en `s`\.$/u, codigo: 'unsupported-canonical', regla: 'R-STRE-2', registro: 'B-37', mensaje: 'RF5: la caracterización con estado especificado aún no está soportada (B-37). La oración no produce cambios.' },
     // Son metadatos sólo fuera del hueco de etiqueta de una lista cerrada reconocida.
     { patron: / [ye] más\.$|\bdonde\b|\bordenados por\b/u, codigo: 'unsupported-canonical', regla: 'R-OPL-SE-4', registro: 'B-54', enEtiqueta: true },
     { patron: /\bpuede ser\b/u, codigo: 'unsupported-canonical', regla: 'R-OPL-RF-5', registro: 'B-01' },

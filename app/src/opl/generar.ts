@@ -1,5 +1,5 @@
 import type { Modelo, Id, Enlace, EnlaceNuevo, Cosa } from '../nucleo/tipos';
-import { esProcedimental, extremos } from '../nucleo/tipos';
+import { esProcedimental, extremos, esCaracterizacionConEstado } from '../nucleo/tipos';
 import { indice } from '../nucleo/indice';
 import { proyectar } from '../nucleo/proyeccion';
 import type { EnlaceVisto } from '../nucleo/proyeccion';
@@ -95,7 +95,8 @@ function construirBloque(m: Modelo, opd: Id, o?: OpcionesOpl): readonly LineaOpl
                     cosas.push(emit('D13', h, id));
             }
             if (c.valor !== undefined) {
-                const exhibidores = vista.enlaces.filter(v => v.enlace.tipo === 'exhibicion' && v.enlace.refinador === c.id).map(v => m.cosas[(v.enlace as Extract<Enlace, {
+                // VAL reconstruye una exhibición ordinaria; RF5 es otro hecho y no la acredita.
+                const exhibidores = vista.enlaces.filter(v => v.enlace.tipo === 'exhibicion' && v.enlace.refinador === c.id && !esCaracterizacionConEstado(v.enlace)).map(v => m.cosas[(v.enlace as Extract<Enlace, {
                     tipo: 'exhibicion';
                 }>).refinable]!).sort(cmp);
                 if (exhibidores[0])
@@ -288,11 +289,12 @@ function construirBloque(m: Modelo, opd: Id, o?: OpcionesOpl): readonly LineaOpl
             const e = v.enlace as Extract<Enlace, {
                 refinable: string;
             }>;
-            const key = JSON.stringify([e.tipo, e.refinable, e.tipo === 'generalizacion' ? e.estados?.general : undefined]);
+            const key = JSON.stringify([e.tipo, e.refinable, e.tipo === 'generalizacion' ? e.estados?.general : e.tipo === 'exhibicion' ? e.estado : undefined]);
             const g = grupos.get(key) ?? [];
             g.push(v);
             grupos.set(key, g);
         }
+        const caracterizaciones: EnlaceVisto[] = [];
         for (const g of grupos.values()) {
             g.sort((a, b) => cmp(m.cosas[(a.enlace as Extract<Enlace, {
                 refinador: string;
@@ -302,6 +304,11 @@ function construirBloque(m: Modelo, opd: Id, o?: OpcionesOpl): readonly LineaOpl
             const e = g[0]!.enlace as Extract<Enlace, {
                 refinable: string;
             }>;
+            // RF5: una oración por caracterización con estado especificado, fuera de las listas RF2.
+            if (esCaracterizacionConEstado(e)) {
+                caracterizaciones.push(g[0]!);
+                continue;
+            }
             if (e.tipo === 'generalizacion' && e.estados) {
                 enlaces.push(emit('RFE', { O: cosa(m, e.refinable, e.id), s: estadoHueco(m, e.estados.general, e.id), Oe: g.map(v => { const x = v.enlace as Extract<Enlace, {
                         tipo: 'generalizacion';
@@ -334,6 +341,14 @@ function construirBloque(m: Modelo, opd: Id, o?: OpcionesOpl): readonly LineaOpl
                 h.C = (h.C as import('./plantillas').Hueco[])[0]!;
             enlaces.push(emit(pid, h, `${e.refinable}:${e.tipo}`, g.flatMap(v => v.hechos)));
         }
+        // Tras las demás estructurales y sin desempatar por ID: la inversa crea RF5 al final (DR-46).
+        // La colación base puede empatar nombres distintos (Zorro, Zórro); los decide su escritura exacta.
+        type Rf5 = Extract<Enlace, { tipo: 'exhibicion' }>;
+        const nominal = (a: Cosa, b: Cosa) => colacionNombre.compare(a.nombre, b.nombre) || (a.nombre < b.nombre ? -1 : a.nombre > b.nombre ? 1 : 0);
+        const valor = (x: Rf5) => { const c = m.cosas[x.refinador]; return c?.tipo === 'objeto' ? c.estados.findIndex(s => s.id === x.estado) : -1; };
+        caracterizaciones.sort((a, b) => { const x = a.enlace as Rf5, y = b.enlace as Rf5;
+            return nominal(m.cosas[x.refinable]!, m.cosas[y.refinable]!) || nominal(m.cosas[x.refinador]!, m.cosas[y.refinador]!) || valor(x) - valor(y); });
+        for (const v of caracterizaciones) enlaces.push(...emitirEnlace(m, opd, v));
     }
     etiquetados.sort((a, b) => cmp(m.cosas[extremos(a.enlace).origen]!, m.cosas[extremos(b.enlace).origen]!) || cmp(m.cosas[extremos(a.enlace).destino]!, m.cosas[extremos(b.enlace).destino]!) || a.enlace.id.localeCompare(b.enlace.id));
     const gruposEtiquetados = new Map<string, EnlaceVisto[]>(), listasEtiquetadas = new Map<EnlaceVisto, LineaOpl>();

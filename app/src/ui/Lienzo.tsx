@@ -49,6 +49,7 @@ export function extremosSeleccionados(m: Modelo, id: string) {
             case 'consumo': case 'agente': case 'instrumento': return origen ? enlace.estado : undefined;
             case 'resultado': return origen ? undefined : enlace.estado;
             case 'efecto': return origen ? undefined : enlace.salida ?? enlace.entrada;
+            case 'exhibicion': return origen ? undefined : enlace.estado;
             case 'generalizacion': return origen ? enlace.estados?.general : enlace.estados?.especializacion;
             case 'etiquetado': return origen ? enlace.estadoOrigen : enlace.estadoDestino;
             case 'etiquetadoBidireccional': return origen ? enlace.estadoOrigen : undefined;

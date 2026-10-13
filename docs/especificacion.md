@@ -259,7 +259,7 @@ Dirección canónica (origen → destino) usada en el modelo. «Obj» admite anc
 | excepcionSobretiempo | excepción | proceso fuente → proceso de manejo | — | NUNCA | NUNCA | NO (no canonizado) | NO | NO | EX1 | R-EXC-1/1B; R-EXC-2 «exige» `duracion.max` de la fuente = **canónico condicionado** ⇒ pedir el dato o advertir; sin cota se emite y parsea la frase de respaldo (R-EXC-DUR-1). Manejo no ambiental ⇒ advertir (R-EXC-1A) |
 | excepcionSubtiempo | excepción | proceso fuente → proceso de manejo | — | NUNCA | NUNCA | NO | NO | NO | EX2 | R-EXC-3 «exige» `duracion.min` ⇒ pedir o advertir; sin cota, respaldo; manejo no ambiental ⇒ advertir |
 | agregacion | estructural fund. | todo → parte, mismo tipo (obj→obj o proc→proc) | — | NO (AP-09) | NO | NO | **solo extremo parte** (la EBNF no tiene hueco en el todo; el plural «por multiplicidad del todo» no se ofrece, DR-12) | NO | RF1 | R-STRF-1 |
-| exhibicion | estructural fund. | exhibidor → rasgo: obj→obj, obj→proc, proc→obj, proc→proc | — | NO | NO | NO | NO (DR-21) | NO | RF2/RF2b | — |
+| exhibicion | estructural fund. | exhibidor → rasgo: obj→obj, obj→proc, proc→obj, proc→proc | sólo en el rasgo y sólo obj→obj: valor del atributo (RF5, R-STRE-2); nunca en el exhibidor | NO | NO | NO | NO (DR-21) | NO | RF2/RF2b/RF5 | R-STRE-2 (DR-46) |
 | generalizacion | estructural fund. | general → especialización, mismo tipo | **ninguno o ambos** (especialización de estado, R-OPL-RF-3: `lista_de_objetos_con_estado " son " objeto_con_estado`); nunca uno solo | NO | NO | NO | NO | NO | RF3/RF3b/RH1 | R-STRF-1; RX1/RX2 diferidos (DR-10) |
 | clasificacion | estructural fund. | clase → instancia, mismo tipo | — | NO | NO | NO | NO | NO | RF4/RF4b | R-STRF-3 (sin colección incompleta) |
 | etiquetado | estructural etiq. | obj→obj o proc→proc; origen = destino admitido (relación unaria, R-OPD-STR-10) | origen (SSE1), destino (SSE2), ambos (SSE3) | NO | NO | NO | ambos extremos | NO | SE1/SE2 | R-OPL-SE-2 (obj↔proc = exhibición) |
@@ -272,6 +272,7 @@ Reglas transversales de la matriz:
 |---|---|---|---|
 | R-EDIT-1 / R-OPD-EDIT-1 | Validar firma antes de crear un enlace; ofrecer solo los tipos legales para el par. | DEBE | menú de tipos filtrado por la matriz |
 | R-EDIT-2 | Validar el extremo de estado antes de anclar. | DEBE | impedir anclajes ilegales (estado inicial en resultado; estado en proceso) |
+| R-STRE-2 | La caracterización con estado especificado (RF5) une un objeto especializado con un valor del atributo discriminante de su general: ambos extremos objetos, el valor es un estado del atributo y algún general de la especialización (cadena transitiva, herencia múltiple incluida) exhibe el atributo, sin materializar herencia (DR-43, DR-46). | DEBE | impedir al crear, editar, importar desde OPL y borrar lo que la sostiene; el códec carga el contexto inválido como error recuperable |
 | R-MOD-4, R-MOD-INPUT-1, R-OPD-CTL-3 | `e`/`c` solo en Pre(P) (consumo, efecto-entrada, agente, instrumento, con o sin estado); nunca Post(P). | NO DEBE | selector de control desactivado fuera de Pre(P) |
 | R-COMB-3, AP-28, R-§21-OPL-MOD | A lo sumo un control por enlace; `c`+`e` no canonizado. | PUEDE (uno) / NO DEBE | campo escalar ⇒ imposible por construcción |
 | R-ESCIND-0, R-ESC-1, AP-08 | Mitad de entrada escindida sin `e`/`c` (ISO Tabla 25 NOTA 1); la mitad de salida y un TS4/TS5 standalone sí admiten (ETS3, ETS4, CS3, CS4; DEC50). | NO DEBE | usar `escision` para decidir |
@@ -713,7 +714,7 @@ Nota (spec-OPL §5.3, DEBE): «`unidades-tiempo` es metavariable; la superficie 
 | RF3b | **Especialización** es un **General**. | C ★ |
 | RF4 | **Instancia** es una instancia de **Clase**. | C ★ |
 | RF4b | **Instancia1** y **Instancia2** son instancias de **Clase**. | C ★ |
-| RF5 | **Especialización** exhibe **Atributo** en `valor`. | C·S no ofrecida (B-37): `unsupported-canonical`, sin hechos ni acciones |
+| RF5 | **Especialización** exhibe **Atributo** en `valor`. | C |
 | RX1 | **Especial** puede ser **General1** o **General2**. | C → X hasta resolver dirección (DR-10) |
 | RX2 | **Especial** puede ser uno de **General1**, **General2** o **General3**. | C → X (DR-10) |
 | RH1 | **Especial** es un **General1** y un **General2**. | C ★ |
@@ -724,13 +725,14 @@ Nota (spec-OPL §5.3, DEBE): «`unidades-tiempo` es metavariable; la superficie 
 
 Variantes de proceso (R-OPL-RF-1): agregación, exhibición, especialización e instanciación DEBEN soportar variantes de objeto y de proceso (misma plantilla con cursivas).
 
-RF5 (canon spec-OPL §6.2, R-STRE-2) caracteriza un objeto especializado por un valor
-del atributo discriminante heredado. El parser reconoce la forma tipada completa y
-emite un aviso visible en el editor, sin degradarla a un enlace etiquetado ni crear
-entidades. En un documento mixto sólo se aplican las otras líneas soportadas. La
-etiqueta explícita `«exhibe»` sigue siendo un hecho etiquetado distinto (DEC53), y RF2
-conserva su exhibición ordinaria. La grafía histórica con valor antepuesto conserva
-`non-canonical`. Este límite no implementa RF5 en núcleo, generación, dibujo o UI.
+RF5 (canon spec-OPL §6.2, R-STRE-2, R-OPD-STR-14) caracteriza un objeto especializado por un
+valor del atributo discriminante heredado. El núcleo lo guarda como exhibición con `estado` en el
+rasgo (DR-46): el valor pertenece al atributo y ambos extremos son objetos. G emite una oración RF5
+por enlace, fuera de las listas RF2, y P reconstruye el mismo hecho desde cualquier orden de líneas
+u OPD, después de los demás enlaces. Sin un general de la especialización que exhiba el atributo
+la línea no se aplica (`type-mismatch`, R-STRE-2) y no deja entidades. La etiqueta explícita
+`«exhibe»` sigue siendo un hecho etiquetado distinto (DEC53), RF2 conserva su exhibición ordinaria
+y la grafía histórica con valor antepuesto conserva `non-canonical`.
 
 Estructurales con estado especificado (reglas §4.10, textual):
 
@@ -1042,7 +1044,7 @@ Algoritmo de emisión (DR-32), por cada OPD en preorden del árbol:
 1. **Oración de refinamiento** del OPD si es hijo: CX1/CX2/mixta (descomposición, al menos un subproceso) o CX3 (despliegue, al menos un refinador).
 2. **Cosas visibles**, en orden de creación de su apariencia en el OPD: D1 si física, D3 si ambiental; D5/D6 con estados visibles en el orden del modelo; D10 o D7/D8, D9, D13 por estado visible designado; `es valor` si hay `valorSlot`.
 3. **Procedimentales**, sobre la Vista del OPD, agrupados por proceso y por fuerza: consumo, resultado, efecto, agente, instrumento; luego invocación y excepción. Dos o más enlaces elegibles de una producción AND se expresan en una lista: consumo, resultado, efecto básico, TS3, TS4, TS5, agente, instrumento e invocación con origen común (canon A.4.5.2–4). Cada miembro conserva estado, multiplicidad, identidad y tokens con su propio hecho; las producciones de efecto no se mezclan. Consumo/resultado comparten además la ruta (R-COMB-5). Los miembros de abanicos, incluso con ruta, quedan excluidos de las listas AND. Los controles E\*/C\* y las excepciones mantienen su gramática singular; no se inventa disparo colectivo. Abanicos: una oración por abanico (§4.4.8) salvo ruta (DS10).
-4. **Estructurales**, en cada OPD, incluidos los hijos: agrupados por vértice y relación (RF1, RF2/RF2b, RF3 por general, RF4b por clase; RH1 para una especialización con ≥2 generales, excluida de RF3). Las listas preservan las referencias de cada enlace y las colecciones incompletas. En un hijo de despliegue nuevo se conserva CX3 además de RF: el contexto y la relación que expresa el modo son hechos distinguibles (DR-24). Luego etiquetados: sólo los UNI elegibles se agrupan en lista cerrada con origen, estado de origen, multiplicidad de origen y etiqueta efectiva idénticos; ausencia y «se relaciona con» expresan el mismo hecho (B-38), sin cambiar sus campos guardados. Cada destino conserva sus estados/cantidades y su ID. Nunca se absorben bidireccionales o recíprocos (SE3 con etiquetas idénticas ⇒ SE4, R-STRE-1). B-04 y la matriz siguen delimitando combinaciones ofrecidas.
+4. **Estructurales**, en cada OPD, incluidos los hijos: agrupados por vértice y relación (RF1, RF2/RF2b, RF3 por general, RF4b por clase; RH1 para una especialización con ≥2 generales, excluida de RF3). Las listas preservan las referencias de cada enlace y las colecciones incompletas. Cada RF5 es una oración propia, tras las demás estructurales, ordenada por el nombre de la especialización y del atributo (colación y, si empata, escritura exacta) y por el orden del valor, sin desempatar por id (DR-46). En un hijo de despliegue nuevo se conserva CX3 además de RF: el contexto y la relación que expresa el modo son hechos distinguibles (DR-24). Luego etiquetados: sólo los UNI elegibles se agrupan en lista cerrada con origen, estado de origen, multiplicidad de origen y etiqueta efectiva idénticos; ausencia y «se relaciona con» expresan el mismo hecho (B-38), sin cambiar sus campos guardados. Cada destino conserva sus estados/cantidades y su ID. Nunca se absorben bidireccionales o recíprocos (SE3 con etiquetas idénticas ⇒ SE4, R-STRE-1). B-04 y la matriz siguen delimitando combinaciones ofrecidas.
 5. Empates: por nombre y luego por id.
 
 El instrumento común admite una lista de procesos (producción informativa adoptada en canon §4.2/EBNF,
@@ -2168,7 +2170,7 @@ Los ★ con obligación PUEDE o inferida son soportes necesarios de un DEBE ★ 
 | T-118 | Colección incompleta: `… y al menos otra parte / otro rasgo / otra especialización`; nunca en clasificación. | DEBE / NO DEBE | gen | reglas §4.10, R-STRF-3 | |
 | T-119 | Etiquetados SE1 (etiqueta de usuario) y SE2 (`se relaciona con` si no hay etiqueta). | DEBE | gen | reglas §4.10, R-OPL-SE-5, R-EST-TAG-2 | ★ |
 | T-120 | Etiquetados SE3, SE4, SE5; SE3 con etiquetas idénticas se emite como SE4. | DEBE | gen | reglas §4.10, R-STRE-1 | |
-| T-121 | Estructurales con estado SSE1–SSE7 y especialización de estado. | DEBE | gen | reglas §4.10, R-OPL-RF-3 | |
+| T-121 | Estructurales con estado SSE1–SSE7, especialización de estado y caracterización con estado especificado (RF5). | DEBE | gen | reglas §4.10, R-OPL-RF-3, R-STRE-2 | |
 | T-122 | Abanicos: las 24 plantillas de reglas §7.3; ramas con estado como `**A** en `s``. | DEBE | gen | reglas §7.3, R-FAN-2, R-FAN-EST-1 | ★ |
 | T-123 | Abanico de efecto sobre estados de un objeto (R-FAN-5) y fan TS3 con entrada común (R-FAN-5A: la entrada común NO DEBE suprimirse; fallar cerrado si varían entrada y salida). | DEBE / NO DEBE | gen | spec-OPL §8.1, DR-30 | |
 | T-124 | Abanico × modificador solo con plantilla: condición con todas las ramas `c` (C-18 y reglas §7.4) y evento en fan de efecto con objeto común (R-FAN-4). | DEBE / NO DEBE | gen | reglas §7.4, R-FAN-3/4 | |
@@ -2406,6 +2408,7 @@ Criterio de resolución: (1) precedencia del canon (§0.3); (2) si el canon no d
 | DR-43 | Herencia no materializada (R-HER-8, AP-29) pero «DEBE aplicarse aunque los enlaces heredados no se dibujen» (R-VIS-HER-1, R-OPD-STR-6). R-HER-1 hereda partes, rasgos, etiquetados y procedimentales (no estados); método A5.9 añade «y estados». Sin cálculo de herencia, los validadores sobre-acusan (proceso especializado «sin transformación»; efecto a especialización «sin estados»), contra R-AP-0C. | R-HER-1/8, R-VIS-HER-1, R-OPD-STR-6 vs R-PROC-2, R-EFE-1, método A5.9 | Sin materializar nada: los validadores R-PROC-2 (T-263) y R-EFE-1 (T-044) consultan también la cadena de generales (transitiva, herencia múltiple incluida). Estados heredados solo cuentan para R-EFE-1 en efecto básico T3 (el método los hereda; negarlo sería prohibir sin contradicción explícita); el anclaje a estado (TS\*, HS\*, SSE\*) se limita a estados propios del objeto. No se emite OPL ni se dibuja lo heredado. |
 | DR-44 | Multiplicidad sin hueco textual: R-COMB-6 dice que la multiplicidad «PUEDE combinarse con cualquier … modificador admisible», pero las producciones de condición (A.6) y el todo de la agregación (A.9) no admiten `restriccion_de_participacion`; el único camino del todo es el plural «por multiplicidad» (rechazado, DR-12). | R-COMB-6, R-MULT-COMB-1 vs EBNF A.6/A.9, DR-12 | No se ofrecen multiplicidad + `c` ni multiplicidad en el todo; si llegan por OPL/JSON ⇒ `unsupported-canonical` y registro (R-CONF-7). Evento sí la admite (A.5). |
 | DR-45 | Rastreo de refinadores: reglas R-OPD-OP-5 lo hace PUEDE («si lo hace, DEBE conservar trazabilidad de cada ajuste automático»); spec-OPD R-OPD-EDIT-6 lo hace DEBE. | R-OPD-OP-5 vs R-OPD-EDIT-6 | Se implementa (satisface ambas) y cada ajuste automático deja traza (diagnóstico `info` con la regla y el refinable afectados). |
+| DR-46 | RF5: el canon fija oración (spec-OPL §6.2), glifo (R-OPD-STR-14) y validez (R-STRE-2), pero no su representación ni qué ocurre con lo que la sostiene. Su NOTE sólo recomienda mostrar en el OPD la exhibición del general. | R-STRE-2, R-HER-1/3, R-OPD-STR-6/14, spec-OPL §2.5 | Exhibición con `estado` en el rasgo, sin tipo nuevo ni campo v0 nuevo (base `kind:"estado"`). Valida entre objetos con un general de la cadena transitiva que exhiba el atributo, como DR-43. La recomendación del OPD no se convierte en regla ni aviso. No se prohíben varios valores para la misma especialización: el canon no lo prohíbe y R-HER-3 habla de valores válidos; AP-29 sigue rechazando repetir el mismo valor heredado. Su base es un valor: no integra listas RF2, la colección incompleta ni el despliegue por exhibición, y la oración de valor sólo se apoya en una exhibición ordinaria. Borrar el valor, la especialización o la exhibición del general que lo sostienen se rechaza; borrar un extremo elimina el enlace como a cualquier otro, y retirar el valor por edición explícita produce RF2, sujeta a sus reglas. |
 
 ### 10.2 Otras tensiones registradas (sin decisión adicional necesaria)
 

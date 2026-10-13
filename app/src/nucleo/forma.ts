@@ -75,6 +75,11 @@ export function validarForma(m: Modelo): readonly Violacion[] {
             case 'instrumento':
                 estado(e.estado, e.objeto, e.id);
                 break;
+            case 'exhibicion':
+                estado(e.estado, e.refinador, e.id);
+                if (e.estado !== undefined && (m.cosas[e.refinable]?.tipo !== 'objeto' || m.cosas[e.refinador]?.tipo !== 'objeto'))
+                    fallo('F-3', 'La caracterización con estado especificado requiere dos objetos.', [ref('enlace', e.id)]);
+                break;
             case 'efecto':
                 estado(e.entrada, e.objeto, e.id);
                 estado(e.salida, e.objeto, e.id);

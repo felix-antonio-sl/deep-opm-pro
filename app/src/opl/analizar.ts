@@ -36,7 +36,7 @@ export type EnlaceTexto = {
     readonly tipo: 'agregacion' | 'exhibicion' | 'generalizacion' | 'clasificacion';
     readonly refinable: ExtremoTexto;
     readonly refinador: ExtremoTexto;
-} // estados solo en generalización (RFE)
+} // estados: ambos extremos en generalización (RFE); sólo el refinador en exhibición (RF5)
  | {
     readonly tipo: 'etiquetado' | 'etiquetadoBidireccional' | 'reciproco';
     readonly origen: ExtremoTexto;

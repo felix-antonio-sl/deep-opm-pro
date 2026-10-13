@@ -495,6 +495,8 @@ function construirEnlaces(data:Record<Col,Record<string,Registro>>, cosas:Record
     } else if(['agregacion','exhibicion','generalizacion','clasificacion'].includes(tipo)) {
       out={...out,refinable:a.cosa,refinador:b.cosa};permiteDestino=tipo==='agregacion';
       if(tipo==='generalizacion'&&a.estado&&b.estado&&cosas[a.cosa]?.tipo==='objeto'&&cosas[b.cosa]?.tipo==='objeto')out.estados={general:a.estado,especializacion:b.estado};
+      // RF5 (R-STRE-2, R-OPD-STR-14): sólo la base de una exhibición entre objetos se ancla a un valor.
+      else if(tipo==='exhibicion'&&!a.estado&&b.estado&&cosas[a.cosa]?.tipo==='objeto'&&cosas[b.cosa]?.tipo==='objeto')out.estado=b.estado;
       else {if(a.estado)l.perder(`${r}.origenId`,a.estado,'R-OPL-RF-3','Anclaje estructural retirado');if(b.estado)l.perder(`${r}.destinoId`,b.estado,'R-OPL-RF-3','Anclaje estructural retirado');}
     } else {
       out={...out,origen:a.cosa,destino:b.cosa}; permiteOrigen=true;permiteDestino=true;const tag=str(e.etiqueta),back=str(e.backwardTag);

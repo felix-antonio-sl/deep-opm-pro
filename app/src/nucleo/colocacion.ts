@@ -1,4 +1,5 @@
 import type { Modelo, Id, Aparicion, OpdDescomposicion, OpdDespliegue } from './tipos';
+import { refinadorPorModo } from './tipos';
 const solapa = (x: number, y: number, t: {
     ancho: number;
     alto: number;
@@ -103,7 +104,7 @@ export function colocarDescomposicion(m: Modelo, o: OpdDescomposicion): Readonly
 export function colocarDespliegue(m: Modelo, o: OpdDespliegue): Readonly<Record<Id, Aparicion>> {
     const cajas = { ...o.apariciones };
     const a = cajas[o.cosa] ?? { x: 0, y: 0, ancho: 135, alto: 60 };
-    const ids = Object.values(m.enlaces).filter(e => e.tipo === o.modo && 'refinable' in e && e.refinable === o.cosa).flatMap(e => 'refinador' in e ? [e.refinador] : []).sort((x, y) => (m.cosas[x]?.nombre ?? x).localeCompare(m.cosas[y]?.nombre ?? y, 'es'));
+    const ids = Object.values(m.enlaces).flatMap(e => refinadorPorModo(e, o.modo, o.cosa) ?? []).sort((x, y) => (m.cosas[x]?.nombre ?? x).localeCompare(m.cosas[y]?.nombre ?? y, 'es'));
     const total = ids.reduce((n, id) => n + (cajas[id]?.ancho ?? 135), 0) + Math.max(0, ids.length - 1) * 40;
     let x = a.x + a.ancho / 2 - total / 2;
     for (const id of ids) {

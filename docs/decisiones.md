@@ -322,6 +322,16 @@ en H3 o ante una contradicción real del contrato.» La reanudación tras H2 fue
 La historia íntegra permanece en Git hasta 89aaa3a5 bajo docs/rehacer/bitacora.md.
 No se infiere autorización de Docker, producción, migración real o merge.
 
+**RF5 completa.** Mandato directo de Félix, citado en sus frases operativas:
+
+> Implementa RF5 completa —caracterización con estado especificado— como un único incremento vertical. El alcance es B-37 y únicamente la parte correspondiente de B-48. No toques B-45 ni inicies otras brechas.
+>
+> Autorizo completar ese incremento con pruebas completas, revisión independiente, un commit atómico y semántico y push normal a main. No hagas merges, reescribas historia ni despliegues.
+
+Sustituye para RF5 el límite de DEC36, que queda como historia: el canon 2.0 ya fija oración y
+glifo. La representación y las resoluciones de simplicidad están en DR-46 de la especificación.
+No autoriza despliegue, B-45 ni el resto de B-48.
+
 ### 1.6 Decisiones de esta síntesis (DS-n)
 
 Estas son las resoluciones que CANON.md no fija, o que ajustan una DR por una exigencia más fuerte

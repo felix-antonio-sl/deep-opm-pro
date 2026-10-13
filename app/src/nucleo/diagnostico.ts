@@ -1,6 +1,6 @@
 import { requierePlural } from './multiplicidad';
 import type { Modelo, Id, Ref, Enlace } from './tipos';
-import { esProcedimental } from './tipos';
+import { esProcedimental, refinadorPorModo } from './tipos';
 import type { Accion } from './operaciones';
 import type { Rechazo } from './resultado';
 import { indice, claveNombre } from './indice';
@@ -140,7 +140,7 @@ export function diagnosticar(m: Modelo): readonly Diagnostico[] {
         else if (n > 20)
             añadir('opd-denso', [ref('opd', id)], `Este OPD contiene ${n} cosas.`, { opd: id });
         if (o.tipo !== 'raiz') {
-            const hijos = o.tipo === 'descomposicion' ? new Set(o.bandas.flat()).size : new Set(vista.enlaces.filter(v => v.enlace.tipo === o.modo && 'refinable' in v.enlace && v.enlace.refinable === o.cosa).map(v => 'refinador' in v.enlace ? v.enlace.refinador : '')).size;
+            const hijos = o.tipo === 'descomposicion' ? new Set(o.bandas.flat()).size : new Set(vista.enlaces.flatMap(v => refinadorPorModo(v.enlace, o.modo, o.cosa) ?? [])).size;
             // ISO §10.3.1: un refinamiento elabora el refinable en uno o más refinados.
             if (hijos < 1)
                 añadir('refinamiento-trivial', [ref('opd', id), ref('cosa', o.cosa)], 'El refinamiento no tiene hijos.', { opd: id });
@@ -286,12 +286,14 @@ export function diagnosticar(m: Modelo): readonly Diagnostico[] {
     const contextos = new Map<Id, Set<string>>();
     for (const o of Object.values(m.opds))
         if (o.tipo === 'despliegue')
-            for (const e of enlaces)
-                if (e.tipo === o.modo && 'refinable' in e && e.refinable === o.cosa) {
-                    const modos = contextos.get(e.refinador) ?? new Set<string>();
+            for (const e of enlaces) {
+                const refinador = refinadorPorModo(e, o.modo, o.cosa);
+                if (refinador) {
+                    const modos = contextos.get(refinador) ?? new Set<string>();
                     modos.add(o.modo);
-                    contextos.set(e.refinador, modos);
+                    contextos.set(refinador, modos);
                 }
+            }
     for (const [id, modos] of contextos)
         if (modos.size > 1)
             añadir('refinador-en-varios-contextos', [ref('cosa', id)], 'El refinador pertenece a contextos con relaciones distintas.');

@@ -195,8 +195,12 @@ Estas leyes se prueban sobre todos los fixtures y 200 modelos de `pruebas/azar.t
    - **Estructurales fundamentales**: origen = refinable y destino = refinador.
      - Una **generalización con estado en ambos extremos**, sobre objetos, da
        `estados{general, especializacion}` (DS-8).
-     - Con estado en un solo extremo, o en agregación, exhibición o clasificación, el **anclaje** va
-       a `descartado` y el enlace se conserva (R-OPL-RF-3, matriz §2.1).
+     - Una **exhibición entre objetos con estado sólo en el destino** da `estado`: la
+       caracterización con estado especificado RF5 (R-STRE-2, R-OPD-STR-14, DR-46). Su contexto
+       de herencia se carga y, si falta, `diagnosticar` lo informa como error recuperable.
+     - Con estado en un solo extremo de la generalización, o en otro extremo o firma de la
+       exhibición, o en agregación o clasificación, el **anclaje** va a `descartado` y el enlace
+       se conserva (R-OPL-RF-3, matriz §2.1).
    - **`etiquetado`**: `etiqueta` vacía da SE2; los estados en los extremos pasan a
      `estadoOrigen/Destino`.
    - **`etiquetadoBidireccional`**:
@@ -374,7 +378,7 @@ Mapeos de salida:
 | `Resultado` | `origenId` = proceso, `destinoId` = objeto (o su estado), `multiplicidadDestino` |
 | `Efecto` | **siempre compacto**: `origenId` = proceso, `destinoId` = objeto (entidad), `estadoEntradaId`, `estadoSalidaId`, `multiplicidadDestino`; `escision` ⇒ `efectoEscindido{grupoId = enlacePadreId = id de la mitad de entrada, rol, modo:"par"}` |
 | `Invocacion`, `Excepcion` | `origenId` = origen, `destinoId` = destino; en excepciones, además la cota derivada de la fuente (`tiempoMaximo`/`unidadTiempoMaximo` o `tiempoMinimo`/`unidadTiempoMinimo`, CC-13) |
-| `Agregacion` · `Exhibicion` · `Generalizacion` · `Clasificacion` | `origenId` = refinable, `destinoId` = refinador; agregación `mult` ⇒ `multiplicidadDestino`; `Generalizacion.estados` ⇒ ambos extremos `kind:"estado"` |
+| `Agregacion` · `Exhibicion` · `Generalizacion` · `Clasificacion` | `origenId` = refinable, `destinoId` = refinador; agregación `mult` ⇒ `multiplicidadDestino`; `Generalizacion.estados` ⇒ ambos extremos `kind:"estado"`; `Exhibicion.estado` (RF5) ⇒ `destinoId` `kind:"estado"` |
 | `Etiquetado` | extremos con `kind:"estado"` si están anclados; `multiplicidadOrigen/Destino`; `etiqueta` (`""` = SE2) |
 | `Bidireccional` | `etiquetadoBidireccional`, `etiqueta`, `backwardTag` = `inversa` |
 | `Reciproco` | `etiquetadoBidireccional` con `backwardTag === etiqueta` (`""` y `""` si no hay etiqueta) |

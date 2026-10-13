@@ -215,6 +215,12 @@ canónica (P7), y toda acción se deshace en un paso.
       - Escribir busca en el lugar y ofrece al final «Crear objeto «Leche»» / «Crear proceso
         «Leche»». La cosa nueva se coloca con objeto arriba y proceso abajo (R-OPD-LAY-9).
       - ↵ abre el menú de tipo.
+   8. **Caracterización con estado especificado (RF5)**: desde una especialización hacia un valor
+      del atributo que exhibe su general, el menú ofrece `exhibicion` con la vista previa
+      «**Auto** exhibe **Medio de Desplazamiento** en `tierra`.», distinta del etiquetado con
+      estado. El triángulo de exhibición une la especialización con la cápsula del valor;
+      Propiedades cambia el valor («Valor especificado (RF5)»). Sin ese general se rechaza
+      (R-STRE-2), y el valor no se elimina mientras un RF5 lo use.
 8. **Control e/c.**
    - Con un enlace seleccionado, `E` o `C` alternan evento o condición; la letra se ve en el lienzo
      y el OPL pasa a E\*/C\*. También está el selector de Propiedades: «ninguno · evento ·

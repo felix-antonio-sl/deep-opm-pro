@@ -338,7 +338,8 @@ export function escena(m: Modelo, opd: Id): Escena {
     for (const v of vista.enlaces) {
         const e = v.enlace;
         if ('refinable' in e) {
-            const key = JSON.stringify([e.refinable, e.tipo, e.tipo === 'generalizacion' ? e.estados?.general : undefined]);
+            // RF5 (R-OPD-STR-14): triángulo propio, con la base en el valor del atributo.
+            const key = JSON.stringify([e.refinable, e.tipo, e.tipo === 'generalizacion' ? e.estados?.general : e.tipo === 'exhibicion' ? e.estado : undefined]);
             const g = grupos.get(key) ?? [];
             g.push(v);
             grupos.set(key, g);
@@ -393,10 +394,11 @@ export function escena(m: Modelo, opd: Id): Escena {
             const r = v.enlace;
             if (!('refinador' in r))
                 throw new Error('grupo estructural');
-            const s = r.tipo === 'generalizacion' ? r.estados?.especializacion : undefined;
+            const s = r.tipo === 'generalizacion' ? r.estados?.especializacion : r.tipo === 'exhibicion' ? r.estado : undefined;
             return { ...contorno(r.refinador, s), id: r.id };
         });
-        const incompleta = vista.incompletas.some(i => i.refinable === e.refinable && i.relacion === e.tipo);
+        const valor = e.tipo === 'exhibicion' ? e.estado : undefined;
+        const incompleta = !valor && vista.incompletas.some(i => i.refinable === e.refinable && i.relacion === e.tipo);
         const partes = g.flatMap(v => 'refinador' in v.enlace ? [v.enlace.refinador] : []), propios = new Set([e.refinable, ...partes, ...contenedoresDe([e.refinable, ...partes])]);
         const geo = peine(contorno(e.refinable, general), refinadores, incompleta, [...nodos.filter(n => !propios.has(n.ref.id)).map(n => ({ caja: n.caja, forma: forma(n) })), ...triangulos], aristas.flatMap(a => a.tramos.map(t => t.puntos)), tramosPeine);
         if (!geo)
@@ -405,7 +407,7 @@ export function escena(m: Modelo, opd: Id): Escena {
         const x0 = Math.min(...esquinas.map(p => p.x)), y0 = Math.min(...esquinas.map(p => p.y));
         triangulos.push({ caja: { x: x0, y: y0, ancho: Math.max(1, Math.max(...esquinas.map(p => p.x)) - x0), alto: Math.max(1, Math.max(...esquinas.map(p => p.y)) - y0) }, forma: 'rectangulo' });
         tramosPeine.push(geo.tronco, geo.tallo, geo.barra, ...geo.ramas.map(r => r.puntos));
-        simbolos.push({ clave: `simbolo:${e.refinable}:${e.tipo}${general ? ':' + general : ''}`, refinable: e.refinable, relacion: e.tipo, vertice: geo.vertice, orientacion: geo.orientacion, incompleta, ramas: g.map(v => v.enlace.id), peine: [geo.tronco, geo.tallo, geo.barra, ...geo.ramas.map(r => r.puntos), ...(geo.incompleta ? [geo.incompleta] : [])], incidencias: [...[geo.tronco, geo.tallo, geo.barra].map(() => ({ refs: g.map(v => v.enlace.id), extremos: [e.refinable], estados: general ? [general] : [], contenedores: contenedoresDe([e.refinable]) })), ...geo.ramas.map(r => { const x = g.find(v => v.enlace.id === r.id)!.enlace, extremos = 'refinador' in x ? [x.refinador] : []; return { refs: [r.id], extremos, estados: x.tipo === 'generalizacion' && x.estados ? [x.estados.especializacion] : [], contenedores: contenedoresDe(extremos) }; }), ...(geo.incompleta ? [{ refs: g.map(v => v.enlace.id), extremos: [] }] : [])], mult: g.flatMap(v => v.enlace.tipo === 'agregacion' && v.enlace.mult ? [{ texto: v.enlace.mult, en: multiplicidad(geo.ramas.find(r => r.id === v.enlace.id)!.puntos[1], geo.ramas.find(r => r.id === v.enlace.id)!.puntos[0], undefined, undefined, v.enlace.mult) }] : []) });
+        simbolos.push({ clave: `simbolo:${e.refinable}:${e.tipo}${general ? ':' + general : valor ? ':' + valor : ''}`, refinable: e.refinable, relacion: e.tipo, vertice: geo.vertice, orientacion: geo.orientacion, incompleta, ramas: g.map(v => v.enlace.id), peine: [geo.tronco, geo.tallo, geo.barra, ...geo.ramas.map(r => r.puntos), ...(geo.incompleta ? [geo.incompleta] : [])], incidencias: [...[geo.tronco, geo.tallo, geo.barra].map(() => ({ refs: g.map(v => v.enlace.id), extremos: [e.refinable], estados: general ? [general] : [], contenedores: contenedoresDe([e.refinable]) })), ...geo.ramas.map(r => { const x = g.find(v => v.enlace.id === r.id)!.enlace, extremos = 'refinador' in x ? [x.refinador] : []; return { refs: [r.id], extremos, estados: x.tipo === 'generalizacion' && x.estados ? [x.estados.especializacion] : x.tipo === 'exhibicion' && x.estado ? [x.estado] : [], contenedores: contenedoresDe(extremos) }; }), ...(geo.incompleta ? [{ refs: g.map(v => v.enlace.id), extremos: [] }] : [])], mult: g.flatMap(v => v.enlace.tipo === 'agregacion' && v.enlace.mult ? [{ texto: v.enlace.mult, en: multiplicidad(geo.ramas.find(r => r.id === v.enlace.id)!.puntos[1], geo.ramas.find(r => r.id === v.enlace.id)!.puntos[0], undefined, undefined, v.enlace.mult) }] : []) });
     }
     for (const f of vista.abanicos) {
         const ramas = f.ramas.map(id => aristas.find(a => a.ref.id === id)).filter((a): a is Arista => !!a);

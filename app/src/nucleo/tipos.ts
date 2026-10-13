@@ -105,6 +105,7 @@ export interface Agregacion extends Estructural {
 }
 export interface Exhibicion extends Estructural {
     readonly tipo: 'exhibicion';
+    readonly estado?: Id; // RF5: valor del atributo (estado del refinador); sólo entre objetos (R-STRE-2)
 } // exhibidor → rasgo
 export interface Generalizacion extends Estructural {
     readonly tipo: 'generalizacion';
@@ -153,6 +154,13 @@ export type SinId<T> = T extends unknown ? Omit<T, 'id'> : never;
 export type EnlaceNuevo = SinId<Enlace>; // candidato: lo construyen tiposLegales y el planificador OPL
 export type Familia = 'transformadora' | 'habilitadora' | 'invocacion' | 'excepcion' | 'estructural' | 'etiquetada';
 export function esProcedimental(e: Enlace | EnlaceNuevo): e is EnlaceProcedimental { return ['consumo', 'resultado', 'efecto', 'agente', 'instrumento'].includes(e.tipo); } // (EnlaceNuevo ⇒ SinId<…>)
+/** RF5 (ISO §10.4.1, R-OPD-STR-14): la base de esta exhibición es un valor del atributo, no un rasgo;
+ *  por eso no integra la colección de rasgos ni el despliegue por exhibición de su exhibidor. */
+export function esCaracterizacionConEstado(e: Enlace | EnlaceNuevo): boolean { return e.tipo === 'exhibicion' && e.estado !== undefined; }
+/** Refinador que `e` aporta al despliegue de `cosa` por `modo`, si lo aporta. */
+export function refinadorPorModo(e: Enlace, modo: ModoDespliegue, cosa: Id): Id | undefined {
+    return 'refinable' in e && e.tipo === modo && e.refinable === cosa && !esCaracterizacionConEstado(e) ? e.refinador : undefined;
+}
 /** Extremos en la dirección del formato v0: consumo/agente/instrumento objeto→proceso; resultado/efecto
  *  proceso→objeto; estructurales refinable→refinador; invocación, excepción y etiquetados origen→destino. */
 export function extremos(e: Enlace | EnlaceNuevo): {

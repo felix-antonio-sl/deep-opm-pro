@@ -106,6 +106,7 @@ function estadosEnlace(e: Enlace): readonly Id[] {
         case 'agente':
         case 'instrumento': return e.estado ? [e.estado] : [];
         case 'efecto': return [e.entrada, e.salida].filter((x): x is Id => x !== undefined);
+        case 'exhibicion': return e.estado ? [e.estado] : [];
         case 'generalizacion': return e.estados ? [e.estados.general, e.estados.especializacion] : [];
         case 'etiquetado': return [e.estadoOrigen, e.estadoDestino].filter((x): x is Id => x !== undefined);
         case 'etiquetadoBidireccional': return [e.estadoOrigen, e.estadoDestino].filter((x): x is Id => x !== undefined);

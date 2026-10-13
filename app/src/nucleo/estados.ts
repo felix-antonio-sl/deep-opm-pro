@@ -81,6 +81,9 @@ function sinAnclaje(e: Enlace, id: Id): Enlace {
 export const eliminarEstado: Operacion<{ estado: Id }> = (m, a) => {
     const r = transaccion(m, tx => {
         const d = estado(tx, a.estado);
+        // RF5 no existe sin su valor; retirarlo la convertiría en otra relación (R-STRE-2).
+        const rf5 = (indice(m).enlacesDeEstado.get(a.estado) ?? []).find(id => m.enlaces[id]?.tipo === 'exhibicion');
+        if (rf5) negar(tx, 'estado-enlazado', 'R-STRE-2', `El estado ${d.estado.nombre} es el valor de una caracterización con estado especificado (RF5); elimina o reancla antes ese enlace.`, [{ tipo: 'estado', id: a.estado }, { tipo: 'enlace', id: rf5 }]);
         let c: Objeto = { ...d.objeto, estados: d.objeto.estados.filter(s => s.id !== a.estado) };
         if (c.porDefecto === a.estado) c = sin(c, 'porDefecto');
         if (c.current === a.estado) c = sin(c, 'current');
@@ -131,6 +134,7 @@ function ancla(e: Enlace, id: Id): boolean {
     switch (e.tipo) {
         case 'consumo': case 'resultado': case 'agente': case 'instrumento': return e.estado === id;
         case 'efecto': return e.entrada === id || e.salida === id;
+        case 'exhibicion': return e.estado === id;
         case 'generalizacion': return e.estados?.general === id || e.estados?.especializacion === id;
         case 'etiquetado': return e.estadoOrigen === id || e.estadoDestino === id;
         case 'etiquetadoBidireccional': return e.estadoOrigen === id || e.estadoDestino === id;

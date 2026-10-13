@@ -12,7 +12,7 @@ export interface ExpectativaMatriz {
         'origen',
         'destino'
     ];
-    readonly estados: 'ninguno' | 'objeto' | 'entradaSalida' | 'parGeneralizacion' | 'origenDestino' | 'simetrico';
+    readonly estados: 'ninguno' | 'objeto' | 'entradaSalida' | 'parGeneralizacion' | 'origenDestino' | 'simetrico' | 'refinador';
     readonly etiquetas: 'ninguna' | 'opcional' | 'doble';
     readonly clases: readonly [
         'objeto' | 'proceso' | 'cosa',
@@ -35,7 +35,7 @@ export const EXPECTATIVAS_MATRIZ: Readonly<Record<TipoEnlace, ExpectativaMatriz>
     excepcionSobretiempo: { familia: 'excepcion', roles: ['origen', 'destino'], estados: 'ninguno', etiquetas: 'ninguna', clases: ['proceso', 'proceso'], mismoTipo: true, reflexivo: false, control: false, abanico: false, ruta: false, mult: 'ninguno' },
     excepcionSubtiempo: { familia: 'excepcion', roles: ['origen', 'destino'], estados: 'ninguno', etiquetas: 'ninguna', clases: ['proceso', 'proceso'], mismoTipo: true, reflexivo: false, control: false, abanico: false, ruta: false, mult: 'ninguno' },
     agregacion: { familia: 'estructural', roles: ['refinable', 'refinador'], estados: 'ninguno', etiquetas: 'ninguna', clases: ['cosa', 'cosa'], mismoTipo: true, reflexivo: false, control: false, abanico: false, ruta: false, mult: 'refinador' },
-    exhibicion: { familia: 'estructural', roles: ['refinable', 'refinador'], estados: 'ninguno', etiquetas: 'ninguna', clases: ['cosa', 'cosa'], mismoTipo: false, reflexivo: false, control: false, abanico: false, ruta: false, mult: 'ninguno' },
+    exhibicion: { familia: 'estructural', roles: ['refinable', 'refinador'], estados: 'refinador', etiquetas: 'ninguna', clases: ['cosa', 'cosa'], mismoTipo: false, reflexivo: false, control: false, abanico: false, ruta: false, mult: 'ninguno' },
     generalizacion: { familia: 'estructural', roles: ['refinable', 'refinador'], estados: 'parGeneralizacion', etiquetas: 'ninguna', clases: ['cosa', 'cosa'], mismoTipo: true, reflexivo: false, control: false, abanico: false, ruta: false, mult: 'ninguno' },
     clasificacion: { familia: 'estructural', roles: ['refinable', 'refinador'], estados: 'ninguno', etiquetas: 'ninguna', clases: ['cosa', 'cosa'], mismoTipo: true, reflexivo: false, control: false, abanico: false, ruta: false, mult: 'ninguno' },
     etiquetado: { familia: 'etiquetada', roles: ['origen', 'destino'], estados: 'origenDestino', etiquetas: 'opcional', clases: ['cosa', 'cosa'], mismoTipo: true, reflexivo: true, control: false, abanico: false, ruta: false, mult: 'ambos' },
@@ -65,6 +65,7 @@ export const EXPECTATIVAS_ABANICOS = {
 } as const;
 export const EXPECTATIVAS_REGLAS = [
     { id: 'R-ROL-1', tipos: ['consumo', 'resultado', 'efecto', 'agente', 'instrumento'], regla: 'Instrumento abstracto y cambio neto cero en detalle: PUEDE de RROL1, límite producto B34 recuperable.' },
+    { id: 'R-STRE-2', tipos: ['exhibicion'], regla: 'RF5: un general de la especialización (cadena transitiva) exhibe el atributo cuyo valor se especifica.' },
     { id: 'R-ESCIND-2', tipos: ['efecto'], regla: 'Entrada temprana y salida tardía del par escindido.' },
     { id: 'AP-29', tipos: ['consumo', 'resultado', 'efecto', 'agente', 'instrumento', 'agregacion', 'exhibicion', 'etiquetado', 'etiquetadoBidireccional', 'reciproco'], regla: 'RHER8 prohíbe duplicación nuclear explícita de hechos heredados.' },
     { id: 'R-ROL-UNIC-1', tipos: ['consumo', 'resultado', 'efecto', 'agente', 'instrumento'], regla: 'Un procedimental por par; ramas del mismo abanico exceptuadas.' },
