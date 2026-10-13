@@ -41,7 +41,8 @@ Chromium usa `PW_CHROMIUM=/ruta/al/chrome` explícito o el registro instalado de
 Playwright (`PLAYWRIGHT_BROWSERS_PATH` si corresponde). No se descarga navegador
 al ejecutar las pruebas. El fixture exige 0 errores de página y 0 solicitudes externas.
 
-Para cambiar render: `bun run golden` y observar cada SVG cambiado. Una captura
+Para comprobar render: `bun run golden`, sin escribir expectativas. Para regenerarlas
+por un cambio autorizado: `bun run golden:update` y observar cada SVG cambiado. Una captura
 no sustituye el export canónico. Los artefactos de build no se versionan.
 
 ## Mapa

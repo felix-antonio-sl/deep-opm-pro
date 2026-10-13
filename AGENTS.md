@@ -27,9 +27,13 @@ No inventes reglas OPM locales. Si el canon no decide, aplica la válvula de sim
 
 ## Verificación
 Desde `app/`: `bun run check`. Añade solo lo que corresponda: el escenario e2e afectado para
-interacción; `bun run golden` y revisión visual de cada SVG cambiado para render; `bun run build`
+interacción; `bun run golden` comprueba el render contra expectativas conservadas, sin reescribirlas; `bun run build`
 para empaquetado; `bun test ../deploy` al tocar `deploy/`. No declares roundtrip ni fidelidad
 visual sin observarlos. El título de cada prueba de un requisito empieza por su T-ID.
+Si un cambio de render exige nuevas expectativas, usa `bun run golden:update` solo
+para esa regeneración autorizada y revisa el diff y cada SVG afectado. Regenerar un
+oráculo no acredita por sí solo que el cambio sea correcto ni reemplaza comprobarlo.
+Conserva expectativas y cambios de render que pertenezcan a trabajo concurrente.
 
 ## Lista de cierre (canon reglas Anexo A y perfil reglas-opforja Anexo A; R-ANEXO-CHECK-1)
 Todo cambio de modelado, parser, generador OPL, import/export o render canónico se revisa contra:
@@ -49,7 +53,7 @@ Todo cambio de modelado, parser, generador OPL, import/export o render canónico
   a uno o dos subprocesos (el producto lo escinde por defecto; el resultado va al último, DEC45) (refinamiento).
 - Vistas (perfil): no hay vistas tipificadas en el producto (registro B-16).
 - UI (perfil): handles, overlays, guías y validación separados del canon; sin grilla (exportar, golden, e2e 18–19).
-- Export (perfil): `canon-diagrama`/`canon-documento` declarados; una captura nunca es evidencia (exportar).
+- Export (perfil): `canon-diagrama`/`canon-documento` declarados; una captura evidencia apariencia puntual, no conformidad semántica ni fidelidad del export (exportar).
 - Deuda (perfil): toda zona no canonizada queda registrada.
 
 ## Registro de conformidad
