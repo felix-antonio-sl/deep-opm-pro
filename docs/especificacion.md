@@ -616,7 +616,7 @@ Estado de cada plantilla: **C** = canónica en `reglas` (tabla-gate, generar y p
 | D14 | **Objeto** está en `estado`. | C·S → X (B-61: G usa D5 de un elemento, DR-33; parser `unsupported-canonical`, sin mutar) |
 | D15 / D16 | Estados `s1` y `s2` de **Objeto** son iniciales. / … son finales. | C·S → X (B-61: G emite D7/D8 por estado; parser `unsupported-canonical`, sin mutar) |
 | D17 | **Objeto** está inicialmente en `s1` y finalmente en `s2` o `s3`. | C·S → X (B-61: G emite D7/D8; parser `unsupported-canonical`, sin mutar) |
-| ENT3 (perfil R-ENT-3 ext.) | **Cosa** es un {objeto\|proceso} {esencia} y {afiliacion}. (`**Sensor** es un objeto físico y ambiental.`; solo esencia: `**Cosa** es un objeto físico.`; solo afiliación: `**Cosa** es un objeto ambiental.`) | C·S → P (reglas 9.2 manda la atómica, DR-2); la clase declarada debe coincidir con la tipografía: `**Pedido** es un proceso físico.` da `syntax-error` sin hechos |
+| ENT3 (perfil R-ENT-3 ext.) | **Cosa** es un {objeto\|proceso} {esencia} y {afiliacion}. (`**Sensor** es un objeto físico y ambiental.`; solo esencia: `**Cosa** es un objeto físico.`; solo afiliación (ENT3a): `**Cosa** es un objeto ambiental.`) | C·S → P (G emite D19, R-ENT-3 y DR-2; ENT3 y ENT3a son entrada del perfil); la clase declarada debe coincidir con la tipografía: `**Pedido** es un proceso físico.` da `syntax-error` sin hechos |
 | ENT-ATR valor | **Atributo** de **Objeto** es valor. | C (`valorSlot`) |
 | ENT-ATR rango | **Atributo** de **Objeto** varía de X a Y. | X (GAP-VARIA) |
 | ENT-ATR enum | **Atributo** de **Objeto** puede estar `valor1`, `valor2` o `valor3`. | C · P (el generador usa D5, DR-20) |

@@ -7,7 +7,7 @@ import { textoDeTokens } from './linea';
 const palabras = `a afecta afectado al ambiental así cambia caso cero como con consta consume contrario cualquier current cuyo de declarado defecto descompone desde despliega donde día días dos duración e el en entonces es esa especialización estado estados estar está exactamente excede exhibe existe final física físico genera hora horas informacional inicia inicial instancia instancias invoca lo maneja manejan manejado menor menos mes meses milisegundo milisegundos minuto minutos mismo muchos muchas más máxima mínima objeto ocurre omite opcional opcionales otra otro otros paralelo parte persistente por proceso puede que rasgo relaciona relacionan requiere requieren ruta se secuencia segundo segundos semana semanas si sistémica sistémico son su sí transitoria u un una uno y año años o forma plural nombre inician`;
 test('T-104 T-005 T-300 vocabulario es unión cerrada de literales de las plantillas G y P y sus macros finitos',()=>{
  // RF5 (B-37) agrega una fila sin palabras nuevas; D19 y su orden inverso D19i (R-ENT-3), dos más.
- expect(PLANTILLAS).toHaveLength(146); expect(VOCABULARIO).toHaveLength(119);
+ expect(PLANTILLAS).toHaveLength(147); expect(VOCABULARIO).toHaveLength(119);
  expect(new Set(VOCABULARIO)).toEqual(new Set(palabras.split(' ')));
  expect(VOCABULARIO).not.toContain('consumen');
  for(const nombre of ['Pedido','Procesar','pendiente','urgente','centurias'])expect(VOCABULARIO).not.toContain(nombre.toLowerCase());

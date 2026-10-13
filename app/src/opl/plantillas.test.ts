@@ -4,7 +4,7 @@ const ids=['D1','D2','D3','D4','ENT3','D5','D6','D7','D8','D9','D10','D11','D12'
 test('T-105 tabla única contiene las superficies G/P, desde y hacia tipados',()=>{
  const ps=(tabla as {PLANTILLAS?:readonly {id:string;estado:string;desde?:unknown;hacia:unknown}[]}).PLANTILLAS??[];
  for(const id of ids){const p=ps.find(p=>p.id===id);expect(p).toBeDefined();expect(typeof p?.hacia).toBe('function');if(p?.estado==='G')expect(typeof p.desde).toBe('function');}
- for(const id of ['D4','ENT3','D11','D12','COND-ALT','CXI','CXN','CX3s','ATR-E'])expect(ps.find(p=>p.id===id)?.estado).toBe('P');
+ for(const id of ['D4','ENT3','ENT3a','D11','D12','COND-ALT','CXI','CXN','CX3s','ATR-E'])expect(ps.find(p=>p.id===id)?.estado).toBe('P');
 });
 
 test('T-105 hacia reconstruye consumo condicionado y agrupación de efecto sin conocimiento del modelo',()=>{
@@ -35,6 +35,9 @@ test('T-105 T-162 ENT3 preserva esencia y afiliación explícitas sin crear prop
  // La clase declarada es un hueco de la plantilla: sin ella o contradiciendo la tipografía no hay hechos.
  expect(tabla.PLANTILLAS.find(x=>x.id==='ENT3')!.hacia({C:{texto:'Pedido',marca:'objeto'},clase:{texto:'proceso'},esencia:{texto:'física'}})).toEqual([]);
  expect(tabla.PLANTILLAS.find(x=>x.id==='ENT3')!.hacia({C:{texto:'Pedido',marca:'objeto'},esencia:{texto:'física'}})).toEqual([]);
+ // Sólo afiliación (ENT3a): la misma oración del perfil sin esencia, con la misma guarda de clase.
+ expect(tabla.PLANTILLAS.find(x=>x.id==='ENT3a')!.hacia({C:{texto:'Pedido',marca:'objeto'},clase:{texto:'objeto'},afiliacion:{texto:'ambiental'}})).toEqual([{k:'mencion',cosa:{nombre:'Pedido',tipo:'objeto'}},{k:'afiliacion',cosa:{nombre:'Pedido',tipo:'objeto'},valor:'ambiental'}]);
+ expect(tabla.PLANTILLAS.find(x=>x.id==='ENT3a')!.hacia({C:{texto:'Pedido',marca:'objeto'},clase:{texto:'proceso'},afiliacion:{texto:'ambiental'}})).toEqual([]);
 });
 test('T-121 inversa SSE5 conserva orientación superficial y el estado queda en el destino',()=>{
  expect(tabla.PLANTILLAS.find(x=>x.id==='SSE5')!.hacia({O1:{texto:'Pedido',marca:'objeto'},O2:{texto:'Cuenta',marca:'objeto'},a:{texto:'pendiente',marca:'estado'},t2:{texto:'pertenece a'}})).toEqual([{k:'enlace',enlace:{tipo:'etiquetado',origen:{nombre:'Cuenta',tipo:'objeto'},destino:{nombre:'Pedido',tipo:'objeto',estado:'pendiente'},etiqueta:'pertenece a'}}]);
