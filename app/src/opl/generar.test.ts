@@ -1,13 +1,13 @@
 import {proyectar} from '../nucleo/proyeccion';
 import { expect, test } from 'bun:test';
 import { generarBloque, generarModelo, lineaDeEnlace, textoCanonico } from './generar';
-import { congelar } from '../pruebas/constructores';
+import { congelar, must } from '../pruebas/constructores';
 import type { Modelo, Cosa, Objeto, Enlace, EnlaceNuevo, Opd, Abanico } from '../nucleo/tipos';
 import { validarForma } from '../nucleo/forma';
 import { diagnosticar } from '../nucleo/diagnostico';
 import { violacionesContexto, noOfrecido, violacionesAbanico } from '../nucleo/matriz';
 import { textoDeTokens, refsDeTokens } from './linea';
-import { generarDocumentoOpl } from './documento';
+import { generarDocumentoOpl, importarOpl } from './documento';
 
 const ap = { x: 0, y: 0, ancho: 140, alto: 70 };
 const obj = (id: string, nombre: string): Objeto => ({ id, nombre, tipo: 'objeto', esencia: 'informacional', afiliacion: 'sistemica', estados: [{ id: `${id}-pend`, nombre: 'pendiente' }, { id: `${id}-pag`, nombre: 'pagado' }] });
@@ -226,7 +226,19 @@ test('T-133 procedimentales AND conservan el direccionamiento de cada hecho',()=
 test('T-134 orden por proceso, fuerza y nombre es determinista con IDs estables',()=>{
  const es:Enlace[]=[{id:'e1',tipo:'resultado',objeto:'o',proceso:'p'},{id:'e2',tipo:'consumo',objeto:'a',proceso:'p'},{id:'e3',tipo:'consumo',objeto:'o',proceso:'q'}];const mod=m(es),reordenado=m([...es].reverse());const out=generarBloque(mod,'sd').filter(l=>l.hechos.length);expect(out.map(l=>l.texto)).toEqual(['*Archivar* consume **Pedido**.','*Procesar* consume **Cuenta**.','*Procesar* genera **Pedido**.']);expect(generarBloque(reordenado,'sd').map(l=>l.id)).toEqual(generarBloque(mod,'sd').map(l=>l.id));
 });
-test('T-136 descripción y geometría son meta y no emiten oraciones',()=>{
+test('T-134 T-192 nombres que empatan en la colación se ordenan por su escritura exacta y no por IDs',()=>{
+ // Zorro y Zórro son nombres distintos que la colación base empata. Seis objetos previos llevan
+ // sus IDs a o-9/o-10, cuyo orden lexicográfico invierte el de creación; al importar se reasignan.
+ const modelo=(orden:readonly string[],previos:number)=>modeloCon({objetos:[...Array.from({length:previos},(_,i)=>[`A${i}`,[]] as const),['General',[]],...orden.map(n=>[n,[]] as const)],enlaces:orden.map(n=>['generalizacion','General',n] as const)});
+ for(const previos of [0,6])for(const orden of [['Zorro','Zórro'],['Zórro','Zorro']]){
+  const mod=modelo(orden,previos),doc=generarDocumentoOpl(mod);
+  expect(doc.split('\n').filter(l=>l.startsWith('**Z'))).toEqual(['**Zorro** es físico.','**Zórro** es físico.','**Zorro** y **Zórro** son **General**.']);
+  const nuevo=must(importarOpl(mod.nombre,doc));
+  expect(nuevo.plan.lineas.flatMap(l=>l.diagnosticos)).toEqual([]);
+  expect(generarDocumentoOpl(nuevo.modelo)).toBe(doc);
+ }
+});
+test('T-136descripción y geometría son meta y no emiten oraciones',()=>{
  const base=m(),mod=m([],{descripcion:'No emitir esta descripción',cosas:{...base.cosas,p:{...base.cosas.p!,descripcion:'Tampoco esta nota'}},opds:{sd:{id:'sd',tipo:'raiz',apariciones:Object.fromEntries(Object.keys(base.cosas).map(id=>[id,{...ap,x:777,y:333}]))}}});expect(textoCanonico(generarModelo(mod))).toBe(textoCanonico(generarModelo(base)));
 });
 test('T-137 ninguna aparición sin clasificación fabrica instanciación',()=>{

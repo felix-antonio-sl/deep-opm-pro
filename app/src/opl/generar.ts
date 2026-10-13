@@ -15,7 +15,10 @@ const posicionEstado = (m: Modelo, e: Enlace): number => {
     const s = e.tipo === 'efecto' ? e.entrada ?? e.salida : e.estado, o = m.cosas[e.objeto];
     return s && o?.tipo === 'objeto' ? o.estados.findIndex(x => x.id === s) : -1;
 };
-const cmp = (a: Cosa, b: Cosa) => colacionNombre.compare(a.nombre,b.nombre) || a.id.localeCompare(b.id);
+// La colación base empata nombres distintos (Zorro, Zórro); los decide su escritura exacta. El id sólo
+// separa nombres exactos repetidos, que claveNombre ya declara duplicados.
+const nominal = (a: Cosa, b: Cosa) => colacionNombre.compare(a.nombre, b.nombre) || (a.nombre < b.nombre ? -1 : a.nombre > b.nombre ? 1 : 0);
+const cmp = (a: Cosa, b: Cosa) => nominal(a, b) || a.id.localeCompare(b.id);
 function profundidad(m: Modelo, opd: Id): number { let n = 0, o = m.opds[opd]; while (o && o.tipo !== 'raiz') {
     n++;
     o = m.opds[o.padre];
@@ -342,9 +345,7 @@ function construirBloque(m: Modelo, opd: Id, o?: OpcionesOpl): readonly LineaOpl
             enlaces.push(emit(pid, h, `${e.refinable}:${e.tipo}`, g.flatMap(v => v.hechos)));
         }
         // Tras las demás estructurales y sin desempatar por ID: la inversa crea RF5 al final (DR-46).
-        // La colación base puede empatar nombres distintos (Zorro, Zórro); los decide su escritura exacta.
         type Rf5 = Extract<Enlace, { tipo: 'exhibicion' }>;
-        const nominal = (a: Cosa, b: Cosa) => colacionNombre.compare(a.nombre, b.nombre) || (a.nombre < b.nombre ? -1 : a.nombre > b.nombre ? 1 : 0);
         const valor = (x: Rf5) => { const c = m.cosas[x.refinador]; return c?.tipo === 'objeto' ? c.estados.findIndex(s => s.id === x.estado) : -1; };
         caracterizaciones.sort((a, b) => { const x = a.enlace as Rf5, y = b.enlace as Rf5;
             return nominal(m.cosas[x.refinable]!, m.cosas[y.refinable]!) || nominal(m.cosas[x.refinador]!, m.cosas[y.refinador]!) || valor(x) - valor(y); });

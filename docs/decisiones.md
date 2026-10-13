@@ -332,6 +332,12 @@ Sustituye para RF5 el límite de DEC36, que queda como historia: el canon 2.0 ya
 glifo. La representación y las resoluciones de simplicidad están en DR-46 de la especificación.
 No autoriza despliegue, B-45 ni el resto de B-48.
 
+**Desempate nominal del generador (observación O3 de la revisión de RF5).** Ante dos nombres
+distintos que empatan en la colación base (Zorro/Zórro), Félix eligió «Escritura exacta»: el
+comparador general de cosas usa el mismo criterio que RF5 —colación, escritura exacta y, sólo
+como último recurso, id— (especificación §4.5.5). Para los desempates restantes por id de
+enlace o de estado eligió «Registrar + tarea aparte» (B-57), y autorizó un commit local sin push.
+
 ### 1.6 Decisiones de esta síntesis (DS-n)
 
 Estas son las resoluciones que CANON.md no fija, o que ajustan una DR por una exigencia más fuerte
