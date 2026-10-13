@@ -264,11 +264,12 @@ export const REGLAS_CONTEXTO: readonly ReglaContexto[] = Object.freeze([
                 return null;
             return [e.objeto, ...generales(m, e.objeto)].some(id => { const c = cosa(m, id); return c?.tipo === 'objeto' && c.estados.length > 0; }) ? null : 'El efecto requiere estados propios o heredados.';
         } }),
-    regla({ id: 'R-RES-1', tipos: ['resultado'], severidad: 'error', accion: 'Ánclalo al objeto o a un estado no inicial', viola(m, e) {
+    // Endurecimiento de perfil (R-OPD-VAL-5 sobre AP-04): el canon sólo lo desaconseja (R-RES-1, DEBERÍA).
+    regla({ id: 'AP-04', tipos: ['resultado'], severidad: 'error', accion: 'Ánclalo al objeto o a un estado no inicial', viola(m, e) {
             if (e.tipo !== 'resultado' || !e.estado)
                 return null;
             const c = cosa(m, e.objeto);
-            return c?.tipo === 'objeto' && c.estados.some(s => s.id === e.estado && s.inicial) ? 'El resultado nunca se ancla al estado inicial.' : null;
+            return c?.tipo === 'objeto' && c.estados.some(s => s.id === e.estado && s.inicial) ? 'El producto no ancla un resultado al estado inicial (AP-04); el canon lo desaconseja (R-RES-1).' : null;
         } }),
     regla({ id: 'R-ROL-1', tipos: PROCEDIMENTALES, severidad: 'error', codigo: 'no-ofrecido', registro: 'B-34', accion: 'Conserva los hechos importados; esta combinación permitida por RROL1 no está ofrecida por el producto', viola(m, e, idx) { return rolCero(m, e, idx) ? 'RROL1 permite instrumento abstracto y cambio explícito neto cero en detalle; el producto aún no ofrece esta combinación (B-34).' : null; } }),
     regla({ id: 'R-ROL-UNIC-1', tipos: PROCEDIMENTALES, severidad: 'error', accion: 'Un solo rol por par objeto–proceso: edita el existente, completa el cambio o forma un abanico', viola(m, e, idx) { return colision(m, e, idx) ? 'Ya existe un rol procedimental para el objeto y el proceso.' : null; } }),

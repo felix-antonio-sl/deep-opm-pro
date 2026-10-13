@@ -282,7 +282,7 @@ Reglas transversales de la matriz:
 | R-VIS-RUTA-1 | Con rutas, consumo y resultado se emparejan por coincidencia exacta de etiqueta. | DEBE | semántica (sin runtime: documental) |
 | R-AG-1/1A/1B, AP-05 | Agente = exclusivamente humanos o grupos humanos; robots/software/IA/máquinas = instrumento. | DEBE | proxy declarado: agente solo desde objeto **físico** (método F); advertencia metodológica recordatoria (DR-5) |
 | R-OBJ-2, R-EFE-1, R-OPD-EST-3 | Objeto sin estados solo puede crearse (resultado) o consumirse; efecto exige ≥1 estado. | inf. NO DEBE / DEBE («el editor DEBE restringir el enlace de efecto a objetos con ≥1 estado», R-OPD-EST-3) | impedir efecto a objeto sin estados propios ni heredados (DR-43) |
-| R-RES-1, AP-04 | Resultado hacia objeto con estado inicial: al rectángulo o a estado no inicial; NUNCA al estado inicial. | DEBE / NUNCA | impedir |
+| R-RES-1, AP-04, R-OPD-VAL-5 | Resultado hacia objeto con estado inicial: al rectángulo o a estado no inicial. El canon lo formula como DEBERÍA (R-RES-1, AP-04 en reglas §11); el perfil bloquea los anti-patrones con realización en el lienzo (R-OPD-VAL-5), así que el producto no lo ancla al estado inicial: endurecimiento declarado en conformidad. | DEBERÍA (canon) / bloqueo de perfil | impedir (regla `AP-04`) |
 | R-STRF-1/2/2A, R-EST-PERS-1/2, R-OPD-STR-3 | Salvo exhibición, refinable y refinadores de igual perseverancia (= mismo tipo). | DEBE | impedir |
 | R-EXC-1B | `e`/`c` NUNCA sobre excepción. | NUNCA DEBE | impedir |
 | R-DIST-1, AP-06 | Consumo/resultado nunca en el contorno de un proceso descompuesto. | NO DEBE | migrar automáticamente (§3.2); impedir anclaje directo al contorno |
@@ -2090,7 +2090,7 @@ Los ★ con obligación PUEDE o inferida son soportes necesarios de un DEBE ★ 
 | T-040 | Validar la firma antes de crear un enlace y ofrecer solo los tipos legales para el par (matriz §2.1). | DEBE | imp | R-EDIT-1, R-OPD-EDIT-1, Anexo A «Firma» | ★ |
 | T-041 | Validar el extremo de estado antes de anclar. | DEBE | imp | R-EDIT-2 | ★ |
 | T-042 | Consumo solo objeto(/estado) → proceso; resultado solo proceso → objeto(/estado). | inf. DEBE | imp | reglas §5.2 | ★ |
-| T-043 | Resultado nunca anclado al estado inicial. | DEBE / NUNCA | imp | R-RES-1, AP-04, R-OPD-TR-3 | ★ |
+| T-043 | Resultado nunca anclado al estado inicial (endurecimiento de perfil sobre el DEBERÍA de R-RES-1). | DEBE (perfil) / DEBERÍA (canon) | imp | R-RES-1, AP-04, R-OPD-TR-3, R-OPD-VAL-5 | ★ |
 | T-044 | Efecto solo hacia objetos con ≥1 estado (propio o heredado de un general, DR-43). | DEBE | imp | R-EFE-1, R-OBJ-2, R-OPD-EST-3 | ★ |
 | T-045 | Agente solo desde objeto físico (proxy declarado de humano); robots, software, IA y máquinas van como instrumento. | DEBE | imp | R-AG-1/1A/1B, AP-05, R-OPD-HAB-1, método F, DR-5 | ★ |
 | T-046 | Invocación solo proceso → proceso (autoinvocación = mismo proceso); nunca toca objetos. | DEBE / NO DEBE | imp | R-INV-1, R-IV-1, R-OPD-INV-1 | ★ |

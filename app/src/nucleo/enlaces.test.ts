@@ -90,11 +90,11 @@ test('T-066 aparición activa y alcance del interno se validan antes de reservar
 });
 test('T-043 resultado inicial bloquea crear, setter, reanclar y cambio de tipo', () => {
     const b = base(), c = b.cosas['o-2'] as Objeto, m = congelar({ ...b, cosas: { ...b.cosas, [c.id]: { ...c, estados: c.estados.map(s => s.id === 's-3' ? { ...s, inicial: true as const } : s) } } });
-    mal(op.crearEnlace(m, { opd: m.raiz, candidato: { tipo: 'resultado', objeto: 'o-2', proceso: 'p-9', estado: 's-3' } }), 'contexto', 'R-RES-1');
+    mal(op.crearEnlace(m, { opd: m.raiz, candidato: { tipo: 'resultado', objeto: 'o-2', proceso: 'p-9', estado: 's-3' } }), 'contexto', 'AP-04');
     const n = con(m, { id: 'e-20', tipo: 'resultado', objeto: 'o-2', proceso: 'p-9' });
-    mal(op.fijarEstados(n, { enlace: 'e-20', estados: { estado: 's-3' } }), 'contexto', 'R-RES-1');
-    mal(op.reanclarExtremo(n, { opd: m.raiz, enlace: 'e-20', extremo: 'destino', hacia: { cosa: 'o-2', estado: 's-3' } }), 'contexto', 'R-RES-1');
-    mal(op.cambiarTipoEnlace(con(m, { id: 'e-20', tipo: 'consumo', objeto: 'o-2', proceso: 'p-9', estado: 's-3' }), { enlace: 'e-20', tipo: 'resultado' }), 'contexto', 'R-RES-1');
+    mal(op.fijarEstados(n, { enlace: 'e-20', estados: { estado: 's-3' } }), 'contexto', 'AP-04');
+    mal(op.reanclarExtremo(n, { opd: m.raiz, enlace: 'e-20', extremo: 'destino', hacia: { cosa: 'o-2', estado: 's-3' } }), 'contexto', 'AP-04');
+    mal(op.cambiarTipoEnlace(con(m, { id: 'e-20', tipo: 'consumo', objeto: 'o-2', proceso: 'p-9', estado: 's-3' }), { enlace: 'e-20', tipo: 'resultado' }), 'contexto', 'AP-04');
 });
 test('T-044 efecto exige estados, pero herencia real permite T3 sin materializarlos', () => {
     const m = base();

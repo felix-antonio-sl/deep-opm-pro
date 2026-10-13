@@ -71,7 +71,7 @@ export const EXPECTATIVAS_REGLAS = [
     { id: 'R-ROL-UNIC-1', tipos: ['consumo', 'resultado', 'efecto', 'agente', 'instrumento'], regla: 'Un procedimental por par; ramas del mismo abanico exceptuadas.' },
     { id: 'R-EDIT-1', tipos: ['invocacion', 'excepcionSobretiempo', 'excepcionSubtiempo', 'agregacion', 'exhibicion', 'generalizacion', 'clasificacion', 'etiquetado', 'etiquetadoBidireccional', 'reciproco'], regla: 'Un enlace idéntico a otro repite el mismo hecho; la copia posterior por id es error, reparable sólo si ninguna copia es rama de abanico.' },
     { id: 'R-EFE-1', tipos: ['efecto'], regla: 'El objeto debe tener estados propios o heredados.' },
-    { id: 'R-RES-1', tipos: ['resultado'], regla: 'El resultado nunca se ancla a un estado inicial.' },
+    { id: 'AP-04', tipos: ['resultado'], regla: 'Endurecimiento de perfil: el resultado no se ancla al estado inicial (el canon R-RES-1 sólo lo desaconseja).' },
     { id: 'R-DIST-1', tipos: ['consumo', 'resultado'], regla: 'Nunca en el contorno de proceso descompuesto.' },
     { id: 'R-CX-DIST-2', tipos: ['consumo', 'efecto', 'agente', 'instrumento'], regla: 'Ningún evento sistémico exterior al contorno inicia un subproceso, a ningún nivel; el ambiental puede.' },
     { id: 'AP-27', tipos: ['consumo', 'efecto', 'agente', 'instrumento'], regla: 'Evento en banda no primera bloquea con previos obligatorios; advierte con previos omisibles.' },

@@ -94,8 +94,8 @@ test('T-043 resultado admite objeto/no inicial y rechaza inicial', () => {
     const inicial = congelar({ ...m, cosas: { ...m.cosas, [a.id]: { ...a, estados: a.estados.map((x, i) => i === 0 ? { ...x, inicial: true as const } : x) } } });
     sano(inicial);
     const e: Enlace = { tipo: 'resultado', id: 'e-101', objeto: a.id, proceso: ids(m)[3]!, estado: s(m) };
-    expect(reglas(inicial, e)).toContain('R-RES-1');
-    expect(reglas(inicial, { ...e, estado: s(m, 0, 1) })).not.toContain('R-RES-1');
+    expect(reglas(inicial, e)).toContain('AP-04');
+    expect(reglas(inicial, { ...e, estado: s(m, 0, 1) })).not.toContain('AP-04');
     expect(opciones(inicial, ids(m)[3]!, a.id, undefined, s(m)).find(x => x.tipo === 'resultado' && x.sentido === 'directo')?.legal).toBe(false);
 });
 test('T-044 efecto exige estados y consulta herencia múltiple transitiva sin materializar', () => {

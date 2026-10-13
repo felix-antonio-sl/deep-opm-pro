@@ -60,7 +60,7 @@ test('T-289 renumeración de OPD por orden derivado no sustituye IDs al exportar
 test('T-003 toda regla de contexto y catálogo acredita primaria local o límite de producto declarado',()=>{
  const leer=(ruta:string)=>readFileSync(new URL(`../../../${ruta}`,import.meta.url),'utf8');
  const texto=['canon/reglas-opm-estrictas-es/content.md','canon/spec-forja-opd-es/content.md','canon/spec-forja-opl-es/content.md','perfil/reglas-opforja.md','perfil/opd-opforja.md','perfil/opl-opforja.md'].map(leer).join('\n'),patron=(s:string)=>s.replace(/[^a-zA-Z0-9]/g,'').toUpperCase(),normal=patron(texto);
- const derivadas:Readonly<Record<string,string>>={'R-RES-1':'RRES1','R-EFE-1':'REFE1','R-ROL-UNIC-1':'ROPDHAB4','R-DIST-1':'RDIST1','R-CX-DIST-2':'RCXDIST2','R-AG-1':'RAG1'};
+ const derivadas:Readonly<Record<string,string>>={'R-EFE-1':'REFE1','R-ROL-UNIC-1':'ROPDHAB4','R-DIST-1':'RDIST1','R-CX-DIST-2':'RCXDIST2','R-AG-1':'RAG1'};
  for(const r of REGLAS_CONTEXTO)expect(normal.includes(patron(derivadas[r.id]??r.id)),r.id).toBe(true);
  for(const r of CATALOGO){expect(r.regla.length).toBeGreaterThan(0);expect(r.accion.length).toBeGreaterThan(0);} // Catálogo derivado tiene varias condiciones locales: alcance exacto se declara en conformidad, no sólo este inventario.
  expect(REGLAS_CONTEXTO.find(r=>r.id==='R-ROL-1')).toMatchObject({codigo:'no-ofrecido',registro:'B-34'});
