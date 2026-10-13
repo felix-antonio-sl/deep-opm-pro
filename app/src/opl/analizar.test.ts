@@ -57,6 +57,13 @@ test('T-138 T-162 género femenino tiene fuente literal D1/D4 y nunca el nombre'
     expect(caso('**Persona** es físico.').hechos).toEqual([{ k: 'esencia', cosa: { nombre: 'Persona', tipo: 'objeto' }, valor: 'fisica' }]);
     expect(caso('**Persona** es informacional.').hechos).toEqual([{ k: 'esencia', cosa: { nombre: 'Persona', tipo: 'objeto' }, valor: 'informacional' }]);
 });
+test('T-162 T-153 ENT3 rechaza sin hechos la clase declarada que contradice la tipografía', () => {
+    for (const s of ['**Pedido** es un proceso físico.', '*Validar* es un objeto físico.', '**Pedido** es un proceso físico y ambiental.', '*Validar* es un objeto informacional y sistémico.']) {
+        expect(caso(s).hechos).toEqual([]); expect(caso(s).diagnosticos[0]).toMatchObject({ codigo: 'syntax-error', severidad: 'error' });
+    }
+    expect(caso('**Pedido** es un objeto físico.').hechos).toEqual([{ k: 'mencion', cosa: { nombre: 'Pedido', tipo: 'objeto' } }, { k: 'esencia', cosa: { nombre: 'Pedido', tipo: 'objeto' }, valor: 'fisica' }]);
+    expect(caso('*Validar* es un proceso físico y ambiental.').hechos).toEqual([{ k: 'mencion', cosa: { nombre: 'Validar', tipo: 'proceso' } }, { k: 'esencia', cosa: { nombre: 'Validar', tipo: 'proceso' }, valor: 'fisica' }, { k: 'afiliacion', cosa: { nombre: 'Validar', tipo: 'proceso' }, valor: 'ambiental' }]);
+});
 
 import { NO_SOPORTADAS, NO_CANONIZADAS } from './no-soportadas';
 const limites = [

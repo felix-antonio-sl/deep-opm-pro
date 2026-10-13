@@ -145,6 +145,7 @@ function slot(k: string,inicial=false,listaAnd=false,tagCodicioso=false,pospuest
     const name = k.replace(/^(Ly|Lo|Lista):/, '');
     const list = name !== k, mult = name.startsWith('m'), estado = name.endsWith('e') && name !== 'e';
     if (name === 't' || name === 't2') return tagCodicioso ? '.+' : '.+?';
+    if (name === 'clase') return 'objeto|proceso';
     if (['r', 'v', 'esencia', 'afiliacion', 'u', 'n', 'opd', 'padre', 'restriccion'].includes(name)) return '.+?';
     const prefijoInicial=prefijo.replace(/un opcional/g,'[Uu]n opcional').replace(/una opcional/g,'[Uu]na opcional').replace(/al menos/g,'[Aa]l menos').replace('dos o más','[Dd]os o más').replace('opcional '+String.fromCharCode(92)+'(','[Oo]pcional '+String.fromCharCode(92)+'(');
     const cambio = name === 'cambios' || name === 'entradas' || name === 'salidas';
@@ -337,7 +338,7 @@ function capturar(k: string, s: string, spans: readonly Span[], parametro?: (des
         }
         return valores.length ? valores : null;
     }
-    if (['r', 't', 't2', 'v', 'esencia', 'afiliacion', 'u', 'n', 'opd', 'padre'].includes(name)) {
+    if (['r', 't', 't2', 'v', 'esencia', 'afiliacion', 'clase', 'u', 'n', 'opd', 'padre'].includes(name)) {
         if (s.includes('§')) return null;
         if (name === 'n' && !/^\d+(?:\.\d+)?$/.test(s)) return null;
         if (name === 'v' && !/^(?:[\p{L}][\p{L}\d_-]*|-?(?:0|[1-9]\d*)(?:\.\d+)?)$/u.test(s)) return null;
@@ -345,6 +346,7 @@ function capturar(k: string, s: string, spans: readonly Span[], parametro?: (des
         if ((name === 't' || name === 't2') && validarEtiqueta(s)) return null;
         if (name === 'esencia' && !/^(?:físico|física|informacional)$/.test(s)) return null;
         if (name === 'afiliacion' && !/^(?:ambiental|sistémico|sistémica)$/.test(s)) return null;
+        if (name === 'clase' && !/^(?:objeto|proceso)$/.test(s)) return null;
         return { texto: s };
     }
     const valores: Hueco[] = [];

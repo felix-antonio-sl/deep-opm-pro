@@ -31,7 +31,10 @@ test('T-105 inversas estructurales recuperan ambas listas de RF2b e incompleta d
  expect(tabla.PLANTILLAS.find(x=>x.id==='RF3i')!.hacia({C:[a],general:c})).toEqual([{k:'enlace',enlace:{tipo:'generalizacion',refinable:{nombre:'Pedido',tipo:'objeto'},refinador:{nombre:'Cuenta',tipo:'objeto'}}},{k:'incompleta',cosa:{nombre:'Pedido',tipo:'objeto'},relacion:'generalizacion'}]);
 });
 test('T-105 T-162 ENT3 preserva esencia y afiliación explícitas sin crear propiedades implícitas',()=>{
- expect(tabla.PLANTILLAS.find(x=>x.id==='ENT3')!.hacia({C:{texto:'Pedido',marca:'objeto'},esencia:{texto:'física'},afiliacion:{texto:'ambiental'}})).toEqual([{k:'mencion',cosa:{nombre:'Pedido',tipo:'objeto'}},{k:'esencia',cosa:{nombre:'Pedido',tipo:'objeto'},valor:'fisica'},{k:'afiliacion',cosa:{nombre:'Pedido',tipo:'objeto'},valor:'ambiental'}]);
+ expect(tabla.PLANTILLAS.find(x=>x.id==='ENT3')!.hacia({C:{texto:'Pedido',marca:'objeto'},clase:{texto:'objeto'},esencia:{texto:'física'},afiliacion:{texto:'ambiental'}})).toEqual([{k:'mencion',cosa:{nombre:'Pedido',tipo:'objeto'}},{k:'esencia',cosa:{nombre:'Pedido',tipo:'objeto'},valor:'fisica'},{k:'afiliacion',cosa:{nombre:'Pedido',tipo:'objeto'},valor:'ambiental'}]);
+ // La clase declarada es un hueco de la plantilla: sin ella o contradiciendo la tipografía no hay hechos.
+ expect(tabla.PLANTILLAS.find(x=>x.id==='ENT3')!.hacia({C:{texto:'Pedido',marca:'objeto'},clase:{texto:'proceso'},esencia:{texto:'física'}})).toEqual([]);
+ expect(tabla.PLANTILLAS.find(x=>x.id==='ENT3')!.hacia({C:{texto:'Pedido',marca:'objeto'},esencia:{texto:'física'}})).toEqual([]);
 });
 test('T-121 inversa SSE5 conserva orientación superficial y el estado queda en el destino',()=>{
  expect(tabla.PLANTILLAS.find(x=>x.id==='SSE5')!.hacia({O1:{texto:'Pedido',marca:'objeto'},O2:{texto:'Cuenta',marca:'objeto'},a:{texto:'pendiente',marca:'estado'},t2:{texto:'pertenece a'}})).toEqual([{k:'enlace',enlace:{tipo:'etiquetado',origen:{nombre:'Cuenta',tipo:'objeto'},destino:{nombre:'Pedido',tipo:'objeto',estado:'pendiente'},etiqueta:'pertenece a'}}]);

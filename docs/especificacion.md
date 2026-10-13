@@ -612,7 +612,7 @@ Estado de cada plantilla: **C** = canónica en `reglas` (tabla-gate, generar y p
 | D11 | **Cosa** es persistente. | C (P: coherente ⇒ sin cambio; incoherente ⇒ `non-canonical`, DR-3) |
 | D12 | **Cosa** es transitoria. | C (P: ídem) |
 | D13 | Estado `s` de **Objeto** es declarado `Current`. | C |
-| R-ENT-3 | **Cosa** es un {objeto\|proceso} {esencia} y {afiliacion}. (`**Sensor** es un objeto físico y ambiental.`; solo esencia: `**Cosa** es un objeto físico.`; solo afiliación: `**Cosa** es un objeto ambiental.`) | C·S → P (reglas 9.2 manda la atómica, DR-2) |
+| R-ENT-3 | **Cosa** es un {objeto\|proceso} {esencia} y {afiliacion}. (`**Sensor** es un objeto físico y ambiental.`; solo esencia: `**Cosa** es un objeto físico.`; solo afiliación: `**Cosa** es un objeto ambiental.`) | C·S → P (reglas 9.2 manda la atómica, DR-2); la clase declarada debe coincidir con la tipografía: `**Pedido** es un proceso físico.` da `syntax-error` sin hechos |
 | ENT-ATR valor | **Atributo** de **Objeto** es valor. | C (`valorSlot`) |
 | ENT-ATR rango | **Atributo** de **Objeto** varía de X a Y. | X (GAP-VARIA) |
 | ENT-ATR enum | **Atributo** de **Objeto** puede estar `valor1`, `valor2` o `valor3`. | C · P (el generador usa D5, DR-20) |

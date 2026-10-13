@@ -56,7 +56,7 @@ const filas: readonly [
     'P'?
 ][] = [
     ['D1', '{C} es físico|física.', 'cosa'], ['D2', '{C} es informacional.', 'cosa'], ['D3', '{C} es ambiental.', 'cosa'], ['D4', '{C} es sistémico|sistémica.', 'cosa', 'P'],
-    ['ENT3', '{C} es un objeto|proceso {esencia}[ y {afiliacion}].', 'cosa', 'P'], ['D11', '{C} es persistente.', 'cosa', 'P'], ['D12', '{C} es transitoria.', 'cosa', 'P'],
+    ['ENT3', '{C} es un {clase} {esencia}[ y {afiliacion}].', 'cosa', 'P'], ['D11', '{C} es persistente.', 'cosa', 'P'], ['D12', '{C} es transitoria.', 'cosa', 'P'],
     ['PLURAL', 'Forma plural de {O}: «{plural}».', 'cosa'],
     ['D5', '{O} puede estar {Lo:s}.', 'cosa'], ['D6', '{O} puede estar {Lista:s}, y otros estados.', 'cosa'],
     ['D7', 'Estado {s} de {O} es inicial.', 'cosa'], ['D8', 'Estado {s} de {O} es final.', 'cosa'], ['D10', 'Estado {s} de {O} es inicial y final.', 'cosa'], ['D9', 'Estado {s} de {O} es por defecto.', 'cosa'], ['D13', 'Estado {s} de {O} es declarado `Current`.', 'cosa'],
@@ -548,7 +548,9 @@ export const LITERALES_EXPANDIDOS: readonly string[] = Object.freeze([
     // Sufijos canónicos y prefijos históricos que P sigue leyendo.
     'nombre', 'inician', 'manejan', 'opcional', 'opcionales', 'un opcional', 'una opcional', 'opcional (cero o más)',
     // Ly/Lo son macros fonéticos definidos por nucleo/lexico. Su universo es finito.
-    'y', 'e', 'o', 'u', ...Object.values(unidades).flat()
+    'y', 'e', 'o', 'u', ...Object.values(unidades).flat(),
+    // Clase declarada de ENT3: hueco cerrado que P compara con la tipografía.
+    'objeto', 'proceso'
 ]);
 export function unidad(u: UnidadTiempo, n: number): string { return unidades[u][n === 1 ? 0 : 1]; }
 function reconocer(id: string, h: Huecos): readonly HechoTexto[] {
@@ -596,6 +598,8 @@ function reconocer(id: string, h: Huecos): readonly HechoTexto[] {
     if (id === 'VAL')
         return [{ k: 'valor', atributo: x('O1').texto, exhibidor: x('O2').texto, valor: x('v').texto }];
     if (id === 'ENT3') {
+        // La clase declarada es dato de la oración: si contradice la tipografía, no hay hecho que reconstruir.
+        if (x('clase').texto !== x('C').marca) return [];
         const hechos: HechoTexto[] = [{ k: 'mencion', cosa: nombre('C') }];
         if (h.esencia)
             hechos.push({ k: 'esencia', cosa: nombre('C'), valor: /^f[ií]sic/.test(x('esencia').texto) ? 'fisica' : 'informacional' });
