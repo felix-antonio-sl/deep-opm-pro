@@ -218,8 +218,9 @@ function construirDocumento(texto:string,l:Lectura,fusionar:FusionarPares|undefi
   for (const f of Object.values(data.abanicos)) { if(Array.isArray(f.enlaceIds)) f.enlaceIds=f.enlaceIds.map(v=>map('enlaces',v)); if(f.opdId!==undefined) f.opdId=map('opds',f.opdId); }
   const slots:{cosa:string;opd:string;tipo:string;modo?:string;ruta:string}[]=[];
   for (const e of Object.values(data.entidades)) {
-    const refs={...registro(e.refinamientos)};
-    if(e.refinamiento!==undefined) { const r=registro(e.refinamiento), t=str(r.tipo); if(refs[t]===undefined) refs[t]={opdId:r.opdId,...(r.modo!==undefined?{modo:r.modo}:{})}; l.norm(`entidades.${e.id}.refinamiento`,'Refinamiento legacy → plural.'); l.desconocidos(r,`entidades.${e.id}.refinamiento`,['tipo','opdId','modo']); }
+    // Sin prototipo: un tipo legacy `constructor` o `__proto__` es una ranura propia, no una propiedad heredada.
+    const refs:Registro=Object.assign(Object.create(null),registro(e.refinamientos));
+    if(e.refinamiento!==undefined) { const r=registro(e.refinamiento), t=str(r.tipo); if(!Object.hasOwn(refs,t)) refs[t]={opdId:r.opdId,...(r.modo!==undefined?{modo:r.modo}:{})}; l.norm(`entidades.${e.id}.refinamiento`,'Refinamiento legacy → plural.'); l.desconocidos(r,`entidades.${e.id}.refinamiento`,['tipo','opdId','modo']); }
     for(const [tipo,v] of Object.entries(refs)) { const s=registro(v); slots.push({cosa:str(e.id),opd:map('opds',s.opdId),tipo,...(typeof s.modo==='string'?{modo:s.modo}:{}),ruta:`entidades.${e.id}.refinamientos.${tipo}`}); l.desconocidos(s,`entidades.${e.id}.refinamientos.${tipo}`,['opdId','modo']); }
   }
   // Etapa 3: acumular referencias rotas antes de perder campos no representables.

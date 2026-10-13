@@ -45,6 +45,21 @@ for(const campo of ['alias','unidad','imagen','urls','simulacion','estereotipoId
 test('T-006 metadatos visuales y geometría de enlace son ignorados, sin falsa pérdida',()=>{
  const d=documento([entidad('o-1','objeto',{esAtributo:true,layoutEstados:{x:1}}),entidad('p-2','proceso')],[enlace('e','consumo','o-1','p-2')]);const ae=d.modelo.opds['opd-1'].enlaces['ae-e'];Object.assign(ae,{symbolPos:{x:1},symbolAnchors:{a:2},labelPositions:[1]});const r=leer(d);expect(r.informe.descartado).toEqual([]);expect(Object.keys(r.informe.ignorado).some(k=>k.endsWith('symbolAnchors'))).toBe(true);
 });
+test('T-021 T-286 nombres heredados del prototipo no son unidades: pérdida declarada y punto fijo',()=>{
+ for(const u of ['constructor','toString','__proto__','hasOwnProperty']){
+  const d=documento([entidad('p-1','proceso'),entidad('p-2','proceso')],[enlace('e-3','excepcionSobretiempo','p-1','p-2',{tiempoMaximo:'5',unidadTiempoMaximo:u})]);d.modelo.unidadTiempo=u;
+  const r=leer(d);expect(r.modelo.unidadTiempo).toBe('min');expect(r.modelo.cosas['p-1']).not.toHaveProperty('duracion');
+  expect(r.informe.descartado.map(e=>[e.ruta,e.mensaje.split(':')[0]])).toEqual([['enlaces.e-3.tiempoMaximo','Cota no numérica/positiva o unidad desconocida'],['unidadTiempo','Información no representable']]);
+  const a=exportarV0(r.modelo),b=importarV0(a);expect(b.ok&&exportarV0(b.modelo)).toBe(a);expect(leerCanonico(a).ok).toBe(true);
+ }
+});
+test('T-029 tipo de refinamiento legacy heredado del prototipo declara la ranura perdida',()=>{
+ for(const t of ['constructor','toString','__proto__']){
+  const d=documento([entidad('p-1','proceso',{refinamiento:{tipo:t,opdId:'opd-2'}})]);
+  d.modelo.opds['opd-2']={id:'opd-2',nombre:'SD1',padreId:'opd-1',apariencias:{a:apariencia('p-1','opd-2')},enlaces:{}};
+  expect(leer(d).informe.descartado.map(e=>e.ruta)).toEqual([`entidades.p-1.refinamientos.${t}`,'opds.opd-2']);
+ }
+});
 test('T-029 ranuras duplicadas conservan primera por id cuya cosa aparezca',()=>{
  const d=refinado();d.modelo.entidades['o-1'].refinamientos={despliegue:{opdId:'opd-3',modo:'agregacion'}};const r=leer(d);expect(r.modelo.opds['opd-3']).toMatchObject({tipo:'despliegue',cosa:'o-1'});expect(r.informe.descartado.some(e=>e.ruta.includes('p-2.refinamientos'))).toBe(true);
 });

@@ -11,10 +11,9 @@ const colacionNatural = new Intl.Collator('en', { numeric: true });
 export const natural = (a: string, b: string): number => colacionNatural.compare(a, b) || (a < b ? -1 : a > b ? 1 : 0);
 export const ordenar = <T>(r: Readonly<Record<Id, T>>): Record<Id,T> => Object.fromEntries(Object.entries(r).sort(([a],[b]) => natural(a,b)));
 export const unidades: readonly UnidadTiempo[] = ['ms','sec','min','hour','day','week','month','year'];
-export const unidad = (v: unknown): UnidadTiempo | undefined => {
-  const aliases: Record<string, UnidadTiempo> = { ms:'ms',sec:'sec',s:'sec',seg:'sec',segundo:'sec',segundos:'sec',min:'min',minuto:'min',minutos:'min',hour:'hour',h:'hour',hora:'hour',horas:'hour',day:'day',dia:'day',día:'day',dias:'day',días:'day',week:'week',sem:'week',semana:'week',semanas:'week',month:'month',mes:'month',meses:'month',year:'year',año:'year',años:'year' };
-  return typeof v === 'string' ? aliases[v] : undefined;
-};
+const aliasesUnidad: Readonly<Record<string, UnidadTiempo>> = { ms:'ms',sec:'sec',s:'sec',seg:'sec',segundo:'sec',segundos:'sec',min:'min',minuto:'min',minutos:'min',hour:'hour',h:'hour',hora:'hour',horas:'hour',day:'day',dia:'day',día:'day',dias:'day',días:'day',week:'week',sem:'week',semana:'week',semanas:'week',month:'month',mes:'month',meses:'month',year:'year',año:'year',años:'year' };
+// Sólo claves propias: `constructor`, `toString` o `__proto__` no son unidades y siguen la pérdida declarada.
+export const unidad = (v: unknown): UnidadTiempo | undefined => typeof v === 'string' && Object.hasOwn(aliasesUnidad, v) ? aliasesUnidad[v] : undefined;
 export const unidadV0: Record<UnidadTiempo,string> = { ms:'ms',sec:'s',min:'min',hour:'h',day:'dia',week:'sem',month:'mes',year:'año' };
 export function opdAbanico(m: Modelo, id: Id): Id {
   const idx = indice(m);
