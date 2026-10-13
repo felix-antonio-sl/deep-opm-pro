@@ -475,7 +475,7 @@ Un arco de sector cero puede no ser visible aunque el modelo sea válido; no es
 prueba de selección visual. La geometría importada puede cruzar figuras o rótulos:
 los avisos B-15 se conservan y el export no rerutea para ocultarlos.
 
-[Conformidad](conformidad.md) distingue superficies y diez parciales. El texto OPL
+[Conformidad](conformidad.md) distingue superficies y once parciales. El texto OPL
 no reconstruye geometría, historial de borrado ni duración sin excepción. Current
 declarado es una designación estática; no hay simulación. Ante un Informe conserve
 el original y decida explícitamente las reparaciones; nada se aplica por defecto.

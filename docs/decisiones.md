@@ -341,6 +341,16 @@ Después indicó «haz push de 9cbea326 a main» y «sí, añade el commit que r
 súbelo»: ambos commits se publican en main por avance rápido, sin reescribir historia. No
 autoriza despliegue.
 
+**Colección incompleta derivada de la vista.** Ante la propuesta de que el OPL desde vacío sólo
+declare la colección incompleta que ningún refinador del modelo explica, Félix respondió:
+
+> acepto la regla
+
+La oración no distingue la colección parcial de la vista de la declarada (spec-OPL §7, A3.2d); lo que
+el texto no distingue es la bisimetría parcial 11 de §5.9. Después indicó «haz el commit» e «integra
+la rama en main y haz push»: el commit se rebasa sobre main y se publica por avance rápido, sin
+reescribir historia publicada. No autoriza despliegue.
+
 ### 1.6 Decisiones de esta síntesis (DS-n)
 
 Estas son las resoluciones que CANON.md no fija, o que ajustan una DR por una exigencia más fuerte
@@ -737,7 +747,7 @@ líneas y con mutantes que deben ponerla roja.
 
 ### 5.9 Cómo se garantiza `parsear(generar(m))` y el fixture estricto R-§19-SIM-3
 
-WP-9 realiza la inversa canónica de las superficies ofrecidas con PLANTILLAS compartidas, plan puro y aplicación nuclear. DEC 29 retiró los dominios locales de abanicos en estado; no son una obligación de reconocimiento ni una nueva bisimetría parcial. Las siete suites siguientes acreditan el corpus ofrecido y H2 tuvo revisión conjunta favorable. WP-10 añade auto-reparseo de todos los OPDs de los seis fixtures, el sintético y HODOM; el estricto completo sólo se ejecuta donde los gates reales del Modelo lo ofrecen, preservando los rechazos. La UI conserva el alcance observado y las diez parciales siguen vigentes; la ola 4 cerró con revisión favorable, y cada revisión debe contrastar el candidato con el canon y modelos reales.
+WP-9 realiza la inversa canónica de las superficies ofrecidas con PLANTILLAS compartidas, plan puro y aplicación nuclear. DEC 29 retiró los dominios locales de abanicos en estado; no son una obligación de reconocimiento ni una nueva bisimetría parcial. Las siete suites siguientes acreditan el corpus ofrecido y H2 tuvo revisión conjunta favorable. WP-10 añade auto-reparseo de todos los OPDs de los seis fixtures, el sintético y HODOM; el estricto completo sólo se ejecuta donde los gates reales del Modelo lo ofrecen, preservando los rechazos. La UI conserva el alcance observado y las parciales declaradas siguen vigentes; la ola 4 cerró con revisión favorable, y cada revisión debe contrastar el candidato con el canon y modelos reales.
 
 1. **Por construcción** (P4): generar y reconocer usan el mismo `patron`. `plantillas.test.ts`
    exige, por cada plantilla G, que `hacia(desde(h))` sea la identidad sobre el hecho, en todas sus
@@ -802,6 +812,11 @@ estricto» y su fila en la tabla 3 de `docs/conformidad.md`:
 8. El operador de un abanico con ruta (DS-10).
 9. Dos etiquetados opuestos con etiquetas distintas se reconstruyen como un bidireccional (DS-13).
 10. Cosas sin aparición y enlaces sin vista: no pertenecen a ningún bloque (DS-6).
+11. La colección incompleta declarada que ninguna oración distingue: cada vista con oración de esa
+    relación ya muestra una colección parcial (otro refinador queda fuera del OPD) o no queda refinador
+    de esa relación. La parcial de la vista y la declarada comparten oración (spec-OPL §7, A3.2d) y sin
+    refinadores no hay oración; desde vacío sólo se declara la que ningún refinador del modelo explica,
+    tras ensayar todos los enlaces.
 
 ---
 
@@ -1036,7 +1051,7 @@ diagnóstico `cosa-sin-aparicion` (DS-6), no como invariante.
 ## Verificación y continuidad del contrato
 
 La documentación conserva las 32 decisiones y DS-1–26, las resoluciones de etiquetas,
-sentido y mediana, y los límites de 180 requisitos ★, 32 brechas y diez parciales.
+sentido y mediana, y los límites de 180 requisitos ★, 32 brechas y once parciales.
 La revisión del Anexo A usa los 12 gates de AGENTS sobre el candidato y modelos reales;
 T303/B-35 es ese examen manual, sin callback ficticio ni fila de catálogo.
 La evidencia de cierre es el commit con check verde, build y 26 escenarios reales.

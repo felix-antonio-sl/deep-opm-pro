@@ -563,5 +563,5 @@ no autoriza conectarse a una instalación ni efectuar migraciones.
 
 Los números §3.4/§8.1/§8.2 se conservan del contrato de diseño para interpretar
 sus referencias históricas; las decisiones actuales prevalecen y están en
-[decisiones.md](decisiones.md). Las diez parciales se documentan en
+[decisiones.md](decisiones.md). Las bisimetrías parciales se documentan en
 [conformidad.md](conformidad.md#bisimetrías-parciales).

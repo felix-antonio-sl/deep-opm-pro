@@ -42,6 +42,21 @@ test('T-193 parcial 10 no estricto: cosas sin aparición no pertenecen a un bloq
  const c=modeloCon({objetos:[['Visible',[]],['Huérfana',[]]],procesos:['Validar'],enlaces:[['consumo','Huérfana','Validar']]}),h=Object.values(c.cosas).find(x=>x.nombre==='Huérfana')!.id,apariciones={...c.opds[c.raiz]!.apariciones};delete apariciones[h];const conEnlace:Modelo={...c,opds:{[c.raiz]:{...c.opds[c.raiz]!,apariciones}}};preservar(conEnlace);expect(Object.values(conEnlace.enlaces)).toHaveLength(1);const importado=reimportar(conEnlace);expect(Object.values(importado.enlaces)).toEqual([]);expect(Object.values(importado.cosas).some(x=>x.nombre==='Huérfana')).toBe(false);
 });
 
+test('T-193 parcial 11 no estricto: colección incompleta declarada que ninguna oración distingue de la vista',()=>{
+ // Cada vista con oración de la relación ya es parcial: el texto coincide y el import no declara (A3.2d).
+ const b=modeloCon({objetos:[['Todo',[]],['Uno',[]]],enlaces:[['agregacion','Todo','Uno']]}),[todo,uno]=Object.keys(b.cosas);
+ const d=must(aplicarAcciones(b,[{op:'desplegar',args:{opd:b.raiz,cosa:todo!,modo:'agregacion'}}])),hijo=d.creados[0]!;
+ const c=must(aplicarAcciones(d.modelo,[{op:'crearCosa',args:{opd:hijo,tipo:'objeto',nombre:'Dos',x:300,y:200}}])),dos=c.creados[0]!;
+ const m=must(aplicarAcciones(c.modelo,[{op:'crearEnlace',args:{opd:hijo,candidato:{tipo:'agregacion',refinable:todo!,refinador:dos}}},{op:'fijarIncompleta',args:{cosa:todo!,relacion:'agregacion',activa:true}},{op:'quitarDeOpd',args:{opd:hijo,cosas:[uno!]}}])).modelo;
+ expect([b.raiz,hijo].map(o=>proyectar(m,o).incompletas.every(i=>i.declarada))).toEqual([true,true]);preservar(m);
+ const t=generarDocumentoOpl(m);expect(t).toContain('**Todo** consta de **Uno** y al menos otra parte.');expect(t).toContain('**Todo** consta de **Dos** y al menos otra parte.');
+ const r=reimportar(m);expect(Object.values(r.cosas).find(x=>x.nombre==='Todo')).not.toHaveProperty('incompleta');expect(generarDocumentoOpl(r)).toBe(t);
+ // Sin refinadores de la relación no hay triángulo ni oración que la exprese.
+ const e=Object.keys(b.enlaces)[0]!,sin=must(aplicarAcciones(b,[{op:'fijarIncompleta',args:{cosa:todo!,relacion:'agregacion',activa:true}},{op:'eliminarEnlaces',args:{enlaces:[e]}}])).modelo;
+ expect(sin.cosas[todo!]!.incompleta).toEqual(['agregacion']);preservar(sin);
+ const u=generarDocumentoOpl(sin),v=reimportar(sin);expect(Object.values(v.cosas).find(x=>x.nombre==='Todo')).not.toHaveProperty('incompleta');expect(generarDocumentoOpl(v)).toBe(u);
+});
+
 for(const [texto,campo,plantilla] of [
  ['*Validar* cambia **Pedido** de `nuevo`.','entrada','TS4'],
  ['*Validar* cambia **Pedido** a `nuevo`.','salida','TS5']

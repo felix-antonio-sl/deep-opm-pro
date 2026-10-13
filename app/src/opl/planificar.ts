@@ -7,7 +7,7 @@ import type { DiagOpl } from './analizar';
 export type TipoPatch = 'crear-entidad' | 'fijar-plural' | 'traer-entidad' | 'cambiar-esencia' | 'cambiar-afiliacion' | 'sincronizar-estados' | 'aplicar-designacion-estado' | 'fijar-valor' | 'fijar-cota' | 'crear-refinamiento' | 'fijar-orden' | 'fijar-incompleta' | 'crear-enlace' | 'ajustar-enlace' | 'fijar-etiqueta-enlace' | 'crear-abanico' | 'renombrar-entidad' | 'renombrar-estado';
 export interface Patch {
     readonly p: TipoPatch;
-    readonly fase: 1 | 2 | 3; // 1 no-enlace · 2 enlace y cota · 3 abanico (R-OPL-EDIT-5, T-181)
+    readonly fase: 1 | 2 | 3; // 1 no-enlace · 2 enlace, cota y colección incompleta · 3 abanico (R-OPL-EDIT-5, T-181)
     readonly clave: string; // clave de hecho: detecta conflicto-patches (T-178)
     readonly acciones: readonly Accion[]; // operaciones del núcleo, con los ids que asignó el ensayo
     readonly descripcion: string; // «crear objeto **Cliente**», «crear enlace consumo» (R-OPL-EDIT-1)
@@ -391,7 +391,6 @@ function ensayar(m: Modelo, alcance: Id | 'modelo', texto: string, basePrivadaVa
                     if ((t.l.plantilla === 'D1' || t.l.plantilla === 'D4') && !h.cosa.genero && actual.cosas[id]!.genero === 'f') agregar(t,{op:'fijarGenero',args:{cosa:id,genero:'m'}},'crear-entidad',1,`${id}:genero`);
                     if (actual.cosas[id]![h.k] !== h.valor) agregar(t, h.k === 'esencia' ? { op: 'fijarEsencia', args: { cosa: id, esencia: h.valor } } : { op: 'fijarAfiliacion', args: { cosa: id, afiliacion: h.valor } }, h.k === 'esencia' ? 'cambiar-esencia' : 'cambiar-afiliacion', 1, id + ':' + h.k);
                 }
-                if (h.k === 'incompleta') { const id = asegurar(t, h.cosa); if (!actual.cosas[id]!.incompleta?.includes(h.relacion)) agregar(t, { op: 'fijarIncompleta', args: { cosa: id, relacion: h.relacion, activa: true } }, 'fijar-incompleta', 1, id); }
                 for (const e of h.k === 'enlace' ? [h.enlace] : h.k === 'abanico' ? h.ramas : []) {
                     if ('objeto' in e) { if (e.objeto.estado) estado(t, e.objeto.nombre, e.objeto.estado); if (e.tipo === 'efecto') { if (e.entrada) estado(t, e.objeto.nombre, e.entrada); if (e.salida) estado(t, e.objeto.nombre, e.salida); } }
                     if ('refinable' in e) { if (e.refinable.estado) estado(t, e.refinable.nombre, e.refinable.estado); if (e.refinador.estado) estado(t, e.refinador.nombre, e.refinador.estado); }
@@ -462,6 +461,13 @@ function ensayar(m: Modelo, alcance: Id | 'modelo', texto: string, basePrivadaVa
         for (const t of [...activos].sort((a, b) => profundidad(b.etiqueta) - profundidad(a.etiqueta) || a.l.numero - b.l.numero)) intentar(t, () => {
             for (const h of t.hechos) if (h.k === 'enlace' && esRF5(h.enlace)) enlace(t, candidato(t, h.enlace));
         });
+        // Tras todos los enlaces: un refinador fuera del OPD ya explica la colección parcial de su vista
+        // (A3.2d, spec-OPL §7); sólo se declara la que ningún refinador del modelo explica (bisimetría parcial 11).
+        for (const t of activos) intentar(t, () => { for (const h of t.hechos) if (h.k === 'incompleta') {
+            const id = asegurar(t, h.cosa);
+            if (!actual.cosas[id]!.incompleta?.includes(h.relacion) && !proyectar(actual, oid(t)).incompletas.some(i => i.refinable === id && i.relacion === h.relacion))
+                agregar(t, { op: 'fijarIncompleta', args: { cosa: id, relacion: h.relacion, activa: true } }, 'fijar-incompleta', 2, id);
+        } });
         for (const t of activos) intentar(t, () => { for (const h of t.hechos) if (h.k === 'abanico') {
             const ids = h.ramas.map(e => enlace(t, candidato(t, e)));
             const existente = Object.values(actual.abanicos).find(f => f.enlaces.length === ids.length && f.enlaces.every(id => ids.includes(id)));
