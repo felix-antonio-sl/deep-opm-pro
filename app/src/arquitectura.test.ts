@@ -14,7 +14,6 @@ function permitida(origen: string, destino: string): boolean {
   if (prueba(origen) || origen.startsWith('src/pruebas/')) return true;
   if (prueba(destino) || destino.startsWith('src/pruebas/')) return false;
   if (origen === 'src/main.tsx') return capa(destino) === 'ui';
-  if (origen === 'herramientas/migrar-postgres.ts') return ['codec', 'nucleo'].includes(capa(destino));
   return capas[capa(origen)]?.includes(capa(destino)) ?? false;
 }
 function importaciones(texto: string): string[] {
@@ -24,7 +23,6 @@ function importaciones(texto: string): string[] {
 test('arquitectura: admite las dependencias de DESIGN §2.2', () => {
   for (const [origen, destinos] of Object.entries(capas)) for (const destino of destinos)
     expect(permitida(`${origen === 'servidor' ? '' : 'src/'}${origen}/a.ts`, `${destino === 'servidor' ? '' : 'src/'}${destino}/b.ts`)).toBe(true);
-  expect(permitida('herramientas/migrar-postgres.ts', 'src/nucleo/diagnostico.ts')).toBe(true);
   expect(permitida('src/nucleo/a.test.ts', 'src/pruebas/constructores.ts')).toBe(true);
   expect(permitida('src/nucleo/a.test.ts', 'src/nucleo/b.test.ts')).toBe(true);
   expect(permitida('src/pruebas/constructores.ts', 'src/nucleo/b.test.ts')).toBe(true);

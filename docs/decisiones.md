@@ -21,7 +21,7 @@ Mensaje directo del dueño, citado íntegramente; ID y fecha originales no obser
 El corte usa un volumen nuevo vacío y no porta la cuenta antigua. La creación de
 cuenta y la aceptación humana quedan a cargo del dueño. Los respaldos y ensayos
 previos permanecen como evidencia histórica, sin obligación de revisar ni rescatar
-sus modelos. El procedimiento vigente está en `docs/operacion.md` §9.4.
+sus modelos. El procedimiento vigente está en `docs/operacion.md` («Despliegue y recuperación»).
 
 ## Del orquestador (derivadas del alcance «ni más ni menos»)
 - Alcance del producto = lo que CANON.md exige a la herramienta (+ infraestructura mínima: cuenta, abrir/guardar/listar/eliminar modelos, exportar). Lo que CANON.md §0.4 lista como «no entra» NO se implementa: simulación, bilingüismo, sub-modelos/composición, Bocetos/Apunte/Taller/Graduar/Biblioteca/versiones, estereotipos/requisitos, anclaje/drift/calcar, capa computacional, Pr/m-de-f, negación, demora, semi-plegado, vistas/Bring/mapa, estilado autoral, agente LLM integrado, tutor, mesa, revisión compartida, lector portátil, captura de bugs, modo móvil de solo lectura.
@@ -129,7 +129,7 @@ Autorización operativa cumplida para `5e0003f0`: respuesta directa `role=user`,
 «Autorizo», a «¿Autorizas ejecutar `./deploy/deploy.sh` para desplegar `5e0003f0`,
 conservando las cuentas y modelos actuales y manteniendo el corte sin migración?».
 ID y fecha originales no observables. Autoriza ese despliegue; no modifica el canon
-ni las decisiones de producto. El resultado operativo está en `docs/operacion.md` §9.4.
+ni las decisiones de producto. El resultado operativo quedó en Git (`docs/operacion.md` hasta `d5f77c7c`).
 
 ## Decisiones del dueño sobre el saneo del canon (2026-10-10) — fijas
 Encargo: «Primero quiero que saneemos hasta el nivel atómico la documentación canónica sobre la que se

@@ -54,7 +54,7 @@ no sustituye el export canónico. Los artefactos de build no se versionan.
 | `app/src/opl/` | tabla única de plantillas, generar, analizar y aplicar planes |
 | `app/src/opd/` | escena, dibujo SVG y exports canónicos |
 | `app/src/editor/`, `app/src/ui/` | controlador, gestos, guardado e interfaz |
-| `app/servidor/`, `app/herramientas/` | cuenta, API, archivos y migrador |
+| `app/servidor/`, `app/herramientas/` | cuenta, API y archivos; servidor de desarrollo y medición de fuente |
 | `app/e2e/`, `app/fixtures/` | escenarios y documentos de prueba |
 | `canon/`, `perfil/`, `docs/` | autoridad OPM (sólo ISO 19450), reglas propias de OpForja y documentación vigente |
 | `deploy/` | circuito operativo sujeto a autorización |
