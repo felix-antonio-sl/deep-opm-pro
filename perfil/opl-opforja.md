@@ -171,11 +171,11 @@ Rationale: `reglas §4.3` (tabla de verbos) y `opm-opl-es §2`.
 
   Rationale: en un modelo, un nombre placeholder no es un hecho afirmable; en un **boceto**, el placeholder ES el hecho — afirma que hay una cosa aún sin nombrar, y la bisimetría canvas↔OPL exige contarla. Coherencia doctrinal: el apunte relaja el **rigor de cierre**, no la semántica (`metodologia-forja-opm-es` A1.5, `spec-forja-opd-es` R-OPD-REF-20); R-ENT-2 es rigor de cierre. Neutraliza GAP-PLACEHOLDER-OBJETO para la especie apunte. Roundtrip verificado: el parser no filtra placeholders y el canónico de apunte re-parsea con cero patches (enmienda 2026-07-09, BUG-76af16 deep-opm-pro).
 
-- (R-ENT-3, parte de producto) [extensión] (extensión declarada de superficie — eco OPCloud): la emisión OPFORJA de esencia y afiliación de una cosa DEBE **componerse en UNA sola oración** con el sustantivo de tipo, coordinadas con «y»: `**Cosa** es un {objeto|proceso} {esencia} y {afiliacion}.` Es la forma del eco OPCloud, declarada aquí como **extensión de superficie** que operacionaliza las designaciones atómicas D1–D4 de `reglas §4.4` **sin derogarlas**: D1–D4 siguen siendo las plantillas canónicas de la capa suprema y son entrada reverse VÁLIDA (el parser las acepta, `parsear.ts·parsearClasificacionRasgo`). La perseverancia (persistente/transitoria), si se emite, va en oración aparte. Producción `(* ext §2.0 *)` en §18.
+- (R-ENT-3, parte de producto) [extensión de entrada] (eco OPCloud): la emisión OPFORJA de esencia y afiliación sigue el canon: **una sola oración de propiedades genéricas** D19 (spec-OPL R-ENT-3), `**Cosa** es {esencia} y {afiliacion}.`, con sólo las propiedades que difieren del default (DR-2) y D1–D4 como sus formas de una propiedad. La forma del eco OPCloud con sustantivo de tipo, `**Cosa** es un {objeto|proceso} {esencia} y {afiliacion}.` (ENT3, y ENT3a con sólo afiliación), es **entrada** válida del parser y no se emite; la clase declarada debe coincidir con la tipografía. La perseverancia, si se emite, va en oración aparte. Producción `(* ext §2.0 *)` en §18.
 
-  Preferida en emisión OPFORJA: `**Sensor** es un objeto físico y ambiental.`
-  No preferida en emisión (pero canónica por `reglas §4.4` y parseable): `**Sensor** es física.` seguido de `**Sensor** es ambiental.` (forma atómica escindida D1+D3)
-  Rationale: `estructural.ts·oracionEntidad` compone la oración combinada (forward); `parsear.ts` acepta tanto la combinada (forma colapsada) como la atómica escindida (G2: aditividad, nunca rechazo de OPL válida). Forma observada en OPCloud: `*Rescatar* es un proceso informacional y sistémico.` (evidencia de producto, no canon). Bajo `solo-difiere` se coordinan solo las propiedades que difieren del default.
+  Emisión OPFORJA: `**Sensor** es físico y ambiental.`
+  Entrada aceptada (no emitida): `**Sensor** es un objeto físico y ambiental.`; `**Sensor** es físico.` seguido de `**Sensor** es ambiental.` (D1+D3).
+  Rationale: canon spec-OPL 2.3 R-ENT-3 exige la oración única y declara incorrecta la emisión escindida; el eco OPCloud (`*Rescatar* es un proceso informacional y sistémico.`) es evidencia de producto, no canon, y se conserva como entrada (aditividad G2). Corregido en la evaluación de 2026-10-13: antes este punto prescribía emitir la forma del eco.
 
 ### §2.1 Objeto
 
@@ -263,7 +263,7 @@ Rationale: `reglas §2.7` (R-INS-1..6) y `opm-opl-es §3`.
 
 ### §2.7 Esencia (física / informacional)
 
-**Plantillas**: la esencia se realiza **dentro de la oración combinada de clasificación** con la afiliación (R-ENT-3, extensión declarada; §2.8): `**Cosa** es un {objeto|proceso} {esencia} y {afiliacion}.` Las designaciones atómicas D1 (`es física`) / D2 (`es informacional`) son las plantillas canónicas de `reglas §4.4`, no preferidas en la emisión OPFORJA pero válidas como entrada reverse.
+**Plantillas**: la esencia se realiza en la oración de propiedades genéricas D19 junto con la afiliación (canon R-ENT-3; §2.8): `**Cosa** es {esencia} y {afiliacion}.`; sola, con D1 (`es física`) / D2 (`es informacional`), sus formas de una propiedad (`reglas §4.4`). La combinada del eco OPCloud (ENT3) es entrada válida, no emitida.
 
 **Emisión**: `oracionEntidad` incluye la esencia en la oración combinada cuando la visibilidad es `siempre`, o cuando la esencia **difiere del default** (informacional). Bajo `solo-difiere`, si solo la esencia difiere, la oración combinada lleva solo la esencia (`**Cosa** es un objeto físico.`).
 
@@ -277,7 +277,7 @@ Rationale: `reglas §2.2` (R-OBJ-3, R-OBJ-5..6), `§4.4` (D1, D2) y `opm-opl-es 
 
 ### §2.8 Afiliación (sistémica / ambiental)
 
-**Plantillas**: la afiliación se realiza **en la misma oración combinada de clasificación** que la esencia (§2.7, R-ENT-3 extensión declarada): `**Cosa** es un {objeto|proceso} {esencia} y {afiliacion}.` D3 (`es ambiental`) / D4 (`es sistémica`) son las plantillas atómicas canónicas de `reglas §4.4`, válidas como entrada reverse.
+**Plantillas**: la afiliación se realiza en la misma oración de propiedades genéricas D19 que la esencia (§2.7, canon R-ENT-3): `**Cosa** es {esencia} y {afiliacion}.`; sola, con D3 (`es ambiental`) / D4 (`es sistémica`). ENT3/ENT3a del eco OPCloud son entrada válida, no emitida.
 
 **Emisión**: `oracionEntidad` incluye la afiliación en la oración combinada cuando la visibilidad es `siempre`, o cuando la afiliación **difiere del default** (sistémica). Bajo `solo-difiere`, si solo la afiliación difiere, la oración lleva solo la afiliación (`**Cosa** es un objeto ambiental.`).
 
@@ -289,7 +289,7 @@ Rationale: `reglas §2.2` (R-OBJ-3, R-OBJ-5..6), `§4.4` (D1, D2) y `opm-opl-es 
 
 **Roundtrip**: la afiliación DEBE preservarse.
 
-**Edge cases**: esencia y afiliación se **coordinan en una sola oración** con sustantivo de tipo (R-ENT-3, forma OPCloud); la coma de Oxford no se usa (solo dos propiedades → `{esencia} y {afiliacion}`).
+**Edge cases**: esencia y afiliación se **coordinan en una sola oración** D19 (canon R-ENT-3), sin sustantivo de tipo y en cualquier orden al leer; la coma de Oxford no se usa (solo dos propiedades → `{esencia} y {afiliacion}`).
 
 **Traza a código**: `app/src/opl/generadores/estructural.ts·oracionEntidad` (vía `textoAfiliacion` de `refsHints.ts`).
 
