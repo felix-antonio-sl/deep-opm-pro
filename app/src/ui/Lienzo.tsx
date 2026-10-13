@@ -149,7 +149,7 @@ export function Lienzo(p: DatosRanura) {
         else if(s.k==='tipo'&&p.estado.seleccion.enlaces.length){const id=p.estado.seleccion.enlaces[0]!,ex=extremosSeleccionados(m,id);if(ex){cambiarEnlace(id);cambiar({k:'menuTipo',...ex,opciones:tiposLegales(m,{opd,...ex})});}p.editor.solicitar(null);}
         else if(s.k==='camara'){espacio.current=true;p.editor.solicitar(null);}
     },[p.estado.solicitud]);
-    useEffect(()=>{const modal=quitar!==null||despliegue||eliminar||estadoBorrar!==null||ocultos!==null||buscar!==null;if(modal&&p.editor.obtener().modo==='edicion')p.editor.fijarModo('gestion-modal');return()=>{if(modal&&p.editor.obtener().modo==='gestion-modal')p.editor.fijarModo('edicion');};},[quitar,despliegue,eliminar,estadoBorrar,ocultos,buscar]);
+    useEffect(()=>{const modal=menu!==null||quitar!==null||despliegue||eliminar||estadoBorrar!==null||ocultos!==null||buscar!==null;if(modal&&p.editor.obtener().modo==='edicion')p.editor.fijarModo('gestion-modal');return()=>{if(modal&&p.editor.obtener().modo==='gestion-modal')p.editor.fijarModo('edicion');};},[menu,quitar,despliegue,eliminar,estadoBorrar,ocultos,buscar]);
     function teclado(ev:KeyboardEvent,enMenu=false) {
         if(ev.defaultPrevented||ev.isComposing)return;const target=ev.target instanceof Element?ev.target:null;if(target?.closest('dialog')&&!enMenu)return;const g=actual.current;
         if(g.k!=='reposo'&&['Escape','Enter','Tab','ArrowUp','ArrowDown'].includes(ev.key)||g.k==='menuTipo'&&/^[1-9]$/.test(ev.key)) {ev.preventDefault();ev.stopPropagation();evento({k:'tecla',tecla:ev.key,mayus:ev.shiftKey,ctrl:ev.ctrlKey,alt:ev.altKey});return;}
@@ -163,6 +163,7 @@ export function Lienzo(p: DatosRanura) {
     }
     useEffect(() => { const up = (ev: KeyboardEvent) => { if (ev.key === ' ') espacio.current = false; }; window.addEventListener('keyup', up); return () => window.removeEventListener('keyup', up); }, []);
     function abajo(ev:PointerEvent) {
+        if(menu!==null&&ev.button!==2){cancelar();ev.preventDefault();return;}
         if(ev.button===2||p.estado.modo==='gestion-modal'||canon||(ev.target instanceof Element&&ev.target.closest('dialog')))return;host.current?.focus();const pos=local(ev),pt=puntoModelo(pos,p.estado.camara);cursor.current=pt;
         if(actual.current.k==='creando'&&ev.button===0){cambiar({...actual.current,en:pt});host.current?.querySelector<HTMLInputElement>('.nombre-en-linea input')?.focus();ev.preventDefault();return;}
         if(ev.pointerType==='touch'){dedos.current.set(ev.pointerId,pos);if(dedos.current.size===2){const [a,b]=[...dedos.current.values()];pellizco.current={distancia:Math.hypot(b!.x-a!.x,b!.y-a!.y),centro:{x:(a!.x+b!.x)/2,y:(a!.y+b!.y)/2},camara:p.editor.obtener().camara};cambiar({k:'reposo'});host.current?.setPointerCapture(ev.pointerId);return;}}
