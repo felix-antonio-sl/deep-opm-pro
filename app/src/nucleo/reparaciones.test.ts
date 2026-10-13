@@ -48,6 +48,31 @@ test('T-060 CC-23 un cruce de evento exige decisión del modelador y no ofrece l
     expect(REGLAS_CONTEXTO.find(r => r.id === 'R-CX-DIST-2')!.reparacion).toBeUndefined();
     expect(JSON.stringify(m)).toBe(antes);
 });
+test('T-040 CC-23 B-58 una copia idéntica que es rama de un abanico exige decisión: retirarla por id cambiaría XOR por AND', () => {
+    const q = proc('q', 'Archivar Pedido'), r = proc('r', 'Rechazar Pedido');
+    const inv = (id: string, destino: string): Enlace => ({ id, tipo: 'invocacion', origen: 'p', destino });
+    // La misma invocación P→Q fuera y dentro del abanico; sólo cambia qué id lleva cada una.
+    const montar = (fuera: readonly string[], rama: string): Modelo => congelar({ ...modelo([p, q, r], [...fuera.map(id => inv(id, 'q')), inv(rama, 'q'), inv('e-11', 'r')]), abanicos: { 'f-50': { id: 'f-50', operador: 'XOR' as const, enlaces: [rama, 'e-11'] } } });
+    for (const m of [montar(['e-9'], 'e-10'), montar(['e-10'], 'e-9')]) {
+        expect(validarForma(m)).toEqual([]);
+        const ds = diagnosticar(m).filter(d => d.regla === 'R-EDIT-1');
+        expect(ds.map(d => [d.severidad, d.refs])).toEqual([['error', [{ tipo: 'enlace', id: 'e-10' }]]]);
+        expect(ds[0]!.reparacion).toBeUndefined();
+    }
+    // Otra copia fuera del abanico sí se retira sin cambiar la lógica, sea cual sea el orden de ids;
+    // la que queda junto a la rama sigue pidiendo decisión.
+    for (const [x, y, z] of [['e-9', 'e-10', 'e-12'], ['e-9', 'e-12', 'e-10'], ['e-10', 'e-9', 'e-12'], ['e-10', 'e-12', 'e-9'], ['e-12', 'e-9', 'e-10'], ['e-12', 'e-10', 'e-9']] as const) {
+        let m = montar([x, y], z);
+        for (let d = diagnosticar(m).find(d => d.regla === 'R-EDIT-1' && d.reparacion); d; d = diagnosticar(m).find(d => d.regla === 'R-EDIT-1' && d.reparacion)) {
+            const hecho = aplicarAccion(m, d.reparacion!);
+            expect(hecho.ok).toBe(true); if (!hecho.ok) throw Error(hecho.rechazo.mensaje);
+            m = hecho.valor.modelo;
+        }
+        expect(m.abanicos).toEqual({ 'f-50': { id: 'f-50', operador: 'XOR', enlaces: [z, 'e-11'] } });
+        expect(Object.values(m.enlaces).filter(e => e.tipo === 'invocacion' && e.destino === 'q')).toHaveLength(2);
+        expect(diagnosticar(m).filter(d => d.regla === 'R-EDIT-1').map(d => d.reparacion)).toEqual([undefined]);
+    }
+});
 test('T-261 CC-23 inventario cerrado: todas las reparaciones ejecutables tienen fixture real', () => {
     expect(REGLAS_CONTEXTO.filter(r => r.reparacion).map(r => r.id)).toEqual(['R-EDIT-1', 'R-DIST-1', 'AP-07', 'R-INV-2B']);
     const reales = new Set(casos.flatMap(([, , construir]) => diagnosticar(construir()).filter(d => d.reparacion).map(d => d.codigo)));

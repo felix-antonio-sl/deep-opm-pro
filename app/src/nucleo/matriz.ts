@@ -219,13 +219,22 @@ function duplicaHeredado(m: Modelo, e: Enlace, idx: Indice): boolean {
     return false;
 }
 // R-EDIT-1 en el modelo: un enlace idéntico a otro repite el mismo hecho. Se marca la copia posterior
-// por id (el id sólo separa hechos idénticos, B-57), así la reparación conserva uno. Las ramas
-// idénticas de un mismo abanico ya son R-FAN-GEO-2.
+// por id (el id sólo separa hechos idénticos, B-57). Las ramas idénticas de un mismo abanico ya son
+// R-FAN-GEO-2. Retirar la copia conserva el modelo sólo si ella y una gemela anterior están fuera de
+// todo abanico; si una de las dos es rama, el abanico decide la lógica (alternativa frente a
+// conjunción) y la elección es del modelador, sin reparación automática.
 const anteriorPorId = (a: Id, b: Id) => sufijoId(a) - sufijoId(b) || (a < b ? -1 : a > b ? 1 : 0);
-function copiaIdentica(m: Modelo, e: Enlace, idx: Indice): boolean {
+function copiaIdentica(m: Modelo, e: Enlace, idx: Indice): 'retirable' | 'en-abanico' | null {
     const fan = idx.abanicoDeEnlace.get(e.id), ancla = 'objeto' in e ? e.objeto : 'refinable' in e ? e.refinable : e.origen;
-    return (idx.enlacesDeCosa.get(ancla) ?? []).some(id => id !== e.id && anteriorPorId(id, e.id) < 0
-        && !(fan !== undefined && fan === idx.abanicoDeEnlace.get(id)) && mismoHecho(m.enlaces[id]!, e));
+    let copia: 'en-abanico' | null = null;
+    for (const id of idx.enlacesDeCosa.get(ancla) ?? []) {
+        if (id === e.id || !mismoHecho(m.enlaces[id]!, e) || anteriorPorId(id, e.id) >= 0) continue;
+        const otro = idx.abanicoDeEnlace.get(id);
+        if (fan !== undefined && fan === otro) continue;
+        if (fan === undefined && otro === undefined) return 'retirable';
+        copia = 'en-abanico';
+    }
+    return copia;
 }
 // R-STRE-2 (ISO §10.4.1): RF5 da a una especialización un valor del atributo discriminante de su
 // general. Como DR-43, consulta la cadena de generales (transitiva, múltiple) sin materializar herencia.
@@ -245,7 +254,8 @@ export const REGLAS_CONTEXTO: readonly ReglaContexto[] = Object.freeze([
     } }),
     regla({ id: 'AP-29', tipos: [...PROCEDIMENTALES, 'agregacion', 'exhibicion', 'etiquetado', 'etiquetadoBidireccional', 'reciproco'], severidad: 'error', accion: 'Conserva el hecho del general; no dupliques explícitamente un enlace heredado', viola(m, e, idx) { return duplicaHeredado(m, e, idx) ? 'El enlace duplica un hecho heredado del general (R-HER-8).' : null; } }),
     // Los procedimentales idénticos ya chocan por R-ROL-UNIC-1.
-    regla({ id: 'R-EDIT-1', tipos: (Object.keys(MATRIZ) as TipoEnlace[]).filter(t => !PROCEDIMENTALES.includes(t)), severidad: 'error', accion: 'Elimina la copia: el hecho ya está modelado una vez', reparacion: e => ({ op: 'eliminarEnlaces', args: { enlaces: [e.id] } }), viola(m, e, idx) { return copiaIdentica(m, e, idx) ? 'El mismo enlace ya existe.' : null; } }),
+    regla({ id: 'R-EDIT-1', tipos: (Object.keys(MATRIZ) as TipoEnlace[]).filter(t => !PROCEDIMENTALES.includes(t)), severidad: 'error', accion: 'Elimina la copia: el hecho ya está modelado una vez', reparacion: e => ({ op: 'eliminarEnlaces', args: { enlaces: [e.id] } }), viola(m, e, idx) { return copiaIdentica(m, e, idx) === 'retirable' ? 'El mismo enlace ya existe.' : null; } }),
+    regla({ id: 'R-EDIT-1', tipos: (Object.keys(MATRIZ) as TipoEnlace[]).filter(t => !PROCEDIMENTALES.includes(t)), severidad: 'error', accion: 'Decide si el hecho es una rama del abanico o un enlace propio y elimina el otro', viola(m, e, idx) { return copiaIdentica(m, e, idx) === 'en-abanico' ? 'El mismo enlace ya existe y uno de los dos es rama de un abanico: retirar cualquiera cambia la lógica del modelo.' : null; } }),
     regla({ id: 'R-STRE-2', tipos: ['exhibicion'], severidad: 'error', accion: 'Declara la especialización y la exhibición del atributo por su general, o retira el valor', viola(m, e, idx) { return sinAtributoDelGeneral(m, e, idx) ? 'La caracterización con estado especificado (RF5) exige que un general de la especialización exhiba el atributo.' : null; } }),
     regla({ id: 'R-ESCIND-2', tipos: ['efecto'], severidad: 'error', accion: 'Conserva la mitad de entrada antes de la salida al ordenar bandas', viola(m, e, idx) { return escisionInvertida(m, e, idx) ? 'La mitad de salida precede a la mitad de entrada del par escindido (R-ESCIND-3).' : null; } }),
     regla({ id: 'R-AG-1', tipos: ['agente'], severidad: 'error', accion: 'Usa instrumento para máquinas, software o IA; si es humano, márcalo físico', viola(m, e) { return e.tipo === 'agente' && cosa(m, e.objeto)?.esencia !== 'fisica' ? 'El agente debe ser un objeto físico (proxy declarado de humano).' : null; } }),
@@ -541,9 +551,10 @@ function mismoHecho(a: Enlace | EnlaceNuevo, b: Enlace | EnlaceNuevo): boolean {
     return serializarHecho(a, true) === serializarHecho(b, true);
 }
 // R-ROL-UNIC-1 (canon: «un objeto o un estado … un solo enlace procedimental»): las ramas de un abanico
-// difieren en extremo o estado (DR-6); la cantidad y la ruta no hacen otro rol (B-58).
+// difieren en extremo o estado (DR-6); la cantidad, la ruta y la contraparte escindida no hacen otro
+// rol (B-58). La escisión conserva su identidad y su par bilateral en sus propios validadores.
 function mismoRol(a: Enlace, b: Enlace): boolean {
-    const rol = (e: Enlace): Enlace => { const { mult, ruta, ...resto } = e as Enlace & { mult?: Multiplicidad; ruta?: string }; void mult; void ruta; return resto as Enlace; };
+    const rol = (e: Enlace): Enlace => { const { mult, ruta, escision, ...resto } = e as Enlace & { mult?: Multiplicidad; ruta?: string; escision?: unknown }; void mult; void ruta; void escision; return resto as Enlace; };
     return mismoHecho(rol(a), rol(b));
 }
 function rechazoEtiqueta(valor: unknown, requerida: boolean): Rechazo | null {

@@ -385,6 +385,13 @@ posterior por id, con reparación de un clic que la elimina; los procedimentales
 R-ROL-UNIC-1. Como toda transacción rechaza errores nuevos, `eliminarEstado` tampoco los fabrica. El
 encargo autoriza el commit local; no autoriza push ni despliegue.
 
+La revisión independiente del tramo integrado halló dos vías residuales. La contraparte escindida
+(`escision.par`) distinguía como roles dos mitades con el mismo objeto, proceso y estado; ya no cuenta
+como rol, y la escisión conserva su identidad y su par en sus propios validadores. La reparación de
+R-EDIT-1 retiraba por id una copia aunque una de las dos fuera rama de un abanico, y así podía cambiar
+una alternativa por una conjunción según los ids. Ahora el error se mantiene, pero sólo se repara en un
+clic cuando ambas copias están fuera de todo abanico; si no, decide el modelador, como en R-CX-DIST-2.
+
 ### 1.6 Decisiones de esta síntesis (DS-n)
 
 Estas son las resoluciones que CANON.md no fija, o que ajustan una DR por una exigencia más fuerte

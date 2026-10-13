@@ -270,6 +270,17 @@ test('T-053 B-58 ramas de un abanico que sólo difieren en cantidad o ruta repit
     const e = aplicarAccion(fan, { op: 'eliminarEstado', args: { estado: s(m) } });
     expect(e.ok ? null : e.rechazo.regla).toBe('R-ROL-UNIC-1');
 });
+test('T-053 B-58 mitades escindidas que sólo difieren en su contraparte repiten el rol', () => {
+    const m = base(), [a, , , p] = ids(m), f: Abanico = { id: 'f-110', operador: 'XOR', enlaces: ['e-101', 'e-102'] };
+    const entrada = (id: string, par: string, x: object = {}) => ({ id, tipo: 'efecto', objeto: a!, proceso: p!, entrada: s(m), escision: { par, mitad: 'entrada' }, ...x } as Enlace);
+    const rol = (x: Enlace, y: Enlace) => violacionesAbanico(poner(m, x, y), f).map(v => v.regla);
+    // La contraparte escindida no es extremo ni estado del rol (DR-6): sin ella, ambas ramas dicen TS4.
+    expect(rol(entrada('e-101', 'e-201'), entrada('e-102', 'e-202'))).toEqual(['R-ROL-UNIC-1']);
+    expect(rol(entrada('e-101', 'e-201', { mult: '2' }), entrada('e-102', 'e-202', { mult: '3' }))).toEqual(['R-ROL-UNIC-1']);
+    expect(rol(entrada('e-101', 'e-201'), { id: 'e-102', tipo: 'efecto', objeto: a!, proceso: p!, entrada: s(m) })).toEqual(['R-ROL-UNIC-1']);
+    // Otro estado de entrada sigue siendo otro rol aunque ambas ramas sean mitades escindidas.
+    expect(rol(entrada('e-101', 'e-201'), entrada('e-102', 'e-202', { entrada: s(m, 0, 1) }))).toEqual([]);
+});
 test('T-040 un enlace idéntico a otro es error R-EDIT-1 en la copia posterior por id', () => {
     const m = base();
     for (const tipo of Object.keys(MATRIZ) as TipoEnlace[]) {

@@ -9,6 +9,7 @@ import { diagnosticar } from '../nucleo/diagnostico';
 import { violacionesContexto, noOfrecido, violacionesAbanico } from '../nucleo/matriz';
 import { textoDeTokens, refsDeTokens } from './linea';
 import { generarDocumentoOpl, importarOpl } from './documento';
+import { aplicarAccion } from '../nucleo/operaciones';
 
 const ap = { x: 0, y: 0, ancho: 140, alto: 70 };
 const obj = (id: string, nombre: string): Objeto => ({ id, nombre, tipo: 'objeto', esencia: 'informacional', afiliacion: 'sistemica', estados: [{ id: `${id}-pend`, nombre: 'pendiente' }, { id: `${id}-pag`, nombre: 'pagado' }] });
@@ -300,6 +301,26 @@ test('T-133 T-192 un abanico cuyas ramas sólo difieren en cantidad o ruta no qu
    expect(generarModelo(mod).flatMap(l=>l.hechos)).toEqual([]);
    expect(admitidoConPuntoFijo(mod)).toBe(true);
   }
+});
+test('T-133 T-192 ramas escindidas que sólo difieren en su contraparte no forman abanico ni quedan admitidas sin punto fijo (B-58)',()=>{
+ // Dos pares TS3 escindidos con la misma entrada: las mitades de entrada son el mismo rol (R-ROL-UNIC-1),
+ // aunque cada una remita a otra mitad de salida.
+ const est=(id:string,nombre:string):Objeto=>({id,nombre,tipo:'objeto',esencia:'fisica',afiliacion:'sistemica',estados:[{id:`${id}-nuevo`,nombre:'nuevo'},{id:`${id}-listo`,nombre:'listo'}]});
+ const cosas=[est('o','Pedido'),pro('p','Atender'),pro('a','Recibir'),pro('y','Revisar'),pro('z','Despachar')];
+ const dc:Opd={id:'dc',tipo:'descomposicion',padre:'sd',cosa:'p',orden:0,objetosInternos:[],bandas:[['a'],['y','z']],apariciones:{p:{...ap,ancho:420,alto:300},o:{...ap,x:-220},a:{...ap,x:140,y:64},y:{...ap,x:60,y:164},z:{...ap,x:240,y:164}}};
+ const enlaces:Enlace[]=[{id:'e-20',tipo:'efecto',objeto:'o',proceso:'a',entrada:'o-nuevo',escision:{par:'e-22',mitad:'entrada'}},{id:'e-21',tipo:'efecto',objeto:'o',proceso:'a',entrada:'o-nuevo',escision:{par:'e-23',mitad:'entrada'}},
+  {id:'e-22',tipo:'efecto',objeto:'o',proceso:'y',salida:'o-listo',escision:{par:'e-20',mitad:'salida'}},{id:'e-23',tipo:'efecto',objeto:'o',proceso:'z',salida:'o-listo',escision:{par:'e-21',mitad:'salida'}}];
+ const sin=congelar({id:'b58',nombre:'Escindidas',raiz:'sd',secuencia:200,unidadTiempo:'min',cosas:Object.fromEntries(cosas.map(c=>[c.id,c])),enlaces:Object.fromEntries(enlaces.map(e=>[e.id,e])),abanicos:{},opds:{sd:{id:'sd',tipo:'raiz',apariciones:{o:ap,p:{...ap,x:200}}},dc}}) as Modelo;
+ expect(validarForma(sin)).toEqual([]);
+ expect(diagnosticar(sin).filter(d=>d.severidad==='error').map(d=>[d.regla,d.refs[0]?.id])).toEqual([['R-ROL-UNIC-1','e-20'],['R-ROL-UNIC-1','e-21']]);
+ const r=aplicarAccion(sin,{op:'formarAbanico',args:{enlaces:['e-20','e-21'],operador:'XOR'}});
+ expect(r.ok?null:r.rechazo.regla).toBe('R-ROL-UNIC-1');
+ // Importado ya formado, el abanico es error visible y G no emite la alternativa que P no reconstruiría.
+ const fan=congelar({...sin,abanicos:{'f-100':{id:'f-100',operador:'XOR',enlaces:['e-20','e-21']}}}) as Modelo;
+ expect(validarForma(fan)).toEqual([]);
+ expect(diagnosticar(fan).filter(d=>d.severidad==='error').map(d=>[d.codigo,d.regla])).toEqual([['abanico-invalido','R-ROL-UNIC-1']]);
+ expect(generarDocumentoOpl(fan)).not.toContain('exactamente uno de `nuevo` o `nuevo`');
+ expect(admitidoConPuntoFijo(fan)).toBe(true);
 });
 test('T-133 T-192 dos invocaciones idénticas no quedan admitidas sin punto fijo',()=>{
  const mod=congelar(modeloCon({procesos:['P','Q'],enlaces:[['invocacion','P','Q'],['invocacion','P','Q']]}));
