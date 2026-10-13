@@ -190,8 +190,9 @@ vacío; un campo opcional irrepresentable va a `descartado` con su ruta y su val
      hace si no pierde nada, CC-11). Se fusiona en un `efecto` TS3 con el id del consumo,
      `entrada = s₁` y `salida = s₂`. El control del consumo pasa al efecto. Queda en `normalizado`
      (SYNTHESIS §8-19, tabla 9.2) y registra el **alias** `id del resultado → id del consumo`, que
-     usan las etapas 8, 9 y 12. Si alguno lleva ruta o multiplicidad (TS3–TS5 no tienen hueco, DR-19 y
-     DR-44), **no se fusiona**: ambos se cargan tal cual y quedan como `enlace-invalido`
+     usan las etapas 8, 9 y 12. Si alguno lleva ruta (TS3–TS5 no tienen hueco de ruta, DR-19) o
+     multiplicidad (la fusión no combina las cantidades de dos enlaces en una), **no se fusiona**:
+     ambos se cargan tal cual y quedan como `enlace-invalido`
      (R-ROL-UNIC-1), error recuperable que decide el operador (P8).
      **Excepción de documento directo canónico (CC-11, autorizada por coordinación de Félix):**
      antes de la fusión C+R se construye un candidato que conserva ambos enlaces, sus tipos,
@@ -230,24 +231,37 @@ vacío; un campo opcional irrepresentable va a `descartado` con su ruta y su val
      - con exactamente una vacía, da dos `etiquetado` opuestos (`normalizado`, DS-13);
      - con etiquetas distintas y alguna formada sólo por espacios, es rechazo con la ruta de esa
        etiqueta (F-11): no se recorta ni se inventa una etiqueta;
-     - un estado solo en el destino, o un estado de destino en un bidireccional con etiquetas
-       distintas, va a `descartado` como anclaje (V-30, AP-11).
+     - con etiquetas distintas, el estado de origen, el de destino o ambos se conservan como
+       `estadoOrigen`/`estadoDestino` (B-39; DEC50 retiró AP-11);
+     - en el `reciproco`, un estado sólo en el destino invierte los extremos para llevarlo en el
+       origen (`normalizado`, R-EST-SSE-1); sin etiqueta, sus anclajes van a `descartado` y el
+       enlace se conserva (B-05).
    - **`modificador`** `condicion|evento` pasa a `c|e`. Si falta y `subtipoModificador` es `C|E`,
      igual (`normalizado`). **`"no"`** manda el **enlace entero** a `descartado` (DS-19).
      `subtipoModificador` va a `ignorado`. Un control en un tipo sin control (AP-01/02) o en una
      mitad escindida (AP-08) va a `descartado`.
-   - **Multiplicidad**:
-     - `?` y `0..1` dan `?`; `*`, `0..*` y `0..N` dan `*`; `+`, `1..*` y `1..N` dan `+`; `1` y
-       `1..1` quedan ausentes.
-     - Un entero n ≥ 2 (texto o número) se conserva y `n..n` da `n`; `2..*` se conserva y
-       `2..N` da `2..*` (DEC35).
+   - **Multiplicidad** (sólo en extremos objeto, R-MULT-1A):
+     - Se conserva toda cantidad del producto (DEC55/56/57, B-10, B-42): enteros no negativos,
+       incluido `0` (texto o número); `?`, `*`, `+`, `2..*` y `muchos`; parámetros (`n`); rangos
+       cerrados numéricos o simbólicos (`2..5`, `1..n`); uniones (`2,4`); expresiones (`n+1`) y
+       restricciones (`1..n; n<5`).
+     - Los aliases legacy se normalizan (`normalizado`, T-057): `0..1` da `?`; `0..*` y `0..N` dan
+       `*`; `1..*` y `1..N` dan `+`; `2..N` da `2..*`; `n..n` da `n`; `1` y `1..1` quedan
+       ausentes. Un v0 directo que coincide exactamente con su export (§3.4.4) conserva sus
+       grafías de cantidad (`0..1`, `1`, `1..1`, `3..3`); los aliases con `*` o `N` se normalizan
+       igual (DEC35).
        Las cifras de un literal entero JSON se recuperan como texto, sin redondeo ni cota de cifras.
        Una notación decimal o exponencial sólo se normaliza si equivale exactamente a un entero
        seguro; las demás se descartan con su literal en el informe, sin inventar una multiplicidad.
-     - Otro valor, como `0` o `2..5`, va a `descartado` (DR-21), igual que una multiplicidad en un
-       extremo ilegal (proceso, todo).
-     - Una multiplicidad que `noOfrecido` rechaza va a `descartado` (DR-44): junto a `c`, en efecto
-       con estados o en etiquetado con estado.
+     - Va a `descartado` (DR-21) lo que no es una cuenta del producto: intervalos abiertos
+       (`(0..10]`), conteos no enteros (`0.5`, `1.5..2.5`), rangos invertidos (`3..2`) o con un
+       límite negativo (`-1..2`).
+     - Una multiplicidad en un extremo ilegal va a `descartado` (R-MULT-1A): extremo proceso, todo
+       de la agregación, exhibición, generalización, clasificación, invocación y excepciones.
+     - Se conservan las cantidades en etiquetados, bidireccionales y recíprocos (con o sin
+       estados), en efectos con entrada o salida, con evento `e` y en ramas de abanico sin `c`
+       (DEC55/56/57). Sólo sigue sin ofrecerse la multiplicidad junto a la condición `c`, también
+       en un abanico con alguna rama `c` (B-04, DR-44): va a `descartado` y el enlace se conserva.
    - **`rutaEtiqueta`** pasa a `ruta` en consumo y resultado (también en ramas de abanico, DS-10).
      En otro tipo, o si no es texto, va a `descartado` (DR-19).
    - Una `etiqueta` no vacía en tipos no etiquetados va a `descartado`. Una `etiqueta` o un
