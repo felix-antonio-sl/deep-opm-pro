@@ -5,6 +5,7 @@ import { indice } from './indice';
 import { generales } from './herencia';
 import { validarEtiqueta } from './lexico';
 import { analizarMultiplicidad, esParametroSimple } from './multiplicidad';
+import { sufijoId } from './ids';
 import type { Familia, TipoCosa, TipoEnlace, Modelo, Enlace, EnlaceNuevo, EnlaceProcedimental, Id, Abanico, Multiplicidad } from './tipos';
 import type { Violacion, Respuesta, Rechazo, Traza } from './resultado';
 import type { Indice } from './indice';
@@ -217,6 +218,15 @@ function duplicaHeredado(m: Modelo, e: Enlace, idx: Indice): boolean {
     }
     return false;
 }
+// R-EDIT-1 en el modelo: un enlace idéntico a otro repite el mismo hecho. Se marca la copia posterior
+// por id (el id sólo separa hechos idénticos, B-57), así la reparación conserva uno. Las ramas
+// idénticas de un mismo abanico ya son R-FAN-GEO-2.
+const anteriorPorId = (a: Id, b: Id) => sufijoId(a) - sufijoId(b) || (a < b ? -1 : a > b ? 1 : 0);
+function copiaIdentica(m: Modelo, e: Enlace, idx: Indice): boolean {
+    const fan = idx.abanicoDeEnlace.get(e.id), ancla = 'objeto' in e ? e.objeto : 'refinable' in e ? e.refinable : e.origen;
+    return (idx.enlacesDeCosa.get(ancla) ?? []).some(id => id !== e.id && anteriorPorId(id, e.id) < 0
+        && !(fan !== undefined && fan === idx.abanicoDeEnlace.get(id)) && mismoHecho(m.enlaces[id]!, e));
+}
 // R-STRE-2 (ISO §10.4.1): RF5 da a una especialización un valor del atributo discriminante de su
 // general. Como DR-43, consulta la cadena de generales (transitiva, múltiple) sin materializar herencia.
 function sinAtributoDelGeneral(m: Modelo, e: Enlace, idx: Indice): boolean {
@@ -234,6 +244,8 @@ export const REGLAS_CONTEXTO: readonly ReglaContexto[] = Object.freeze([
         return null;
     } }),
     regla({ id: 'AP-29', tipos: [...PROCEDIMENTALES, 'agregacion', 'exhibicion', 'etiquetado', 'etiquetadoBidireccional', 'reciproco'], severidad: 'error', accion: 'Conserva el hecho del general; no dupliques explícitamente un enlace heredado', viola(m, e, idx) { return duplicaHeredado(m, e, idx) ? 'El enlace duplica un hecho heredado del general (R-HER-8).' : null; } }),
+    // Los procedimentales idénticos ya chocan por R-ROL-UNIC-1.
+    regla({ id: 'R-EDIT-1', tipos: (Object.keys(MATRIZ) as TipoEnlace[]).filter(t => !PROCEDIMENTALES.includes(t)), severidad: 'error', accion: 'Elimina la copia: el hecho ya está modelado una vez', reparacion: e => ({ op: 'eliminarEnlaces', args: { enlaces: [e.id] } }), viola(m, e, idx) { return copiaIdentica(m, e, idx) ? 'El mismo enlace ya existe.' : null; } }),
     regla({ id: 'R-STRE-2', tipos: ['exhibicion'], severidad: 'error', accion: 'Declara la especialización y la exhibición del atributo por su general, o retira el valor', viola(m, e, idx) { return sinAtributoDelGeneral(m, e, idx) ? 'La caracterización con estado especificado (RF5) exige que un general de la especialización exhiba el atributo.' : null; } }),
     regla({ id: 'R-ESCIND-2', tipos: ['efecto'], severidad: 'error', accion: 'Conserva la mitad de entrada antes de la salida al ordenar bandas', viola(m, e, idx) { return escisionInvertida(m, e, idx) ? 'La mitad de salida precede a la mitad de entrada del par escindido (R-ESCIND-3).' : null; } }),
     regla({ id: 'R-AG-1', tipos: ['agente'], severidad: 'error', accion: 'Usa instrumento para máquinas, software o IA; si es humano, márcalo físico', viola(m, e) { return e.tipo === 'agente' && cosa(m, e.objeto)?.esencia !== 'fisica' ? 'El agente debe ser un objeto físico (proxy declarado de humano).' : null; } }),
@@ -287,6 +299,8 @@ export function violacionesAbanico(m: Modelo, f: Abanico): readonly Violacion[] 
         fallo('R-FAN-GEO-2', 'Las ramas deben ser del mismo tipo y admitir abanico.');
     if (ramas.some((e, i) => ramas.slice(0, i).some(x => mismoHecho(x, e))))
         fallo('R-FAN-GEO-2', 'Las ramas deben representar enlaces distintos.');
+    else if (ramas.some((e, i) => ramas.slice(0, i).some(x => mismoRol(x, e))))
+        fallo('R-ROL-UNIC-1', 'Cada rama debe unir otro objeto, estado o proceso: otra cantidad o ruta no es otro rol.');
     if (!comun(ramas))
         fallo('R-FAN-GEO-2', 'Las ramas no tienen un extremo común.');
     if (ramas.some(e => control(e) !== control(primero)))
@@ -525,6 +539,12 @@ function mismoHecho(a: Enlace | EnlaceNuevo, b: Enlace | EnlaceNuevo): boolean {
     if ('refinable' in a && 'refinable' in b && (a.refinable !== b.refinable || a.refinador !== b.refinador)) return false;
     if ('origen' in a && 'origen' in b && (a.origen !== b.origen || a.destino !== b.destino)) return false;
     return serializarHecho(a, true) === serializarHecho(b, true);
+}
+// R-ROL-UNIC-1 (canon: «un objeto o un estado … un solo enlace procedimental»): las ramas de un abanico
+// difieren en extremo o estado (DR-6); la cantidad y la ruta no hacen otro rol (B-58).
+function mismoRol(a: Enlace, b: Enlace): boolean {
+    const rol = (e: Enlace): Enlace => { const { mult, ruta, ...resto } = e as Enlace & { mult?: Multiplicidad; ruta?: string }; void mult; void ruta; return resto as Enlace; };
+    return mismoHecho(rol(a), rol(b));
 }
 function rechazoEtiqueta(valor: unknown, requerida: boolean): Rechazo | null {
     if (!requerida && (valor === undefined || valor === null)) return null;

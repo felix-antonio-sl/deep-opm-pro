@@ -69,6 +69,7 @@ export const EXPECTATIVAS_REGLAS = [
     { id: 'R-ESCIND-2', tipos: ['efecto'], regla: 'Entrada temprana y salida tardía del par escindido.' },
     { id: 'AP-29', tipos: ['consumo', 'resultado', 'efecto', 'agente', 'instrumento', 'agregacion', 'exhibicion', 'etiquetado', 'etiquetadoBidireccional', 'reciproco'], regla: 'RHER8 prohíbe duplicación nuclear explícita de hechos heredados.' },
     { id: 'R-ROL-UNIC-1', tipos: ['consumo', 'resultado', 'efecto', 'agente', 'instrumento'], regla: 'Un procedimental por par; ramas del mismo abanico exceptuadas.' },
+    { id: 'R-EDIT-1', tipos: ['invocacion', 'excepcionSobretiempo', 'excepcionSubtiempo', 'agregacion', 'exhibicion', 'generalizacion', 'clasificacion', 'etiquetado', 'etiquetadoBidireccional', 'reciproco'], regla: 'Un enlace idéntico a otro repite el mismo hecho; la copia posterior por id es error reparable.' },
     { id: 'R-EFE-1', tipos: ['efecto'], regla: 'El objeto debe tener estados propios o heredados.' },
     { id: 'R-RES-1', tipos: ['resultado'], regla: 'El resultado nunca se ancla a un estado inicial.' },
     { id: 'R-DIST-1', tipos: ['consumo', 'resultado'], regla: 'Nunca en el contorno de proceso descompuesto.' },

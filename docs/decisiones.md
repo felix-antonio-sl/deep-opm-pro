@@ -373,6 +373,15 @@ B-57 había indicado además «integra la rama en main». Sus commits, no public
 en main en ese orden por avance rápido y cherry-pick, sin merges ni reescritura de historia publicada,
 seguidos de B-45. La integración no autoriza despliegue.
 
+**Rol repetido en un abanico (B-58) y copias idénticas.** Ante los dos defectos de roundtrip hallados al
+cerrar B-57, Félix eligió las opciones recomendadas: que el núcleo los rechace y no que el parser los
+reconstruya. Las ramas de un abanico con el mismo tipo, extremos y estados son el mismo rol aunque
+difieran en cantidad o ruta (R-ROL-UNIC-1, «un objeto o un estado»): `violacionesAbanico` las rechaza.
+Un enlace no procedimental idéntico a otro repite el mismo hecho: es error R-EDIT-1 en la copia
+posterior por id, con reparación de un clic que la elimina; los procedimentales idénticos ya eran
+R-ROL-UNIC-1. Como toda transacción rechaza errores nuevos, `eliminarEstado` tampoco los fabrica. El
+encargo autoriza el commit local; no autoriza push ni despliegue.
+
 ### 1.6 Decisiones de esta síntesis (DS-n)
 
 Estas son las resoluciones que CANON.md no fija, o que ajustan una DR por una exigencia más fuerte

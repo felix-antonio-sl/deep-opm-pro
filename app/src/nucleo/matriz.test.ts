@@ -7,6 +7,7 @@ import { modeloCon, congelar } from '../pruebas/constructores';
 import { importarV0 } from '../codec/importar';
 import { exportarV0 } from '../codec/exportar';
 import { crearEnlace } from './enlaces';
+import { aplicarAccion } from './operaciones';
 import { azar } from '../pruebas/azar';
 import { validarForma } from './forma';
 import { transaccion } from './resultado';
@@ -248,6 +249,45 @@ test('T-040 F2/F5 reales y 200 semillas sin mocks', () => {
 test('T-268 manejador sistémico legal, diagnóstico posterior advertirá', () => { const m = base(), e = enlace(m, 'excepcionSobretiempo'); expect(violacionesForma(m, e)).toEqual([]); expect(violacionesContexto(m, e)).toEqual([]); expect(opciones(m, ids(m)[3]!, ids(m)[4]!).find(x => x.tipo === 'excepcionSobretiempo' && x.sentido === 'directo')?.legal).toBe(true); });
 test('T-072 descomposición de objeto no ofrecida como consulta sin enlace artificial', () => { const m = base(); expect(noOfrecidoDescomposicion(m, ids(m)[0]!)?.registro).toBe('B-02'); expect(noOfrecidoDescomposicion(m, ids(m)[3]!)).toBeNull(); });
 test('T-054 ramas distintas semánticamente y ausencia de común se rechazan', () => { const m = base(), e: Enlace = { tipo: 'consumo', id: 'e-101', objeto: ids(m)[0]!, proceso: ids(m)[3]! }, f: Abanico = { id: 'f-110', operador: 'OR', enlaces: ['e-101', 'e-102'] }; expect(violacionesAbanico(poner(m, e, { ...e, id: 'e-102' }), f).length).toBeGreaterThan(0); expect(violacionesAbanico(poner(m, e, { ...e, id: 'e-102', objeto: ids(m)[1]!, proceso: ids(m)[4]! }), f).length).toBeGreaterThan(0); });
+test('T-053 B-58 ramas de un abanico que sólo difieren en cantidad o ruta repiten el rol y ninguna operación las forma', () => {
+    const m = base(), [a, , , p] = ids(m), f: Abanico = { id: 'f-110', operador: 'XOR', enlaces: ['e-101', 'e-102'] };
+    const ramas = (x: object, y: object) => poner(m, { id: 'e-101', tipo: 'consumo', objeto: a!, proceso: p!, ...x } as Enlace, { id: 'e-102', tipo: 'consumo', objeto: a!, proceso: p!, ...y } as Enlace);
+    const rol = (x: object, y: object) => violacionesAbanico(ramas(x, y), f).map(v => v.regla);
+    expect(rol({ estado: s(m), mult: '2' }, { estado: s(m), mult: '3' })).toEqual(['R-ROL-UNIC-1']);
+    expect(rol({ mult: '2' }, {})).toEqual(['R-ROL-UNIC-1']);
+    expect(rol({ estado: s(m), ruta: 'a' }, { estado: s(m), ruta: 'b' })).toEqual(['R-ROL-UNIC-1']);
+    // Otro estado, o el objeto frente a su estado, es otro rol (R-FAN-5, DR-6); la rama idéntica sigue en R-FAN-GEO-2.
+    expect(rol({ estado: s(m), mult: '2' }, { estado: s(m, 0, 1), mult: '2' })).toEqual([]);
+    expect(rol({ mult: '2' }, { estado: s(m), mult: '3' })).toEqual([]);
+    expect(rol({ mult: '2' }, { mult: '2' })).toEqual(['R-FAN-GEO-2']);
+    const r = aplicarAccion(ramas({ estado: s(m), mult: '2' }, { estado: s(m), mult: '3' }), { op: 'formarAbanico', args: { enlaces: ['e-101', 'e-102'], operador: 'XOR' } });
+    expect(r.ok ? null : r.rechazo.regla).toBe('R-ROL-UNIC-1');
+    // El segundo gesto al mismo estado no propone abanicoCon: sólo la cantidad lo distinguiría.
+    const consumo = opciones(sano(poner(m, { id: 'e-101', tipo: 'consumo', objeto: a!, proceso: p!, estado: s(m), mult: '2' })), a!, p!, s(m)).find(o => o.tipo === 'consumo');
+    expect(consumo?.legal === false ? consumo.alternativa?.k : null).toBe('cambiarTipoExistente');
+    // Eliminar el estado que separaba las ramas las dejaría en el mismo rol: se rechaza.
+    const fan = sano(congelar({ ...ramas({ estado: s(m), mult: '2' }, { mult: '3' }), abanicos: { [f.id]: f } }));
+    const e = aplicarAccion(fan, { op: 'eliminarEstado', args: { estado: s(m) } });
+    expect(e.ok ? null : e.rechazo.regla).toBe('R-ROL-UNIC-1');
+});
+test('T-040 un enlace idéntico a otro es error R-EDIT-1 en la copia posterior por id', () => {
+    const m = base();
+    for (const tipo of Object.keys(MATRIZ) as TipoEnlace[]) {
+        // e-10 sigue a e-9 por su sufijo, aunque el texto lo ordene antes.
+        const n = poner(m, enlace(m, tipo, 'e-10'), enlace(m, tipo, 'e-9')), vs = erroresContexto(n);
+        expect(vs.filter(v => v.regla === 'R-EDIT-1').map(v => v.refs), tipo).toEqual(esProcedimental(enlace(m, tipo)) ? [] : [[{ tipo: 'enlace', id: 'e-10' }]]);
+        // Los procedimentales idénticos ya son R-ROL-UNIC-1.
+        if (esProcedimental(enlace(m, tipo))) expect(vs.some(v => v.regla === 'R-ROL-UNIC-1'), tipo).toBe(true);
+    }
+    // Las ramas idénticas de un mismo abanico son R-FAN-GEO-2, sin una segunda queja.
+    const f: Abanico = { id: 'f-110', operador: 'XOR', enlaces: ['e-9', 'e-10'] };
+    const fan = congelar({ ...poner(m, enlace(m, 'invocacion', 'e-9'), enlace(m, 'invocacion', 'e-10')), abanicos: { [f.id]: f } });
+    expect(erroresContexto(fan).map(v => v.regla)).toEqual(['R-FAN-GEO-2']);
+    // Eliminar el estado que distinguía dos etiquetados fabricaría la copia: se rechaza.
+    const et = enlace(m, 'etiquetado');
+    const r = aplicarAccion(sano(poner(m, { ...et, estadoOrigen: s(m) } as Enlace, { ...et, id: 'e-102' })), { op: 'eliminarEstado', args: { estado: s(m) } });
+    expect(r.ok ? null : r.rechazo.regla).toBe('R-EDIT-1');
+});
 test('T-041 import con campos de estado ajenos a la fila se rechaza', () => {
     const m = base();
     for (const e of [{ ...enlace(m, 'agregacion'), estado: s(m) }, { ...enlace(m, 'invocacion'), estadoOrigen: s(m) }, { ...enlace(m, 'etiquetadoBidireccional'), estados: { origen: s(m) } }])

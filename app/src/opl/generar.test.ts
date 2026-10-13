@@ -285,13 +285,26 @@ test('T-134 T-192 estados de abanico que empatan en la colación no se ordenan p
  expect(sinIdsB57(variantesB57(objetos,[['efecto','O','P',b=>({entrada:s(b,'tibio'),salida:s(b,'frío')})],['efecto','O','P',b=>({entrada:s(b,'tibio'),salida:s(b,'frio')})]],true),deP)).toEqual(['*P* cambia **O** de `tibio` a exactamente uno de `frio` o `frío`.']);
  expect(sinIdsB57(variantesB57(objetos,[['efecto','O','P',b=>({entrada:s(b,'tibio'),salida:s(b,'frío'),mult:'2'})],['efecto','O','P',b=>({entrada:s(b,'tibio'),salida:s(b,'frio')})]],true),deP)).toEqual(['*P* cambia exactamente uno de **O** de `tibio` a `frio` u 2 **O** de `tibio` a `frío`.']);
 });
-test('T-134 ramas de abanico con el mismo extremo y estado se ordenan por cantidad y no por IDs de enlace',()=>{
- // El parser aún no reconstruye ramas que sólo difieren en cantidad (B-58): se contrasta el generador, sin punto fijo.
- const ramas=variantesB57([['O',['frío','tibio']]],[['consumo','O','P',b=>({estado:estadoB57(b,'O','frío'),mult:'3'})],['consumo','O','P',b=>({estado:estadoB57(b,'O','frío'),mult:'2'})]],true);
- for(const mod of ramas){
-  expect(validarForma(mod)).toEqual([]);expect(diagnosticar(mod).filter(d=>d.severidad==='error')).toEqual([]);
-  expect(generarDocumentoOpl(mod).split('\n').filter(l=>l.startsWith('*P*'))).toEqual(['*P* consume exactamente uno de 2 **O** en `frío` o 3 **O** en `frío`.']);
- }
+// R-COMP-ZP-3: lo que el núcleo admite sin errores, P lo reconstruye desde vacío con el mismo texto.
+function admitidoConPuntoFijo(mod:Modelo):boolean{
+ if(validarForma(mod).length||diagnosticar(mod).some(d=>d.severidad==='error'))return true;
+ const doc=generarDocumentoOpl(mod),nuevo=must(importarOpl(mod.nombre,doc));
+ return !nuevo.plan.lineas.some(l=>l.diagnosticos.length)&&generarDocumentoOpl(nuevo.modelo)===doc;
+}
+test('T-133 T-192 un abanico cuyas ramas sólo difieren en cantidad o ruta no queda admitido sin punto fijo (B-58)',()=>{
+ // Mismo objeto y estado: es el mismo rol (R-ROL-UNIC-1). G no emite el abanico inválido que P no reconstruiría.
+ const frio=(b:Modelo)=>estadoB57(b,'O','frío');
+ for(const [x,y] of [[{mult:'3'},{mult:'2'}],[{ruta:'a'},{ruta:'b'}]] as const)
+  for(const mod of variantesB57([['O',['frío','tibio']]],[['consumo','O','P',b=>({estado:frio(b),...x})],['consumo','O','P',b=>({estado:frio(b),...y})]],true)){
+   expect(diagnosticar(mod).filter(d=>d.severidad==='error').map(d=>[d.codigo,d.regla])).toEqual([['abanico-invalido','R-ROL-UNIC-1']]);
+   expect(generarModelo(mod).flatMap(l=>l.hechos)).toEqual([]);
+   expect(admitidoConPuntoFijo(mod)).toBe(true);
+  }
+});
+test('T-133 T-192 dos invocaciones idénticas no quedan admitidas sin punto fijo',()=>{
+ const mod=congelar(modeloCon({procesos:['P','Q'],enlaces:[['invocacion','P','Q'],['invocacion','P','Q']]}));
+ expect(diagnosticar(mod).filter(d=>d.severidad==='error').map(d=>[d.regla,d.refs])).toEqual([['R-EDIT-1',[{tipo:'enlace',id:'e-5'}]]]);
+ expect(admitidoConPuntoFijo(mod)).toBe(true);
 });
 test('T-134 T-192 subprocesos que empatan en la colación no se ordenan por IDs de cosa en el contexto',()=>{
  const variantes=Array.from({length:9},(_,n)=>n).flatMap(n=>[['Zorro','Zórro'],['Zórro','Zorro']].map(([x,y])=>{
