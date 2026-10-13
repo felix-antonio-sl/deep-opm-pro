@@ -115,6 +115,12 @@ export async function conCerrojo<T>(datos: string, operar: () => Promise<T>, esp
         }
         await Bun.sleep(PAUSA_MS);
     }
+    // Un intento que empezó en plazo pero terminó después tampoco entra: suelta el cerrojo y falla sin cambios.
+    if (Date.now() > limite) {
+        await unlink(ruta).catch(() => {
+        });
+        throw new Error(`La orden de cuenta no obtuvo ${ruta} en plazo; no se cambió nada.`);
+    }
     try {
         return await operar();
     }
