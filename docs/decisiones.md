@@ -7,21 +7,13 @@
 
 ## Decisión del dueño para el corte de fase B — vigente
 
-Mensaje directo del dueño, citado íntegramente; ID y fecha originales no observables:
-
 > Cambio de plan en la fase B: **omitimos la migración**. No conservo los modelos viejos; OpForja nuevo arranca con la biblioteca vacía.
 >
-> 1. Quedan sin efecto CC-17, el congelamiento, el respaldo final, el ensayo, la migración real y `--verificar`, y también la revisión de los siete modelos y de sus 121 errores.
-> 2. Antes de desplegar, confirma que el volumen `opforja-datos` no existe o está vacío. Ninguna cuenta ni modelo sintético debe llegar a producción.
-> 3. Instala el secreto y despliega con ./deploy/deploy.sh. Avísame cuando esté arriba: la cuenta la creo yo con `servidor/cuenta.js crear` y la clave la tecleo yo.
-> 4. Conserva sin montar `opforja-postgres-data`, el respaldo PostgreSQL y la evidencia de los ensayos. No borres nada de eso.
-> 5. Registra esta decisión, citada, en docs/decisiones.md. Anota en docs/operacion.md §9.4 que el corte se hizo sin migración y actualiza `HANDOFF.md`.
-> 6. La prueba de humo la hago yo: entrar, crear un modelo, editarlo, ver «Guardado», recargar y comprobar que sigue ahí.
+> Conserva sin montar `opforja-postgres-data`, el respaldo PostgreSQL y la evidencia de los ensayos. No borres nada de eso.
+>
+> […] la cuenta la creo yo con `servidor/cuenta.js crear` y la clave la tecleo yo. […] La prueba de humo la hago yo.
 
-El corte usa un volumen nuevo vacío y no porta la cuenta antigua. La creación de
-cuenta y la aceptación humana quedan a cargo del dueño. Los respaldos y ensayos
-previos permanecen como evidencia histórica, sin obligación de revisar ni rescatar
-sus modelos. El procedimiento vigente está en `docs/operacion.md` («Despliegue y recuperación»).
+El procedimiento vigente está en `docs/operacion.md` («Despliegue y recuperación»).
 
 ## Del orquestador (derivadas del alcance «ni más ni menos»)
 - Alcance del producto = lo que CANON.md exige a la herramienta (+ infraestructura mínima: cuenta, abrir/guardar/listar/eliminar modelos, exportar). Lo que CANON.md §0.4 lista como «no entra» NO se implementa: simulación, bilingüismo, sub-modelos/composición, Bocetos/Apunte/Taller/Graduar/Biblioteca/versiones, estereotipos/requisitos, anclaje/drift/calcar, capa computacional, Pr/m-de-f, negación, demora, semi-plegado, vistas/Bring/mapa, estilado autoral, agente LLM integrado, tutor, mesa, revisión compartida, lector portátil, captura de bugs, modo móvil de solo lectura.
@@ -48,7 +40,7 @@ sus modelos. El procedimiento vigente está en `docs/operacion.md` («Despliegue
 9. Simulación y probabilidades: se RETIRAN (canon §0.4; «ni más ni menos»).
 10. Búsqueda: SÍ, mínima («Buscar» por nombre de cosa u OPD → navegar/seleccionar; es canal UI previsto por R-OPD-UI-1). Tabla de enlaces: NO (inspector + OPL bastan).
 11. Lector móvil y capturador de bugs: fuera. La app es usable en anchos estrechos sin modo aparte.
-12. Modelos productivos con extensiones: se importan; el migrador lista cada pérdida (campo no representado) en un reporte visible; nada se pierde en silencio. La migración única desde PostgreSQL escribe además un reporte por modelo.
+12. Modelos productivos con extensiones: se importan; el importador lista cada pérdida (campo no representado) en un reporte visible; nada se pierde en silencio. (La migración desde PostgreSQL se omitió; ver el corte de fase B.) La migración única desde PostgreSQL escribe además un reporte por modelo.
 13. hd-opm / skill / CLI mesa: el contrato externo es el JSON v0 + la API HTTP de modelos. El servidor acepta además un token Bearer opcional (variable de entorno) equivalente a la cuenta, para que agentes externos lean/escriban modelos por la misma API. Se retira el CLI mesa y el protocolo de testigo.
 14. Forma del bundle: v0 tal cual (mapas por id, `opds[].apariencias`, `opds[].enlaces` emitido como lista derivada), mismo `formato`.
 15. JointJS: se reemplaza por render SVG propio (golden SVG como red de regresión).
@@ -56,7 +48,7 @@ sus modelos. El procedimiento vigente está en `docs/operacion.md` («Despliegue
 17. `opm-extracted/`, `assets/`, `fixtures/` (salvo los bundles v0 de `fixtures/demo-models/*.json`, que pasan a fixtures de test), `config/`, `catalog/`, `webroot/`, `ui-forja/`, `setup.sh`: se retiran del árbol (el historial Git queda).
 18. Estados: crear un estado pide su nombre (uno por gesto; sin placeholders, DR-11). In-zoom: crea el OPD hijo con el contenedor y SIN subprocesos semilla; el modelador los crea con nombre; AP-13 advierte hasta ≥2.
 19. Convención de nombres: la léxica EBNF se valida al nombrar (error visible, sin normalización silenciosa); R-NOM-* son advertencias metodológicas.
-20. Se abandonan la clasificación compuesta y el AND agrupado en la emisión (reglas 9.2 manda D1/D3 atómicas); el parser sigue aceptando la combinada R-ENT-3.
+20. Se abandonan la clasificación compuesta y el AND agrupado en la emisión (reglas 9.2 manda D1/D3 atómicas); el parser sigue aceptando la combinada R-ENT-3. Sustituida en la emisión de esencia y afiliación por D19 (evaluación del 2026-10-13); el AND agrupado se rige por B-41.
 21. IV2 nace sin demora.
 22. Selección múltiple mínima: SÍ (shift-clic; mover, eliminar/quitar, y seleccionar ≥2 enlaces para formar abanico). Sin portapapeles.
 23. = 18.
@@ -294,87 +286,42 @@ que tenemos» (ISO/PAS 19450:2015; no se versiona en el repositorio). Se cita la
 
 ## Resoluciones directas posteriores — vigentes
 
-Frases role=user recibidas textualmente; ID y fecha originales no observables.
+Decisiones del dueño recibidas textualmente. Las autorizaciones de publicación y de integración de cada
+incremento constan en Git, no aquí.
 
-**Publicación del incremento B-42 en main.** Instrucción directa posterior de Félix:
+**`cambiarTipoEnlace` con etiquetas y sentido (V3).** Félix autorizó que `cambiarTipoEnlace` reciba
+`etiquetas?: DatosEtiquetas` y `sentido?: 'directo' | 'inverso'`, relativo a sus extremos actuales, y que
+construya y valide extremos, tipo y etiquetas en una sola transacción, con identidad, trazas y un solo
+deshacer; sin sentido conserva el comportamiento vigente. Una prueba recorre todas las opciones legales de
+`tiposLegales` en ambos sentidos, con y sin etiquetas.
 
-> - Ejecutar commits semánticos y precisos sobre la rama principal, lo más aislados y atómicos posible.
-> - Realizar push controlado.
+**Metodología de rendimiento.** «Cada meta se mide como la mediana de 5 identidades frescas, después de un
+calentamiento con otra identidad, y nunca sobre una respuesta cacheada. Los límites (3× de DESIGN §2.4) no
+cambian.» No se sigue optimizando el generador por una medición en frío.
 
-Sustituye sólo el destino de publicación anterior de DEC55–57: permite incorporar los
-commits publicados de la rama y el incremento validado en main por avance rápido,
-con commits por intención y push normal, sin reescribir historia. Conserva pruebas
-completas, revisión independiente, contratos y límites operativos; no autoriza despliegue.
-
-> «Autorizo la propuesta V3 (SHA-256 1a9a0de9607950c56cbf5f26582649f37eab4fe9031d4c7545eeae934bb7f221): cambiarTipoEnlace recibe etiquetas?: DatosEtiquetas y las valida en la misma transacción, conservando identidad, validaciones y trazas. Aplícala en DESIGN y en el código, cierra WP-15 con check verde y publícalo. Rendimiento: no sigas optimizando el generador. Una sola medición en frío dentro de la suite mide la compilación JIT y el ruido del proceso, no el producto. Autorizo cambiar la metodología de rendimiento.test.ts: cada meta se mide como la mediana de 5 identidades frescas, después de un calentamiento con otra identidad, y nunca sobre una respuesta cacheada. Los límites (3× de DESIGN §2.4) no cambian. Deja la regla en una línea en DESIGN §2.4. Después sigue con WP-16 sin detenerte. La revisión de ola va al cerrar WP-16, como tenías previsto. No hace falta registrar recibos parciales ni archivos auxiliares de diagnóstico: la evidencia es el commit con check verde.»
-
-> Autorizo añadir sentido?: 'directo' | 'inverso' a cambiarTipoEnlace, relativo a sus extremos actuales, tal como lo propones en HANDOFF.md. Omitido, conserva el comportamiento vigente. Indicado, construye y valida extremos, tipo y etiquetas en una sola transacción, con identidad, trazas y un solo deshacer. Es coherente con el sentido que ya trae OpcionTipo. Aplícalo en DESIGN §4.2 y en el código.
->
-> Agrega una prueba que recorra todas las opciones legales de tiposLegales para enlaces existentes, en ambos sentidos y con y sin etiquetas, y compruebe que aplicar cada una con cambiarTipoEnlace deja un enlace igual a su candidato.
->
-> El menú de agregación sobre las ramas del símbolo compuesto y los tres textos de conformidad son reparaciones ordinarias: corrígelos sin consultarme. Con check verde, publica WP-16 y sigue con WP-17 → WP-19 hasta H3 sin detenerte, salvo ante otra contradicción real del contrato.
-
-La unión de los pasos 1+2 en un commit verde se autorizó con «unamos 1  o 2 en un solo commit».
-«Un commit semántico por paso, siempre con check verde, y push a origin/rehacer.
-Revisión una vez por ola, contra el canon y con modelos reales. Detente solo en H2,
-en H3 o ante una contradicción real del contrato.» La reanudación tras H2 fue
-«continúa sin parar a informarme mientras no tengas un problema significativo».
-La historia íntegra permanece en Git hasta 89aaa3a5 bajo docs/rehacer/bitacora.md.
-No se infiere autorización de Docker, producción, migración real o merge.
-
-**RF5 completa.** Mandato directo de Félix, citado en sus frases operativas:
-
-> Implementa RF5 completa —caracterización con estado especificado— como un único incremento vertical. El alcance es B-37 y únicamente la parte correspondiente de B-48. No toques B-45 ni inicies otras brechas.
->
-> Autorizo completar ese incremento con pruebas completas, revisión independiente, un commit atómico y semántico y push normal a main. No hagas merges, reescribas historia ni despliegues.
-
-Sustituye para RF5 el límite de DEC36, que queda como historia: el canon 2.0 ya fija oración y
+**RF5 completa.** «Implementa RF5 completa —caracterización con estado especificado— como un único
+incremento vertical.» Sustituye para RF5 el límite de DEC36, que queda como historia: el canon 2.0 ya fija oración y
 glifo. La representación y las resoluciones de simplicidad están en DR-46 de la especificación.
-No autoriza despliegue, B-45 ni el resto de B-48.
 
-**Desempate nominal del generador (observación O3 de la revisión de RF5).** Ante dos nombres
-distintos que empatan en la colación base (Zorro/Zórro), Félix eligió «Escritura exacta»: el
-comparador general de cosas usa el mismo criterio que RF5 —colación, escritura exacta y, sólo
-como último recurso, id— (especificación §4.5.5). Para los desempates restantes por id de
-enlace o de estado eligió «Registrar + tarea aparte» (B-57), y autorizó un commit local sin push.
-Después indicó «haz push de 9cbea326 a main» y «sí, añade el commit que registra el push y
-súbelo»: ambos commits se publican en main por avance rápido, sin reescribir historia. No
-autoriza despliegue.
+**Desempate nominal del generador.** Ante dos nombres distintos que empatan en la colación base
+(Zorro/Zórro), Félix eligió «Escritura exacta»: el comparador general de cosas usa el mismo criterio que
+RF5 —colación, escritura exacta y, sólo como último recurso, id— (especificación §4.5.5).
 
-**Colección incompleta derivada de la vista.** Ante la propuesta de que el OPL desde vacío sólo
-declare la colección incompleta que ningún refinador del modelo explica, Félix respondió:
-
-> acepto la regla
-
-La oración no distingue la colección parcial de la vista de la declarada (spec-OPL §7, A3.2d); lo que
-el texto no distingue es la bisimetría parcial 11 de §5.9. Después indicó «haz el commit» e «integra
-la rama en main y haz push»: el commit se rebasa sobre main y se publica por avance rápido, sin
-reescribir historia publicada. No autoriza despliegue.
+**Colección incompleta derivada de la vista.** «acepto la regla»: el OPL desde vacío sólo declara la
+colección incompleta que ningún refinador del modelo explica. La oración no distingue la colección parcial
+de la vista de la declarada (spec-OPL §7, A3.2d); esa diferencia es la bisimetría parcial 11 de §5.9.
 
 **Desempate por contenido del generador (B-57).** Para los desempates por id de enlace o de estado,
 Félix eligió las opciones recomendadas: los etiquetados con los mismos extremos se ordenan por los
 campos del hecho (tipo; estados de origen y destino por orden persistido; etiqueta efectiva e inversa por
 colación y escritura exacta; cantidades por escritura exacta); los grupos estructurales con el mismo
 refinador, por vértice, relación RF1→RF4 y estado por orden persistido; los estados de FAN5 que empatan en
-la colación, por escritura exacta, y las ramas con el mismo extremo y entrada, por salida y cantidad.
-Incluyó el contexto CX con el desempate nominal vigente, pidió declarar el abanico de ramas que sólo
-difieren en cantidad (B-58) y tareas aparte para esa brecha y para las invocaciones duplicadas, y autorizó
-un commit local sin push. La implementación aplica el mismo orden persistido al estado de la especialización
-dentro de un RFE, el único empate de la familia estructural que la clave del grupo no separa
-(especificación §4.5).
+la colación, por escritura exacta, y las ramas con el mismo extremo y entrada, por salida y cantidad. El
+contexto CX usa el desempate nominal, y el estado de la especialización dentro de un RFE, el orden
+persistido (especificación §4.5).
 
-**B-45.** Mandato directo de Félix tras el cierre de RF5: «Sigamos con B-45». Las bandas siguen
-siendo la fuente del orden; la altura que no las realiza se diagnostica, bloquea los exports
-canónicos y se repara de forma explícita (DR-47). No autoriza despliegue ni otras brechas.
-
-**Integración de sesiones paralelas.** Félix pidió a la sesión de RF5: «toma control además e integra
-todo el trabajo de las sesiones claude» (RH1/RF3, colección incompleta derivada y B-57). En la sesión de
-B-57 había indicado además «integra la rama en main». Sus commits, no publicados y sobre `6ba88bd5`, entran
-en main en ese orden por avance rápido y cherry-pick, sin merges ni reescritura de historia publicada,
-seguidos de B-45. La integración no autoriza despliegue.
-Después pidió: «toma control también sobre la sesión "Cerrar B-58 y las invocaciones duplicadas en OPL"».
-Su trabajo, ya decidido por Félix y sin commit, se cierra como commit propio y entra en main después de
-B-45, también sin merge.
+**B-45.** «Sigamos con B-45». Las bandas siguen siendo la fuente del orden; la altura que no las realiza
+se diagnostica, bloquea los exports canónicos y se repara de forma explícita (DR-47).
 
 **Rol repetido en un abanico (B-58) y copias idénticas.** Ante los dos defectos de roundtrip hallados al
 cerrar B-57, Félix eligió las opciones recomendadas: que el núcleo los rechace y no que el parser los
@@ -382,8 +329,7 @@ reconstruya. Las ramas de un abanico con el mismo tipo, extremos y estados son e
 difieran en cantidad o ruta (R-ROL-UNIC-1, «un objeto o un estado»): `violacionesAbanico` las rechaza.
 Un enlace no procedimental idéntico a otro repite el mismo hecho: es error R-EDIT-1 en la copia
 posterior por id, con reparación de un clic que la elimina; los procedimentales idénticos ya eran
-R-ROL-UNIC-1. Como toda transacción rechaza errores nuevos, `eliminarEstado` tampoco los fabrica. El
-encargo autoriza el commit local; no autoriza push ni despliegue.
+R-ROL-UNIC-1. Como toda transacción rechaza errores nuevos, `eliminarEstado` tampoco los fabrica.
 
 La revisión independiente del tramo integrado halló dos vías residuales. La contraparte escindida
 (`escision.par`) distinguía como roles dos mitades con el mismo objeto, proceso y estado; ya no cuenta
@@ -392,12 +338,15 @@ R-EDIT-1 retiraba por id una copia aunque una de las dos fuera rama de un abanic
 una alternativa por una conjunción según los ids. Ahora el error se mantiene, pero sólo se repara en un
 clic cuando ambas copias están fuera de todo abanico; si no, decide el modelador, como en R-CX-DIST-2.
 
-**Evaluación completa y remediación (2026-10-13).** Félix autorizó: «todos los problemas que encuentres
-de ahora en adelante te autorizo para que tu mismo los remedies según tu criterio. tras remediar todo
-vuelve a hacer una evaluación completa de opforja. tras terminar esa nueva evaluación y remediación.
-commitea semántica y atómicamente y pushea. tras ello despliega». Cinco revisiones independientes
-(tramo pendiente, núcleo y OPL, códec y servidor, OPD e interfaz, conformidad) hallaron defectos que se
-corrigieron uno por commit. Las decisiones de criterio que no son simple corrección:
+La revisión independiente del tramo integrado halló dos vías residuales. La contraparte escindida
+(`escision.par`) distinguía como roles dos mitades con el mismo objeto, proceso y estado; ya no cuenta
+como rol, y la escisión conserva su identidad y su par en sus propios validadores. La reparación de
+R-EDIT-1 retiraba por id una copia aunque una de las dos fuera rama de un abanico, y así podía cambiar
+una alternativa por una conjunción según los ids. Ahora el error se mantiene, pero sólo se repara en un
+clic cuando ambas copias están fuera de todo abanico; si no, decide el modelador, como en R-CX-DIST-2.
+
+**Evaluación completa y remediación (2026-10-13).** Félix autorizó remediar según criterio los hallazgos
+de una evaluación completa, repetirla, publicar y desplegar. Las decisiones de criterio que no son simple corrección:
 - D19 sustituye la emisión atómica de la decisión 20: su premisa («reglas 9.2 manda D1/D3») ya no rige,
   porque el canon 2.3 (spec-OPL R-ENT-3) exige una sola oración de propiedades genéricas. El perfil deja
   la combinada del eco OPCloud (ENT3, ENT3a) sólo como entrada.
@@ -408,6 +357,12 @@ corrigieron uno por commit. Las decisiones de criterio que no son simple correcc
 - CX10 nombra el modo del despliegue sólo cuando CX3 no lo determina (B-11).
 - El respaldo programado se instala fuera del checkout. El temporizador instalado llamaba a un script
   de PostgreSQL retirado y fallaba a diario; se reemplaza en el despliegue autorizado.
+
+**Limpieza del repositorio (2026-10-13).** «limpia el repositorio para que sea solo producto y
+documentación minimamente suficiente». Félix eligió conservar el contrato vigente (canon, perfil,
+especificación, conformidad, decisiones y documentos de uso) y retirar la historia; archivar fuera del
+repositorio lo local no versionado (`~/archivo-proyectos/saneamiento-2026-10-13/deep-opm-pro/`), y retirar
+el migrador PostgreSQL, que queda en Git hasta `d5f77c7c`.
 
 ### 1.6 Decisiones de esta síntesis (DS-n)
 
@@ -979,152 +934,3 @@ estricto» y su fila en la tabla 3 de `docs/conformidad.md`:
   cosa tapa el rótulo, el contenedor crece hacia arriba lo justo para despejarlo (DEC34).
 - **Cruces** (para advertencias): intersección segmento–segmento y segmento–rectángulo o elipse, en
   `advertenciasEscena` (§6.8).
-
-### 10.7 E2E Playwright (26 escenarios)
-
-Infraestructura:
-
-- `cd app && bun run e2e` ejecuta el build y Playwright con `app/playwright.config.ts`.
-  `webServer` lanza `bun --no-env-file dist-servidor/principal.js --host 127.0.0.1 --datos <tmp>`
-  desde `app`, con `env -i`, `PATH` explícito, `PORT=<puerto-e2e>`, `OPFORJA_WEB=<ruta absoluta a app/dist>`,
-  `OPFORJA_VERSION=e2e`, `OPFORJA_SECRETO` y `OPFORJA_TOKEN` sintéticos de prueba.
-  Espera `<BASE>/salud` y no reutiliza un servidor existente. La ruta absoluta a dist se obtiene con fileURLToPath(new URL('./dist',import.meta.url)) bajo el ejecutor Node de Playwright. `e2e/configuracion.ts` valida `OPFORJA_E2E_PUERTO` como decimal entero 1..65535 (default 8787), normaliza el puerto y deriva una única BASE usada por config, setup y fixtures.
-- `<tmp>` es un directorio temporal exclusivo de la corrida, compartido entre servidor y setup
-  mediante `OPFORJA_E2E_DATOS`; quien lo crea lo retira al finalizar. No se usan datos reales.
-- `globalSetup`, después de estar disponible `/salud`, reconstruye sólo la web con el Vite instalado y `OPFORJA_VERSION=e2e`; exige salida 0 antes de abrir páginas. No recompila el servidor mientras está activo. Después ejecuta desde `app`
-  `bun --no-env-file dist-servidor/cuenta.js crear <correo-sintético> --datos <tmp>` con dos líneas
-  iguales por stdin de una clave sintética de al menos 10 caracteres; exige salida 0. Después
-  siembra modelos por la API real con el mismo token sintético del servidor.
-- Chromium de `/opt/pw-browsers` (`PLAYWRIGHT_BROWSERS_PATH`), con `@playwright/test` fijado a la
-  versión cuyo `browsers.json` coincide, o `launchOptions.executablePath` desde `PW_CHROMIUM`.
-- Precisión serial WP-19: `e2e/soporte.ts` conserva el executablePath explícito de `PW_CHROMIUM`; omitido usa exclusivamente `chromium.executablePath()`, que consulta el registro instalado y `PLAYWRIGHT_BROWSERS_PATH`. Sin instalaciones ni cambio de escenarios/guardas.
-- El contrato «app lista» es `document.body.dataset.listo === "1"`.
-- Los localizadores van por rol y nombre accesible. El estado se lee con `GET /api/modelos/:id` y
-  con el OPL visible. No se usa CSS ni `import("/src/…")`.
-- Un fixture exige 0 errores de página.
-- Precisión serial WP-17: `editor/gestos.ts` sólo realización de alternativa abanicoCon ofrecida: orientación y estados de efecto por extremos originales, APPEND gestos.test/lienzo.test; `servidor/cuenta.ts` limita su guard CLI a la entrada propia fuente/compilada; APPEND de `cuenta.test.ts` comprueba servidor compilado con stdin abierto y CLI compilada real. Sin cambio de cuenta/autenticación.
-
-| # | Escenario | Verifica |
-|---|---|---|
-| 1 | acceso | la clave errónea da el mensaje uniforme; la correcta lleva a la Biblioteca; salir vuelve a Acceso |
-| 2 | biblioteca | nuevo con nombre abre el editor vacío; renombrar en línea se refleja en `GET`; descargar ≡ `GET`; eliminar lleva a la papelera, y restaurar lo devuelve; no hay pestañas ni carpetas |
-| 3 | importar JSON | `System_Diagram.json` muestra el informe con conteos y visibilidad; la casilla de reparaciones está desmarcada; crear dibuja el OPD con N líneas de OPL; `GET` es canónico |
-| 4 | crear y nombrar | `O` nombre ↵ y `P` nombre ↵; un nombre inválido se bloquea con ayuda; ⎋ no crea; una colisión ofrece «traer esa misma cosa», que crea una aparición y no una cosa |
-| 5 | esencia, afiliación, métricas | física da `feDropShadow` y D1; ambiental da dash y D3; el `getBBox()` de tres rótulos queda dentro de `metricas.ts` ± 2 % |
-| 6 | estados | `S` nombre ↵ crea uno; ⎋ no crea; nunca aparece `estado1`; `I`+`F` dan D10; `D` da por defecto; `H` da el chip `⋯1` y D6 |
-| 7 | enlace por arrastre | el menú solo trae tipos legales, con vista previa y «N no disponibles»; consumo da `*P* consume **O**.`; agente desde informacional sale no disponible con motivo |
-| 8 | segundo gesto | desde un TS4, arrastrar a otro estado ofrece «Completar cambio», que da TS3; un segundo resultado ofrece «Abanico XOR con el existente», que da un arco |
-| 9 | control, etiqueta, multiplicidad | `C` en consumo da CT1; resultado sale deshabilitado con motivo; etiquetado `usa` con `M`=`+` sobre objeto femenino da `al menos una **Olla**` |
-| 10 | abanico | dos consumos y `X` dan un arco y `consume exactamente uno de`; `Mayús+X` da dos arcos; disolver |
-| 11 | descomponer con bandas | `D` crea el OPD hijo **sin** subprocesos; `A ↵ B ⇧↵ C ↵ D ⎋` da el CXM exacto; el consumo migra a *A*; el TS3 se escinde; en SD la línea abstraída se mantiene; **un** `Ctrl+Z` lo deshace todo; `D ⎋` da la advertencia AP-13 |
-| 12 | bandas y doble vara | `]` sobre *B* cambia el OPL; una invocación *A*→*B* adyacente se rechaza como doble vara |
-| 13 | desplegar | `U` agregación con dos partes da CX3 y RF1 atómicas; la colección incompleta da la barra y «y al menos otra parte» |
-| 14 | navegación y cámara | árbol, ruta, ↵ entra, `Alt+↑` sube; al cambiar de OPD el bbox queda encuadrado |
-| 15 | quitar ≠ eliminar | `Supr` en la última aparición deja la cosa en el modelo (`cosa-sin-aparicion`), y `Ctrl+K › Traer` la devuelve; `Mayús+Supr` en una cosa refinada se rechaza con «Elimina primero su refinamiento» |
-| 16 | editar OPL | agregar `**Cliente** es físico.` da «1 aplicable»; Aplicar pone la cosa en el lienzo con la línea resaltada; reabrir da «Sin cambios aplicables»; una línea inválida muestra su razón y no bloquea las demás |
-| 17 | bimodal | el hover de un token realza el elemento (atributo de realce en la capa UI) y viceversa; un clic en un token de otro bloque navega y selecciona sin cambiar la `rev` |
-| 18 | diagnóstico y reparación | un proceso sin transformación da una advertencia e «Ir» lo selecciona; un modelo sembrado con dos nombres duplicados muestra «Aplicar a los N», que renombra con sufijo; el SVG no tiene marcas |
-| 19 | exportar y vista canon | el SVG descargado no tiene `data-ref` ni clases UI, y sí `@font-face`; un OPD sin subprocesos deja el ítem deshabilitado por AP-13 (antes de DEC50, también con uno); `F9` dibuja el mismo SVG que el export; tras «Guardado», el JSON exportado ≡ `GET`; una cosa quitada de su último OPD deshabilita `canon-documento` (B-26) |
-| 20 | deshacer | aplicar un OPL con 3 cambios y deshacer vuelve al modelo previo y al OPD donde ocurrió; rehacer |
-| 21 | guardado y conflicto | editar da «Guardado» y `GET` lo refleja; un PUT concurrente por la API da «Conflicto»: «Conservar mis cambios» deja la versión del servidor en la papelera, y en otra corrida «Usar la guardada» crea la «(copia …)»; la red cortada da «Sin conexión», y al recargar se recupera el borrador |
-| 22 | reanclar | arrastrar el extremo de una parte a otra cosa cambia el OPL de `consta de`; arrastrar el extremo proceso de un consumo migrado a otro subproceso lo reasigna con el mismo id |
-| 23 | duración y excepción | duración máx de 5 min; un sobretiempo a manejador ambiental da `excede 5 minutos`; un manejador sistémico da una advertencia |
-| 24 | ancho estrecho | a 390×844, las pestañas cambian de zona, no hay desplazamiento horizontal y crear un objeto funciona |
-| 25 | selección múltiple y enlaces de una cosa | `Mayús+clic` en 3 cosas y arrastrar mueve las 3, y un `Ctrl+Z` las devuelve; `Supr` da una Decisión; Propiedades lista los enlaces con sus OPDs y un clic navega |
-| 26 | bimodal idempotente (SYNTHESIS §7.3) | con `System_Diagram.json` importado, en cada OPD, abrir el editor OPL sin tocar da «Sin cambios aplicables»; agregar una línea, aplicar y deshacer deja, tras el autoguardado, la `rev` original en `GET` |
-
----
-
-
-## Riesgos y mitigaciones — transferencia de las tablas 13.1 y 13.2
-
-Son distinciones y mecanismos del diseño; la acreditación efectiva y las superficies
-pendientes se consultan en conformidad, no se deducen de esta tabla. Las referencias
-§9.4-2 y §9.4-4 de estas tablas corresponden al procedimiento histórico de respaldo
-y ensayo, fuera del corte vigente con biblioteca vacía. Los ensayos y respaldos ya
-realizados se conservan; no acreditan una migración real ni el smoke humano nuevo.
-
-### 13.1 Riesgos de sobresimplificación de SYNTHESIS §8 (los 21, resueltos)
-
-| # | Riesgo | Resolución | Dónde se prueba |
-|---|---|---|---|
-| 1 | Datos de producción con extensiones (`esApunte`, familias por preestado, anclas, notas, piezas, `Estado.duracion`) | El importador descarta cada campo **con su ruta**. La migración escribe un informe por modelo y archiva cada payload original; antes se hace `pg_dump` (§9.4-2). Las familias por preestado dejan varios efectos sobre el mismo par: se **cargan** como `enlace-invalido` (R-ROL-UNIC-1, recuperable), nunca se fusionan en silencio | `codec.test`, `migrar-postgres.test` |
-| 2 | Consumidores externos (`hd-opm`, skill, `mesa`, golden HODOM) | El contrato es JSON v0 + API HTTP + token Bearer (DECISIONS 13), en `formato-v0.md`. El export satisface los tipos v0 actuales; el servidor canonicaliza lo que llega (422 si hay pérdidas); la igualdad byte a byte del HODOM se reemplaza por la ley de punto fijo | `codec-fijo.test`, `principal.test` |
-| 3 | Superficie OPL nueva y AND compuesto | La clasificación compuesta sigue sin emitirse; el parser acepta ENT3. DEC51 retoma las listas AND canónicas con hechos y tokens por miembro; la prosa opcional de verbos distintos sigue fuera | `analizar.test`, `generar.test`, `and.test` |
-| 4 | Vista del padre derivada (fuerza, R-PREC) | Una prueba por nivel de fuerza y por celda 3×3 en WP-4 p, **antes** de retirar las proyecciones persistidas; el importador las ignora recién en WP-6 | `proyeccion.test` |
-| 5 | Reemplazar JointJS sin red | golden genuinos y diagnósticos diferenciados, observados individualmente; marcadores literales contra el canon; reductor de gestos puro; e2e de estados, enlaces, reanclaje y abanicos; toda la geometría es derivada | `golden.test`, `gestos.test`, e2e 5–13, 22 |
-| 6 | Simulación y probabilidades | Se retiran (DECISIONS 9). El import las descarta con informe; `Pr=` da `unsupported-canonical` o `non-canonical` | `codec.test`, `analizar.test` |
-| 7 | Sin deshacer, búsqueda ni tabla de enlaces | Deshacer y rehacer por instantáneas (200 pasos, fusión por gesto, vuelve al OPD); `Ctrl+K` para cosas y OPDs; «Enlaces (N)» en Propiedades y «Filtrar por selección» en el OPL | e2e 14, 15, 20, 25 |
-| 8 | Sin versiones ni local-first | Copias previas en el servidor (30, cada ≥10 min); papelera de 30 días, también para versiones reemplazadas; borrador en IndexedDB; descarga JSON; respaldo diario; CAS | `almacen.test`, `guardado.test`, e2e 21 |
-| 9 | Unicidad nominal frente a duplicados | **No se rechaza ni se renombra** (DS-7): se carga con `nombre-duplicado` (error) y una reparación de un clic («Aplicar a los N»); en edición, la colisión ofrece «traer esa misma cosa» | `codec.test`, `diagnostico.test`, e2e 18 |
-| 10 | DR-11 lento en el in-zoom | `D`, nombres encadenados (↵ secuencia, ⇧↵ paralelo) y ⎋: un gesto, un paso de deshacer, sin semillas | e2e 11 |
-| 11 | Import tolerante que persiste grafos inválidos | Lo representable se carga como error que **bloquea el export canónico** por gate; lo no representable se descarta por elemento con informe; el almacén solo guarda documentos con forma | `codec.test`, `diagnostico.test`, `exportar.test` |
-| 12 | Capturador de bugs como único canal de feedback | Fuera (DECISIONS 11). Queda el límite de error por panel con «Copiar detalle» (sin contenido del modelo) y el README indica dónde reportar | revisión |
-| 13 | CANON.md derivado y 4 decisiones pendientes | Canon vendorizado en `canon/`; `especificacion.md` declarada derivada; DR-5, DR-10, DR-18 y DR-23 fijadas por DECISIONS 1–4 y registradas (B-01, B-02, B-03) | — |
-| 14 | Pruebas primero | Cada WP abre con sus pruebas; las leyes y sondas se reexpresan antes del código que protegen; WP-1 deja los contratos para programar contra ellos | revisión única por ola |
-| 15 | Licencia: el historial conserva lo retirado | Declarado en `NOTICE.md`; purgar el historial es decisión del dueño | — |
-| 16 | DR-2 sin T-153 rompe el roundtrip desde vacío | D1/D3 «solo si difieren», la mención mínima D2 (DS-2) y la creación por tipografía entran **juntas** en WP-9, con `roundtrip-matriz` como gate | `roundtrip-matriz.test` |
-| 17 | Retirar `canvas/operacionesBatch.ts` en bloque | `traerCosa`, `quitarDeOpd` y `eliminarCosas` nacen en el núcleo en WP-3 a con pruebas; lo viejo solo se retira en la rama, que no llega a producción sin los e2e 14–15 | `cosas.test`, e2e 14, 15 |
-| 18 | Retirar el diálogo de abrir modelos | La Biblioteca en lista simple es WP-14, y sus e2e 2–3 son condición de merge | e2e 2, 3 |
-| 19 | Migrar el par TS3 | El import fusiona consumo(estado) + resultado(estado) del mismo par, fuera de abanico, en un `efecto` con el id del consumo; `efectoEscindido` pasa a `escision`; cada fusión queda en el informe | `codec.test`, `codec-derivados.test` |
-| 20 | Cotas de excepción en el enlace | `tiempoMaximo`/`tiempoMinimo` pasan a `duracion.max/min` de la fuente; ante conflicto se conserva la primera; EX1/EX2 salen con el número | `codec.test`, `generar.test` |
-| 21 | La visibilidad derivada cambia el OPL por OPD | Etapa 12: `informe.visibilidad` por OPD, en el diálogo de importación (como OPL) y en el informe de migración; el operador lo revisa en el ensayo (§9.4-4) | `codec-visibilidad.test` |
-
-### 13.2 Ítems de SYNTHESIS §10.2 marcados FALTA, CONTRADICE, PARCIAL o N/A
-
-| Req. | Estado previo | Mecanismo nuevo | Prueba |
-|---|---|---|---|
-| T-001 ★ | FALTA | `docs/conformidad.md` con Brechas exhaustivas (§11.3), `registro` en cada fila de código y la regla de AGENTS | revisión del diff |
-| T-025 ★ | PARCIAL | `lexico.ts` valida al nombrar con error visible; ninguna operación ni el import reescriben nombres; la reparación es explícita (DS-7) | `lexico.test`, `codec.test`, e2e 4 |
-| T-053 ★ | PARCIAL | R-ROL-UNIC-1 por proceso; entre niveles, R-ROL-3 y precedencia al abstraer (DEC33); el segundo gesto ofrece completar el cambio, un abanico o cambiar el tipo; en OPL, TS1+TS2 del mismo par dan `enlace-invalido-firma` con la acción «usa `cambia … de … a …`» | `matriz.test`, `editor-opl.test`, e2e 8 |
-| T-060 ★ | CONTRADICE | R-DIST-1/AP-06/AP-21 en la matriz (lo cargado es error con reparación `distribuirEnlace`) + distribución 0→n + enlace tardío distribuido | `matriz.test`, `refinamiento.test` |
-| T-062 ★ | CONTRADICE | `crearCosa`, `agregarEstado`, `agregarSubprocesos` y `agregarRefinadores` exigen nombre; in-zoom y despliegue sin semillas | `cosas.test`, e2e 4, 6, 11 |
-| T-063 ★ | N/A (no existía) | `cambiarTipoCosa` + cierre DS-20 | `cosas.test` |
-| T-074 ★ | FALTA | escisión 0→≥2, más DS-4 (con control o en abanico: entero) | `refinamiento.test`, e2e 11 |
-| T-075 ★ | CONTRADICE | toda migración mueve el **mismo** enlace | `refinamiento.test` |
-| T-079 ★ | FALTA | precondición `externo-no-refinable` | `refinamiento.test` |
-| T-081 | FALTA | `traerCosa` y `moverApariciones` rebotan al externo con traza; el alcance es dato | `cosas.test`, e2e 11 |
-| T-100 ★ | PARCIAL | `opdsEnPreorden` (DFS por `orden`) como única función de orden: panel, export y documento; lo que no está en ningún OPD se declara (B-26) y bloquea `canon-documento` | `proyeccion.test`, `generar.test`, `diagnostico.test` |
-| T-101 ★ | FALTA | D6 con estados visibles y «y otros estados»; reconstrucción local por `sincronizar-estados` | `generar.test`, e2e 6 |
-| T-116 ★ | CONTRADICE | IV2 `se invoca a sí mismo.` sin demora (el tipo no tiene demora, DECISIONS 21) | `generar.test` |
-| T-125 ★ | PARCIAL | CX1 con `, en esa secuencia` solo en el bloque del hijo | `generar.test` |
-| T-126 ★ | CONTRADICE | CX3 `se despliega en SDx en …` | `generar.test` |
-| T-139 | CONTRADICE | los modos de esencia solo en líneas `soloDisplay` | `generar.test` |
-| T-153 ★ | FALTA | el planificador crea por tipografía, una vez, y resuelve por `claveNombre` | `editor-opl.test`, `roundtrip-matriz.test` |
-| T-155 ★ | PARCIAL | todo candidato pasa por la matriz; una violación da `type-mismatch` y `enlace-invalido-firma` con la regla | `analizar.test`, `editor-opl.test` |
-| T-157 ★ | FALTA | `NO_CANONIZADAS` da `non-canonical` sin mutar, incluido `Pr=` fuera de abanico | `analizar.test` |
-| T-158 ★ | PARCIAL | una tipografía contradictoria da `no-aplicable` con el detalle y dos acciones (renombrar la existente, otro nombre) | `editor-opl.test` |
-| T-161 ★ | FALTA | plantilla COND-ALT (solo parseo) | `analizar.test` |
-| T-165 | FALTA | TS3 sobre vacío crea el objeto (tipografía), sus estados y el efecto | `roundtrip-matriz.test` |
-| T-166 ★ | CONTRADICE | `crear-refinamiento` + `fijar-orden` (crea los faltantes, fija las bandas); un miembro ajeno da `referencia-ambigua` | `editor-opl.test` |
-| T-170 ★ | FALTA | SE1 residual (paso 5 del analizador) | `analizar.test` |
-| T-182 ★ | PARCIAL | una sola codificación del efecto; idempotencia por identidad de enlace; comparación contra la vista | `editor-opl.test`, e2e 26 |
-| T-192 ★ | PARCIAL | enumeración finita completa (2996 modelos,2734 importaciones estrictas reales) + `azar` (200) + tabla 9.2 + documento (pasadas A/B) | `roundtrip-*.test` |
-| T-228 ★ | CONTRADICE | diagnóstico solo en su panel; `dibujar` no tiene capa de validación | `exportar.test`, e2e 18 |
-| T-263 ★ | PARCIAL | un solo código `proceso-sin-transformacion` (warning) con herencia y subprocesos; se retira el duplicado `error` | `diagnostico.test` |
-| T-268 ★ | CONTRADICE | la matriz no restringe la afiliación del manejador; `manejador-no-ambiental` es warning con reparación | `matriz.test`, `diagnostico.test`, e2e 23 |
-| T-281 ★, T-283 ★ | PARCIAL | `canon-documento` HTML autocontenido con la fuente; gates >25, <2 y error, sin bloquear la edición (exención registrada, B-22) | `exportar.test`, e2e 19 |
-| T-284 | PARCIAL | advertencias de cruces, atravesamientos y solapes en el menú antes de exportar (B-15) | `exportar.test` |
-
-Los que el crítico encontró CUMPLE (T-080, T-162, T-164, T-171, T-172, T-175, T-241, T-246,
-T-247, T-248, T-251, T-262, T-265) se conservan con prueba propia en su WP. T-262 queda como
-diagnóstico `cosa-sin-aparicion` (DS-6), no como invariante.
-
-## Verificación y continuidad del contrato
-
-La documentación conserva las 32 decisiones y DS-1–26, las resoluciones de etiquetas,
-sentido y mediana, y los límites de 180 requisitos ★, 32 brechas y once parciales.
-La revisión del Anexo A usa los 12 gates de AGENTS sobre el candidato y modelos reales;
-T303/B-35 es ese examen manual, sin callback ficticio ni fila de catálogo.
-La evidencia de cierre es el commit con check verde, build y 26 escenarios reales.
-H3 exige revisión favorable, aceptación, publicación verificada y PR abierto, sin merge.
-WP-18/imagen Docker requiere autorización aparte y no se incluye en H3.
-
-La transferencia conserva cuerpos e IDs de pruebas existentes. Los controles mínimos
-adicionales de trazabilidad (T014), lente (T164) y paneles (T242/T243) contrastan dato
-derivado, TS4/TS5 standalone y realce/navegación por Ref con núcleo/controlador reales.
-Su crédito es parcial: el montaje nativo no acredita DOM ni bisimetría universal.
-Las referencias canónicas de T003 apuntan a canon/; el fallback del navegador conserva
-PW_CHROMIUM explícito y usa chromium.executablePath() con el registro instalado.
-Son precisiones operativas de dirección dentro del encargo, sin nueva regla OPM,
-instalación ni autorización humana atribuida a otro actor.
