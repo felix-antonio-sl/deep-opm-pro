@@ -337,6 +337,9 @@ distintos que empatan en la colación base (Zorro/Zórro), Félix eligió «Escr
 comparador general de cosas usa el mismo criterio que RF5 —colación, escritura exacta y, sólo
 como último recurso, id— (especificación §4.5.5). Para los desempates restantes por id de
 enlace o de estado eligió «Registrar + tarea aparte» (B-57), y autorizó un commit local sin push.
+Después indicó «haz push de 9cbea326 a main» y «sí, añade el commit que registra el push y
+súbelo»: ambos commits se publican en main por avance rápido, sin reescribir historia. No
+autoriza despliegue.
 
 ### 1.6 Decisiones de esta síntesis (DS-n)
 
