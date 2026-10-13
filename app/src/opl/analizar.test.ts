@@ -92,6 +92,21 @@ const limites = [
 ] as const;
 for(const [texto,codigo] of limites)test(`T-156 T-157 límite ${texto}`,()=>{const l=caso(texto);expect(l.hechos).toEqual([]);expect(l.diagnosticos[0]?.codigo).toBe(codigo);expect(l.diagnosticos[0]?.regla).toBeTruthy();});
 test('T-003 R-ZNC-1 la grafía histórica de caracterización es no canonizada, registrada en B-37 y sin hechos',()=>{for(const t of ['**Objeto sin Estados** exhibe `cero` **Tamaño**.','**Proceso Físico** y **Objeto Físico** exhiben `física` **Esencia**.']){const l=caso(t);expect(l.hechos).toEqual([]);expect(l.diagnosticos[0]).toMatchObject({codigo:'non-canonical',regla:'R-ZNC-1'});}expect(NO_CANONIZADAS.find(x=>x.regla==='R-ZNC-1')?.registro).toBe('B-37');});
+import {planificar as planificarLimites} from './planificar';
+test('T-156 T-151 D14, D15, D16 y D17 son canónicas no ofrecidas: unsupported-canonical sin hechos ni acciones (B-61)',()=>{
+ const formas=['**Pedido** está en `nuevo`.','Estados `nuevo` y `listo` de **Pedido** son iniciales.','Estados `nuevo`, `listo` y `pagado` de **Pedido** son finales.',
+  '**Pedido** está inicialmente en `nuevo` y finalmente en `listo`.','**Pedido** está inicialmente en `nuevo` y `listo` y finalmente en `pagado` o `anulado`.'];
+ const b=modeloNombresReservados({objetos:[['Pedido',['nuevo','listo','pagado','anulado']]]}),antes=JSON.stringify(b);
+ for(const s of formas){
+  const l=caso(s);expect(l.hechos).toEqual([]);expect(l.diagnosticos).toEqual([expect.objectContaining({codigo:'unsupported-canonical',severidad:'warning',regla:'R-IMPORT-5'})]);
+  const plan=planificarLimites(b,b.raiz,s);expect(plan.acciones).toEqual([]);expect(plan.lineas[0]?.diagnosticos[0]?.codigo).toBe('unsupported-canonical');
+ }
+ expect(JSON.stringify(b)).toBe(antes);
+ // Las designaciones ofrecidas siguen reconstruyendo su hecho.
+ expect(caso('Estado `nuevo` de **Pedido** es inicial.').hechos).toEqual([{k:'designacion',objeto:'Pedido',estado:'nuevo',designaciones:['inicial']}]);
+ expect(caso('*Validar* ocurre si **Pedido** está en `nuevo`, de lo contrario *Validar* se omite.').diagnosticos).toEqual([]);
+ expect(NO_SOPORTADAS.filter(x=>x.registro==='B-61').map(x=>x.regla)).toEqual(['R-IMPORT-5']);
+});
 test('T-001 cada límite inverso tiene regla y registro',()=>{for(const r of [...NO_SOPORTADAS,...NO_CANONIZADAS]){expect(r.regla).toBeTruthy();expect(r.registro).toMatch(/^B-\d\d$/);}});
 
 test('T-152 análisis puro memoizado conserva líneas y hechos ante intercalación y contaminación',()=>{

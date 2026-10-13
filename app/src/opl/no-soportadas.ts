@@ -25,5 +25,7 @@ export const NO_SOPORTADAS: readonly LimiteOpl[] = [
     // «Tiene» sigue siendo etiqueta libre; no inventa una exhibición con multiplicidad.
     { patron: /\b(?:después de|no maneja|no requiere|no consume|no genera|no afecta|no cambia)\b|\[etiqueta:/u, codigo: 'unsupported-canonical', regla: 'R-IMPORT-5', registro: 'B-16' },
     { patron: /^\*[^*]+\* (?:consume|genera|afecta|requiere|cambia) .*?(?:, | [ye] )(?:consume|genera|afecta|requiere|cambia) \*\*/u, codigo: 'unsupported-canonical', regla: 'R-§18-EXT-1', registro: 'B-16', prosaCompuesta: true },
-    { patron: /\bexcede .* y .*es menor que\b/u, codigo: 'unsupported-canonical', regla: 'R-IMPORT-5', registro: 'B-16' }
+    { patron: /\bexcede .* y .*es menor que\b/u, codigo: 'unsupported-canonical', regla: 'R-IMPORT-5', registro: 'B-16' },
+    // spec-OPL §2.3–§2.4: estado único (D14), designación por lista (D15, D16) y oración combinada (D17); oración entera.
+    { patron: /^\*\*N\*\* está en `s`\.$|^Estados `s`(?:(?:, | [ye] )`s`)* de \*\*N\*\* son (?:iniciales|finales)\.$|^\*\*N\*\* está inicialmente en `s`(?: [ye] `s`)* y finalmente en `s`(?:(?:, | [ou] )`s`)*\.$/u, codigo: 'unsupported-canonical', regla: 'R-IMPORT-5', registro: 'B-61', mensaje: 'Oración canónica de estados (D14–D17) aún no ofrecida; no se aplica.' }
 ];
