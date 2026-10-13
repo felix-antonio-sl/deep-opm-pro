@@ -62,7 +62,9 @@ Estas leyes se prueban sobre todos los fixtures y 200 modelos de `pruebas/azar.t
    (bundles externos que numeran por colección) no es ambiguo: se conserva en la primera por el
    orden `entidades, estados, enlaces, abanicos, opds` y se reasigna en las siguientes con un id
    nuevo `prefijo-N` tomado de la secuencia (§3.3), reescribiendo sus referencias (`normalizado`,
-   CC-09).
+   CC-09). Igual se reasigna un id fuera de `[A-Za-z0-9._:~-]{1,80}` o cuyo sufijo numérico no deja
+   una secuencia entera segura mayor (F-9) (`normalizado`, T-022). Si la secuencia se agota dentro de
+   los enteros seguros, el documento se rechaza en `nextSeq`; nunca se repite un id.
 3. **Referencias** (método F: rechazo, sin reparar). Cada referencia rota es un rechazo con su ruta:
    - estado a entidad; extremo a entidad o estado; `estadoEntradaId` y `estadoSalidaId`;
    - aparición a entidad y OPD; refinamiento a OPD; `opdRaizId`;

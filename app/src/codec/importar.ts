@@ -165,20 +165,33 @@ export function importarV0(texto:string):ResultadoImport {
   return importarDocumento(texto,fusionarPares);
 }
 
+// T-022/F-9: la secuencia sólo avanza dentro de los enteros seguros; agotada, se rechaza en vez de repetir ids.
+class SecuenciaAgotada extends Error {}
 function importarDocumento(texto:string,fusionar?:FusionarPares,preferirLiteralesCantidad=false):ResultadoImport {
-  const l=new Lectura(), raw=sobre(texto,l);
+  const l=new Lectura();
+  try { return construirDocumento(texto,l,fusionar,preferirLiteralesCantidad); }
+  catch(e) {
+    if(!(e instanceof SecuenciaAgotada)) throw e;
+    l.rechazar('nextSeq','Secuencia agotada: no quedan ids nuevos dentro del rango entero seguro.'); return {ok:false,informe:l.informe};
+  }
+}
+
+function construirDocumento(texto:string,l:Lectura,fusionar:FusionarPares|undefined,preferirLiteralesCantidad:boolean):ResultadoImport {
+  const raw=sobre(texto,l);
   const fallo=():ResultadoImport=>({ok:false,informe:l.informe});
   if (!raw) return fallo();
   const entrada=Object.fromEntries(cols.map(k=>[k,coleccion(raw[k],k,l)])) as Record<Col,Record<string,Registro>>;
   if (l.rechazos.length) return fallo();
   let seq=Number.isSafeInteger(raw.nextSeq) && Number(raw.nextSeq)>0 ? Number(raw.nextSeq):1;
-  for (const c of cols) for (const id of Object.keys(entrada[c])) seq=Math.max(seq,sufijoId(id)+1);
+  // Un sufijo que no deja una secuencia segura mayor se reasigna como un id inválido (F-9).
+  const sufijoSeguro=(id:string):boolean=>Number.isSafeInteger(sufijoId(id)+1);
+  for (const c of cols) for (const id of Object.keys(entrada[c])) if (sufijoSeguro(id)) seq=Math.max(seq,sufijoId(id)+1);
   const usados=new Set<string>();
-  const nuevo=(p:string):string=> { let id:string; do { id=`${p}-${seq++}`; } while(usados.has(id)); usados.add(id); return id; };
+  const nuevo=(p:string):string=> { let id:string; do { if (seq>=Number.MAX_SAFE_INTEGER) throw new SecuenciaAgotada(); id=`${p}-${seq++}`; } while(usados.has(id)); usados.add(id); return id; };
   const maps=Object.fromEntries(cols.map(c=>[c,new Map<string,string>()])) as Record<Col,Map<string,string>>;
   for (const c of cols) for (const [old,v] of Object.entries(entrada[c])) {
     let id=old;
-    if (!/^[A-Za-z0-9._:~-]{1,80}$/.test(id) || usados.has(id)) { id=nuevo(c==='entidades' && v.tipo === 'proceso' ? 'p':prefijos[c]); l.norm(`${c}.${old}.id`,`${old} → ${id}`,'T-022'); } else usados.add(id);
+    if (!/^[A-Za-z0-9._:~-]{1,80}$/.test(id) || !sufijoSeguro(id) || usados.has(id)) { id=nuevo(c==='entidades' && v.tipo === 'proceso' ? 'p':prefijos[c]); l.norm(`${c}.${old}.id`,`${old} → ${id}`,'T-022'); } else usados.add(id);
     maps[c].set(old,id);
   }
   const map=(c:Col,v:unknown):string=>typeof v === 'string' ? maps[c].get(v) ?? v : '';

@@ -17,6 +17,21 @@ test('T-022 ids opacos __proto__/constructor/toString sobreviven y export ordena
 test('T-022 ids inválidos se reasignan con todas las referencias y secuencia válida',()=>{
  const d=documento([entidad('id con espacio'),entidad('p-2','proceso')],[enlace('e-3','consumo','id con espacio','p-2')]);d.modelo.nextSeq=1;const r=leer(d),obj=Object.values(r.modelo.cosas).find(c=>c.tipo==='objeto')!;expect(obj.id).toMatch(/^o-\d+$/);expect(r.modelo.enlaces['e-3']).toMatchObject({objeto:obj.id});expect(r.modelo.opds['opd-1']!.apariciones[obj.id]).toBeDefined();expect(r.modelo.secuencia).toBeGreaterThan(Number(obj.id.split('-').at(-1)));expect(r.informe.normalizado.some(e=>e.ruta.includes('id con espacio'))).toBe(true);
 });
+test('T-022 sufijo numérico fuera del rango seguro se reasigna y la importación termina',()=>{
+ for(const grande of ['o-9007199254740992','o-'+'9'.repeat(78)]){
+  const d=documento([entidad(grande),entidad('id con espacio'),entidad('p-2','proceso')],[enlace('e-3','consumo',grande,'p-2')]);
+  const r=fixed(d),ids=Object.keys(r.modelo.cosas),nuevo=r.informe.normalizado.find(e=>e.ruta===`entidades.${grande}.id`)?.mensaje.split(' → ')[1];
+  expect(ids).not.toContain(grande);expect(nuevo).toMatch(/^o-\d+$/);expect(r.modelo.enlaces['e-3']).toMatchObject({objeto:nuevo,proceso:'p-2'});
+  for(const id of ids)expect(Number.isSafeInteger(Number(id.split('-').at(-1)))).toBe(true);
+  expect(Number.isSafeInteger(r.modelo.secuencia)).toBe(true);
+ }
+});
+test('T-022 secuencia agotada rechaza con ruta en vez de repetir ids',()=>{
+ const d=documento([entidad('id con espacio')]);d.modelo.nextSeq=Number.MAX_SAFE_INTEGER;
+ const s=documento([entidad('o-9007199254740990'),entidad('id con espacio')]);
+ for(const x of [d,s]){const r=importarV0(JSON.stringify(x));expect(r.ok).toBe(false);expect(r.informe.rechazos.map(e=>e.ruta)).toEqual(['nextSeq']);}
+ const libre=documento([entidad('o-9007199254740990')]);expect(leer(libre).modelo.secuencia).toBe(Number.MAX_SAFE_INTEGER);
+});
 test('T-025 nombres duplicados y fuera del léxico conservan identidad y texto',()=>{
  const d=documento([entidad('o-1','objeto',{nombre:' duplicado '}),entidad('o-2','objeto',{nombre:' duplicado '})]);const r=fixed(d);expect(Object.values(r.modelo.cosas).map(c=>c.nombre)).toEqual([' duplicado ',' duplicado ']);
 });
