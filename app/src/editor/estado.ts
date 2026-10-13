@@ -302,7 +302,9 @@ export function crearEditor(dep: {
             if ('estado' in r && r.estado === 409) { copia = { ...m, id: nuevoId() }; r = await dep.cliente.crear(exportarV0(copia)); }
             version(); if (gen !== generacion) return;
             if ('estado' in r) { error(r.error, 'error', r.informe); return; }
-            publicar({ modelo: { ...estado.modelo!, id: r.id }, rev: r.rev, guardado: versionNueva ? 'version-nueva' : 'guardado', modo: 'edicion', solicitud: null }); pausa = false;
+            // Con ID nuevo es otro documento: deshacer y rehacer cambian su contenido, no su identidad ni el destino del guardado.
+            const identidad = (p: Paso): Paso => p.modelo.id === r.id ? p : { ...p, modelo: { ...p.modelo, id: r.id } };
+            publicar({ modelo: { ...estado.modelo!, id: r.id }, rev: r.rev, pasado: estado.pasado.map(identidad), futuro: estado.futuro.map(identidad), guardado: versionNueva ? 'version-nueva' : 'guardado', modo: 'edicion', solicitud: null }); pausa = false;
             if (r.canonicalizado) {
                 versionNueva = true; const lectura = await dep.cliente.leer(r.id); version(); if (gen !== generacion) return;
                 if (lectura === 'no-existe') { pausa = true; error('El documento canonicalizado desapareció.', 'eliminado'); return; }
