@@ -237,6 +237,12 @@ export function escena(m: Modelo, opd: Id): Escena {
     // caja persistida y, a igual solape, conserva su esquina. Dos pasadas sobre las cajas ya medidas.
     const medidos = vista.cosas.map(v => medirNodo(v)), cajas = medidos.map(n => n.caja);
     const dentro = (i: number) => vista.cosas[i]!.rol === 'subproceso' || vista.cosas[i]!.rol === 'interno';
+    // R-OPD-INV-2: el punto superior de un subproceso denota su orden y conserva la altura de su banda, así
+    // que sólo crece hacia abajo. Ningún interno sale del contenedor por arriba ni por la izquierda, hacia
+    // donde el contenedor no crece (R-OPD-REF-1); lo que ya estaba fuera en lo persistido no se agrava.
+    const limite = vista.cosas.find(v => v.rol === 'contenedor'), borde = limite && o.apariciones[limite.cosa];
+    const admisible = (i: number, r: Rect, a: Rect) => !dentro(i) || ((vista.cosas[i]!.rol !== 'subproceso' || r.y === a.y)
+        && (!borde || (r.x >= Math.min(a.x, borde.x) && r.y >= Math.min(a.y, borde.y))));
     for (let pasada = 0; pasada < 2; pasada++)
         for (let i = 0; i < medidos.length; i++) {
             const n = medidos[i]!, a = o.apariciones[n.ref.id]!;
@@ -252,7 +258,9 @@ export function escena(m: Modelo, opd: Id): Escena {
             const dx = n.caja.ancho - a.ancho, dy = n.caja.alto - a.alto;
             let mejor = cajas[i]!, menor = coste(mejor);
             for (const [fx, fy] of [[0, 0], [.5, .5], [1, 0], [0, 1], [1, 1], [.5, 0], [0, .5], [1, .5], [.5, 1]] as const) {
-                const r = { ...n.caja, x: a.x - dx * fx, y: a.y - dy * fy }, k = coste(r);
+                const r = { ...n.caja, x: a.x - dx * fx, y: a.y - dy * fy };
+                if (!admisible(i, r, a)) continue;
+                const k = coste(r);
                 if (k < menor - 1e-9) { mejor = r; menor = k; }
             }
             cajas[i] = mejor;

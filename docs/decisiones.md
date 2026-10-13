@@ -949,6 +949,8 @@ estricto» y su fila en la tabla 3 de `docs/conformidad.md`:
   menor área: ancho = máx(declarado, rótulo + 24, fila de estados + 16), y el alto análogamente; la
   elipse toma los semiejes de área mínima que inscriben el bloque. Con duración, semiejes = medio
   contenido × √2 + 8. La forma agrandada crece hacia el lado libre y contiene su caja persistida.
+  Un subproceso conserva su punto superior (R-OPD-INV-2) y crece sólo hacia abajo; ningún interno
+  sale del contenedor por arriba ni por la izquierda, hacia donde el contenedor no crece.
 - **Duración** (T-220): va bajo el nombre dentro de la elipse, como `[min] {1, 3, 5}` en serif 11.
   Los valores ausentes se muestran como `–`. Sin duración no se dibuja nada.
 - **Instancia lógica** (T-222): el rótulo es `Nombre : Clase` si el objeto es instancia por

@@ -434,3 +434,39 @@ test('T-218 DEC35 «2..*» y un entero quedan fuera de la punta, de la caja y de
             expect(advertenciasEscena(e).filter(x => x.texto.startsWith('La multiplicidad'))).toEqual([]);
         }
 });
+// R-OPD-INV-2: la altura del punto superior de cada subproceso denota su orden; el autoajuste del rótulo
+// (DEC34) no puede moverla ni sacar al subproceso del contenedor, que sólo crece hacia la derecha y abajo.
+import { modeloCon, must, porNombre } from '../pruebas/constructores';
+import { aplicarAcciones } from '../nucleo/operaciones';
+import { exportarDiagrama, exportarDocumento } from './exportar';
+import type { OpdDescomposicion } from '../nucleo/tipos';
+test('T-221 T-030 T-204 el rótulo largo de un subproceso paralelo lo agranda sin mover su punto superior ni sacarlo del contenedor, también en los exports canónicos', () => {
+    const largo = 'Revisar ' + 'Contenido Extenso '.repeat(5).trim(), ancho = 'Verificar' + 'A'.repeat(30);
+    for (const bandas of [[['Preparar Pedido', largo], ['Finalizar Pedido']], [[ancho, 'Preparar Pedido', 'Cobrar Pedido'], ['Finalizar Pedido']]]) {
+        const b = modeloCon({ procesos: ['Procesar Pedido'] });
+        const base = must(aplicarAcciones(b, [{ op: 'descomponer', args: { opd: b.raiz, proceso: porNombre(b, 'Procesar Pedido').id, bandas } }])).modelo;
+        const h = Object.values(base.opds).find((x): x is OpdDescomposicion => x.tipo === 'descomposicion')!, antes = JSON.stringify(base);
+        const e = escena(base, h.id), c = e.nodos.find(n => n.contenedor)!.caja, nodo = (id: string) => e.nodos.find(n => n.ref.id === id)!;
+        const expandido = h.bandas[0]![bandas[0]![0] === ancho ? 0 : 1]!, persistida = h.apariciones[expandido]!;
+        expect(nodo(expandido).caja.ancho * nodo(expandido).caja.alto).toBeGreaterThan(persistida.ancho * persistida.alto);
+        for (const id of h.bandas.flat()) {
+            const r = nodo(id).caja;
+            expect(r.y).toBe(h.apariciones[id]!.y);
+            expect(r.x >= c.x && r.y >= c.y && r.x + r.ancho <= c.x + c.ancho && r.y + r.alto <= c.y + c.alto).toBe(true);
+        }
+        expect(new Set(h.bandas[0]!.map(id => nodo(id).caja.y)).size).toBe(1);
+        expect(gatesExportacion(base, { opd: h.id })).toEqual([]);
+        // Las elipses efectivamente exportadas: contenedor primero y luego los nodos en el orden de la escena.
+        const superiores = (svg: string) => [...svg.matchAll(/<ellipse cx="([^"]+)" cy="([^"]+)" rx="([^"]+)" ry="([^"]+)"/g)].map(x => Number(x[2]) - Number(x[4]));
+        const esperadas = [c.y, ...e.nodos.filter(n => !n.contenedor).map(n => n.caja.y)];
+        const diagrama = exportarDiagrama(base, h.id, { version: 'v' }), documento = exportarDocumento(base, new Map(), { version: 'v' });
+        if (!diagrama.ok || !documento.ok) throw Error('export rechazado');
+        const seccion = documento.valor.html.split('<section').find(s => superiores(s).length === esperadas.length)!;
+        for (const svg of [diagrama.valor.svg, seccion]) {
+            const ys = superiores(svg);
+            expect(ys).toHaveLength(esperadas.length);
+            ys.forEach((y, i) => expect(y).toBeCloseTo(esperadas[i]!, 6));
+        }
+        expect(JSON.stringify(base)).toBe(antes);
+    }
+});
