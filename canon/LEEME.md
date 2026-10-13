@@ -1,12 +1,8 @@
 # Canon local de OpForja
 
-Estos cuatro documentos son la autoridad OPM local. Contienen sólo lo que funda ISO 19450, en español:
-desde la versión 2.0.0 se revisaron cláusula por cláusula contra ISO/PAS 19450:2015 (DEC39–DEC45 en
-`docs/decisiones.md`). La versión 2.2.0 restablece ese contenido y retira la revisión 2.1.0, que se apoyaba
-en una edición 2024 de la que no se dispuso (DEC47, `CAMBIOS-2.2.md`). La 2.3.0 adopta la lectura inferida de
-la Tabla 27 de precedencia (DEC50, `CAMBIOS-2.3.md`). Lo propio de OpForja (producto,
-extensiones, endurecimientos) vive en `perfil/`. La spec-OPL 2.3.1 adopta el ejemplo informativo de agente
-común de §14.2.2.4.1/Figura 50, fuera del Anexo A (`CAMBIOS-2.3.1.md`); los otros tres documentos siguen 2.3.0.
+Estos cuatro documentos son la autoridad OPM local. Contienen sólo lo que funda ISO 19450, en español,
+revisado cláusula por cláusula contra ISO/PAS 19450:2015. Lo propio de OpForja (producto, extensiones,
+endurecimientos) vive en `perfil/`. La historia de versiones y procedencias está en Git.
 
 | Slug | Versión | SHA256 de `content.md` | Plano de autoridad |
 |---|---|---|---|
@@ -32,12 +28,6 @@ canon; la especificación y el diseño se subordinan a ambos. Las versiones son 
 - Cada documento conserva la numeración de secciones de su versión 1.x; los huecos son secciones trasladadas al
   perfil, que usa los mismos números.
 
-`CAMBIOS-2.3.md` registra la matriz de precedencia inferida. `CAMBIOS-2.2.md` registra la retirada de la
-revisión 2.1.0 y lo que cambia fuera del canon.
-`CAMBIOS-2.0.md` registra, regla por regla, el destino de cada entrada de las versiones 1.x (canon o perfil), la
-corrección aplicada y las cláusulas que la fundan. Es la única traza de las procedencias antiguas (capas de la
-KB, SSOT-*, V-nn), que el canon ya no cita.
-
-Para actualizar: editar el documento, subir su versión, recalcular el SHA256 aquí y en `object.yaml`, registrar
-el cambio en el registro de la versión nueva y revisar `perfil/`, `docs/especificacion.md`
+Para actualizar: editar el documento, subir su versión, recalcular el SHA256 aquí y en `object.yaml`, explicar el
+cambio en el mensaje del commit y revisar `perfil/`, `docs/especificacion.md`
 y `docs/conformidad.md` en el mismo commit. Las decisiones vigentes están en `docs/decisiones.md`.
