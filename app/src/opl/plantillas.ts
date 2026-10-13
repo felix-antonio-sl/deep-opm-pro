@@ -670,8 +670,9 @@ function reconocer(id: string, h: Huecos): readonly HechoTexto[] {
         const bandas = id === 'CX2' ? [ps.map(p => p.texto)] : h.SEC ? x('SEC').bandas?.map(b => b.map(p => p.texto)) ?? [] : ps.map(p => [p.texto]);
         return [{ k: 'descomposicion', proceso: x('P').texto, bandas, internos: lista(h, 'O').map(o => o.texto), ...(h.opd ? { opdHijo: x('opd').texto } : {}), ...(h.padre ? { opdPadre: x('padre').texto } : {}) }];
     }
+    // El artículo de RH1 sólo marca género, como en RF3b: la generalización no lleva multiplicidad.
     if (id === 'RH1')
-        return lista(h, 'articulos').map(p => ({ k: 'enlace', enlace: { tipo: 'generalizacion', refinable: extremo(p), refinador: ext('C') } }));
+        return lista(h, 'articulos').map(p => { const { mult, ...general } = extremo(p); void mult; return { k: 'enlace', enlace: { tipo: 'generalizacion', refinable: general, refinador: ext('C') } }; });
     if (id === 'RF5')
         return [{ k: 'enlace', enlace: { tipo: 'exhibicion', refinable: ext('O1'), refinador: { ...ext('O2'), estado: x('s').texto } } }];
     if (id.startsWith('RF') || id === 'RH1') {

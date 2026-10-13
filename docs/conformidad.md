@@ -187,7 +187,7 @@ Requisitos ★ de CANON §9, con evidencia por superficie. Un título o inventar
 | T-174 | R-OPL-EDIT-1 | parcial | G·P; U pendiente | editor-opl: cuatro estados/ocho razones y resumen reales. |
 | T-176 | R-OPL-EDIT-3 | parcial | G·P; U pendiente | editor-opl: razones cerradas y fan retirado sin acciones; límite explícito. |
 | T-177 | R-OPL-FALLO-1 | parcial | G·P; U pendiente | editor-opl: símbolos ambiguos/tipo incompatibles sin selección arbitraria. |
-| T-178 | R-OPL-FALLO-3..6 | parcial | G·P; U pendiente | editor-opl: conflicto excluye ambas líneas y preserva independientes. |
+| T-178 | R-OPL-FALLO-3..6 | parcial | G·P; U pendiente | editor-opl: conflicto excluye ambas líneas y preserva independientes. and.test: RH1 del padre y RF3 del hijo de un despliegue son los mismos hechos, no un conflicto; el género, que sólo algunas formas marcan (B-38), no distingue hechos. |
 | T-179 | R-OPL-FALLO-7 | parcial | G·P; U pendiente | editor-opl/lente: modelo original intacto ante errores/unsupported y stale. |
 | T-180 | R-OPL-FALLO-2, DR-39 | parcial | G·P; U pendiente | editor-opl: cada fallo retira línea entera; sin ID consumido ni aplicación parcial de línea. |
 | T-181 | R-OPL-EDIT-5 | parcial | G·P; U pendiente | editor-opl/roundtrip-matriz: fase 2 crea/extiende fan atómico, fase 3 resuelve grupo único. |

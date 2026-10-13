@@ -2,6 +2,7 @@ import { expect, test } from 'bun:test';
 import { modeloCon, must, porNombre } from '../pruebas/constructores';
 import { crearEnlace, fijarMultiplicidad, fijarRuta, fijarControl } from '../nucleo/enlaces';
 import { formarAbanico } from '../nucleo/abanicos';
+import { fijarGenero } from '../nucleo/cosas';
 import { descomponer, desplegar } from '../nucleo/refinamiento';
 import { aplicarPlan } from './aplicar';
 import { validarForma } from '../nucleo/forma';
@@ -171,6 +172,32 @@ for (const modo of ['agregacion', 'exhibicion', 'generalizacion', 'clasificacion
         const doc = generarDocumentoOpl(m), vuelta = must(importarOpl(m.nombre, doc)); expect(vuelta.plan.resumen.noAplicables).toBe(0);
         expect(generarDocumentoOpl(vuelta.modelo)).toBe(doc); expect(Object.keys(vuelta.modelo.opds)).toHaveLength(2);
         expect(Object.values(vuelta.modelo.opds).find(o => o.tipo === 'despliegue')).toMatchObject({ modo });
+    });
+
+// Cada OPD compone su vista (R-CX-COMP-2): el padre dice la herencia múltiple con RH1 y el hijo del
+// despliegue del general, con RF3. Son los mismos hechos; leerlos desde vacío no es un conflicto.
+for (const genero of [undefined, 'f'] as const)
+    test(`T-178 T-117 B-41 RH1 del padre y RF3 del hijo expresan los mismos hechos${genero ? ' con general femenino' : ''}`, () => {
+        let m = modeloCon({
+            objetos: [['Intermedio', []], ['Otro General', []], ['Auto', []], ['Barco', []]],
+            enlaces: [['generalizacion', 'Intermedio', 'Auto'], ['generalizacion', 'Intermedio', 'Barco'], ['generalizacion', 'Otro General', 'Auto'], ['generalizacion', 'Otro General', 'Barco']],
+        });
+        const general = porNombre(m, 'Intermedio').id;
+        if (genero) m = must(fijarGenero(m, { cosa: general, genero })).modelo;
+        const d = must(desplegar(m, { opd: m.raiz, cosa: general, modo: 'generalizacion' })); m = d.modelo;
+        expect(validarForma(m)).toEqual([]);
+        const articulo = genero ? 'una' : 'un', hechos = (opd: string) => generarBloque(m, opd).filter(l => l.hechos.length).map(l => l.texto);
+        expect(hechos(m.raiz)).toEqual([`**Auto** es ${articulo} **Intermedio** y un **Otro General**.`, `**Barco** es ${articulo} **Intermedio** y un **Otro General**.`]);
+        expect(hechos(d.creados[0]!)).toEqual(['**Auto** y **Barco** son **Intermedio**.']);
+        const doc = generarDocumentoOpl(m), vuelta = must(importarOpl(m.nombre, doc)), n = vuelta.modelo;
+        expect(vuelta.plan.lineas.flatMap(l => l.diagnosticos)).toEqual([]);
+        expect(Object.values(n.opds).find(o => o.tipo === 'despliegue')).toMatchObject({ modo: 'generalizacion' });
+        expect(generarDocumentoOpl(n)).toBe(doc); expect(planificar(n, n.raiz, doc).acciones).toEqual([]);
+        // Los mismos cuatro enlaces, sin campos que la generalización no tiene; el artículo sólo aporta género.
+        const forma = (x: typeof m) => Object.values(x.enlaces).map(e => JSON.stringify(Object.entries(e).filter(([k]) => k !== 'id').map(([k, v]) => [k, typeof v === 'string' && x.cosas[v] ? x.cosas[v]!.nombre : v]))).sort();
+        expect(forma(n)).toEqual(forma(m)); expect(porNombre(n, 'Intermedio').genero).toBe(genero);
+        const bytes = exportarV0(n), json = importarV0(bytes); if (!json.ok) throw Error('Códec');
+        expect(json.informe.descartado).toEqual([]); expect(exportarV0(json.modelo)).toBe(bytes);
     });
 
 test('T-132 T-194 B-41 una lista del hijo no absorbe hechos de otro párrafo ni borra CX', () => {

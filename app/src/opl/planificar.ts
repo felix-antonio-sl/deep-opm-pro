@@ -148,11 +148,15 @@ function ensayar(m: Modelo, alcance: Id | 'modelo', texto: string, basePrivadaVa
         l.diagnosticos.forEach(d => diagnosticar(l.numero, d)); trabajos.push({ l, hechos: l.hechos, etiqueta });
     }
     // Registro independiente del ensayo: un conflicto excluye AMBAS líneas y todas sus acciones.
-    const registros = new Map<string, { numero: number; contenido: string }[]>();
-    const registrar = (k: string, contenido: string, numero: number, miembrosDeLista = false) => {
+    const registros = new Map<string, { numero: number; contenido: string; hecho?: HechoTexto }[]>();
+    // El género es metadato que sólo algunas formas marcan (B-38): RF3 «son» calla lo que RH1 dice con su
+    // artículo. Aplicarlo nunca depende del orden, así que no distingue hechos (R-OPL-FALLO-6).
+    const sinGenero = (x: unknown): unknown => x && typeof x === 'object' ? Array.isArray(x) ? x.map(sinGenero) : Object.fromEntries(Object.entries(x).filter(([k]) => k !== 'genero').map(([k, v]) => [k, sinGenero(v)])) : x;
+    const mismoHecho = (a?: HechoTexto, b?: HechoTexto) => !!a && !!b && estable(sinGenero(a)) === estable(sinGenero(b));
+    const registrar = (k: string, contenido: string, numero: number, miembrosDeLista = false, hecho?: HechoTexto) => {
         const previos = registros.get(k) ?? [];
-        for (const p of previos) if (p.contenido !== contenido && !(miembrosDeLista && p.numero === numero)) for (const n of [p.numero, numero]) if (!prohibidas.has(n)) diagnosticar(n, { codigo: 'patch-conflict', severidad: 'error', linea: n, mensaje: 'Cambios incompatibles sobre el mismo hecho.' });
-        registros.set(k, [...previos, { numero, contenido }]);
+        for (const p of previos) if (p.contenido !== contenido && !(miembrosDeLista && p.numero === numero) && !mismoHecho(p.hecho, hecho)) for (const n of [p.numero, numero]) if (!prohibidas.has(n)) diagnosticar(n, { codigo: 'patch-conflict', severidad: 'error', linea: n, mensaje: 'Cambios incompatibles sobre el mismo hecho.' });
+        registros.set(k, [...previos, { numero, contenido, ...(hecho ? { hecho } : {}) }]);
     };
     for (const t of trabajos) for (const h of t.hechos) {
         if (h.k === 'designacion') {
@@ -165,7 +169,7 @@ function ensayar(m: Modelo, alcance: Id | 'modelo', texto: string, basePrivadaVa
         if (h.k === 'cota') { const ex=t.hechos.find((x):x is Extract<HechoTexto,{k:'enlace'}>=>x.k==='enlace'&&(x.enlace.tipo==='excepcionSobretiempo'||x.enlace.tipo==='excepcionSubtiempo')); if(ex)k+=`:${estable(ex.enlace)}`; }
         // Una lista UNI cerrada puede enumerar hechos de cantidad distintos del
         // mismo par. Otra línea que ajuste ese par conserva la guarda de conflicto.
-        registrar(k, estable(h), t.l.numero, h.k === 'enlace' && h.enlace.tipo === 'etiquetado' && (t.l.plantilla === 'SE1L' || t.l.plantilla === 'SE2L'));
+        registrar(k, estable(h), t.l.numero, h.k === 'enlace' && h.enlace.tipo === 'etiquetado' && (t.l.plantilla === 'SE1L' || t.l.plantilla === 'SE2L'), h);
     }
     const declaradas = new Map<string,string>();
     const formas = new Map<string,Map<string,Set<number>>>();
