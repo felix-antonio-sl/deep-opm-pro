@@ -429,6 +429,17 @@ test('T-126 T-166 T-192 el despliegue cuyos refinados se unen por dos relaciones
   expect(Object.values(r.opds).filter(o=>o.tipo==='despliegue').map(o=>[o.modo,Object.hasOwn(o.apariciones,parte)])).toEqual([[modo,true]]);
   expect(Object.keys(r.cosas)).toHaveLength(2);
  }
+ // También al confirmar un despliegue que ya existe: el refinado enumerado que falta entra y se une (CX10 y CX3).
+ for(const [relacion,modo] of [['partes','agregacion'],['rasgos','exhibicion'],['especialización','generalizacion'],['instancias','clasificacion']] as const)for(const forma of ['CX10','CX3'] as const){
+  const base=modeloCon({objetos:[['Todo',[]],['Otra',[]],['Parte',[]]],enlaces:[[modo,'Todo','Otra']]}),todo=porNombre(base,'Todo').id;
+  const previo=must(aplicarAcciones(base,[{op:'desplegar',args:{opd:base.raiz,cosa:todo,modo}}])).modelo;
+  const texto=forma==='CX10'?`## SD1\n**Todo** desde SD se despliega por ${relacion} en SD1 en **Otra** y **Parte**.`:'## SD1\n**Todo** se despliega en SD1 en **Otra** y **Parte**.';
+  const p=planificar(previo,'modelo',texto);expect(p.lineas.flatMap(l=>l.diagnosticos.map(d=>d.codigo))).toEqual([]);
+  const r=must(aplicarAcciones(previo,p.acciones)).modelo,parte=porNombre(r,'Parte').id,hijo=Object.values(r.opds).find(o=>o.tipo==='despliegue')!;
+  expect(Object.values(r.enlaces).filter(e=>'refinador' in e&&e.refinador===parte).map(e=>[e.tipo,'refinable' in e&&e.refinable])).toEqual([[modo,todo]]);
+  expect(Object.hasOwn(hijo.apariciones,parte)).toBe(true);
+  expect(planificar(r,'modelo',texto).acciones).toEqual([]);
+ }
  // Con una sola relación sigue CX3: la relación ya dice el modo.
  const simple=must(aplicarAcciones(modeloCon({objetos:[['Todo',[]],['Parte',[]]],enlaces:[['agregacion','Todo','Parte']]}),[{op:'desplegar',args:{opd:'opd-1',cosa:'o-2',modo:'agregacion'}}])).modelo;
  expect(generarDocumentoOpl(simple)).toContain('**Todo** se despliega en SD1 en **Parte**.');

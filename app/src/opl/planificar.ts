@@ -47,7 +47,7 @@ import { aplicarAccion } from '../nucleo/operaciones';
 import { crearModelo } from '../nucleo/modelo';
 import { indice, claveNombre } from '../nucleo/indice';
 import { proyectar } from '../nucleo/proyeccion';
-import { extremos, esProcedimental } from '../nucleo/tipos';
+import { extremos, esProcedimental, refinadorPorModo } from '../nucleo/tipos';
 import type { EnlaceNuevo, Enlace, Cosa, Opd, ModoDespliegue } from '../nucleo/tipos';
 
 export const TEXTO_RAZON: Readonly<Record<RazonNoAplicable, string>> = Object.freeze({
@@ -362,19 +362,21 @@ function ensayar(m: Modelo, alcance: Id | 'modelo', texto: string, basePrivadaVa
                 if (!h.modo && tipos.size !== 1) throw new Fallo('ambiguous-symbol', 'El despliegue requiere una relación fundamental inequívoca.');
                 const modo = h.modo ?? [...tipos][0] as ModoDespliegue;
                 const ids = agregar(t, { op: 'desplegar', args: { opd: padre, cosa: c, modo } }, 'crear-refinamiento', 1, c); d = actual.opds[ids[0]!]!;
-                for (const r of h.refinadores) {
-                    const existente = buscar(r)?.id;
-                    if (!existente) { agregar(t, { op: 'agregarRefinadores', args: { opd: d.id, nombres: [r.nombre], tipo: r.tipo } }, 'crear-refinamiento', 1, c); continue; }
-                    // Un refinado que ya existe sin la relación del modo se une por ella, como el que se crea desde vacío;
-                    // si la tenía, `desplegar` ya lo trajo.
-                    if (Object.hasOwn(actual.opds[d.id]!.apariciones, existente)) continue;
-                    agregar(t, { op: 'traerCosa', args: { cosa: existente, opd: d.id, x: 0, y: 180 } }, 'traer-entidad', 1, `${d.id}:${existente}`);
-                    const union: EnlaceNuevo = { tipo: modo, refinable: c, refinador: existente };
-                    agregar(t, { op: 'crearEnlace', args: { opd: d.id, candidato: union } }, 'crear-enlace', 2, estable(union));
-                }
             }
             if (!d || d.tipo === 'raiz') throw new Fallo('type-mismatch', 'Contexto de refinamiento inválido.');
             if (h.k === 'despliegue' && h.modo && d.tipo === 'despliegue' && d.modo !== h.modo) throw new Fallo('type-mismatch', 'El despliegue existente es por otra relación fundamental.');
+            // Cada refinado enumerado queda en el OPD hijo y unido por la relación del modo, se haya creado el
+            // despliegue ahora o ya existiera: el que falta se crea, y el que existe se trae y se une si no lo estaba.
+            if (h.k === 'despliegue' && d.tipo === 'despliegue') for (const r of h.refinadores) {
+                const hijo: Id = d.id, modo = d.modo, existente = buscar(r)?.id;
+                if (!existente) { agregar(t, { op: 'agregarRefinadores', args: { opd: hijo, nombres: [r.nombre], tipo: r.tipo } }, 'crear-refinamiento', 1, c); continue; }
+                if (!Object.hasOwn(actual.opds[hijo]!.apariciones, existente))
+                    agregar(t, { op: 'traerCosa', args: { cosa: existente, opd: hijo, x: 0, y: 180 } }, 'traer-entidad', 1, `${hijo}:${existente}`);
+                if (!Object.values(actual.enlaces).some(e => refinadorPorModo(e, modo, c) === existente)) {
+                    const union: EnlaceNuevo = { tipo: modo, refinable: c, refinador: existente };
+                    agregar(t, { op: 'crearEnlace', args: { opd: hijo, candidato: union } }, 'crear-enlace', 2, estable(union));
+                }
+            }
             const esperado = h.opdHijo ?? t.etiqueta;
             const labelReal = indice(actual).etiqueta.get(d.id)!;
             if (esperado !== 'SD' && esperado !== labelReal) throw new Fallo('unknown-symbol', `Etiqueta ${esperado} no corresponde a ${labelReal}.`);
