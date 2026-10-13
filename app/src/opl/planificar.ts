@@ -362,7 +362,16 @@ function ensayar(m: Modelo, alcance: Id | 'modelo', texto: string, basePrivadaVa
                 if (!h.modo && tipos.size !== 1) throw new Fallo('ambiguous-symbol', 'El despliegue requiere una relación fundamental inequívoca.');
                 const modo = h.modo ?? [...tipos][0] as ModoDespliegue;
                 const ids = agregar(t, { op: 'desplegar', args: { opd: padre, cosa: c, modo } }, 'crear-refinamiento', 1, c); d = actual.opds[ids[0]!]!;
-                for (const r of h.refinadores) if (!buscar(r)) agregar(t, { op: 'agregarRefinadores', args: { opd: d.id, nombres: [r.nombre], tipo: r.tipo } }, 'crear-refinamiento', 1, c);
+                for (const r of h.refinadores) {
+                    const existente = buscar(r)?.id;
+                    if (!existente) { agregar(t, { op: 'agregarRefinadores', args: { opd: d.id, nombres: [r.nombre], tipo: r.tipo } }, 'crear-refinamiento', 1, c); continue; }
+                    // Un refinado que ya existe sin la relación del modo se une por ella, como el que se crea desde vacío;
+                    // si la tenía, `desplegar` ya lo trajo.
+                    if (Object.hasOwn(actual.opds[d.id]!.apariciones, existente)) continue;
+                    agregar(t, { op: 'traerCosa', args: { cosa: existente, opd: d.id, x: 0, y: 180 } }, 'traer-entidad', 1, `${d.id}:${existente}`);
+                    const union: EnlaceNuevo = { tipo: modo, refinable: c, refinador: existente };
+                    agregar(t, { op: 'crearEnlace', args: { opd: d.id, candidato: union } }, 'crear-enlace', 2, estable(union));
+                }
             }
             if (!d || d.tipo === 'raiz') throw new Fallo('type-mismatch', 'Contexto de refinamiento inválido.');
             if (h.k === 'despliegue' && h.modo && d.tipo === 'despliegue' && d.modo !== h.modo) throw new Fallo('type-mismatch', 'El despliegue existente es por otra relación fundamental.');

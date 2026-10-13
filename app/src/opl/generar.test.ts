@@ -420,6 +420,15 @@ test('T-126 T-166 T-192 el despliegue cuyos refinados se unen por dos relaciones
   expect(generarDocumentoOpl(nuevo.modelo)).toBe(doc);
   expect(planificar(mod,'modelo',doc).acciones).toEqual([]);
  }
+ // Sobre cosas que ya existen sin relación, CX10 las une por la relación que nombra, como desde vacío.
+ for(const [relacion,modo] of [['partes','agregacion'],['rasgos','exhibicion'],['especialización','generalizacion'],['instancias','clasificacion']] as const){
+  const previo=modeloCon({objetos:[['Todo',[]],['Parte',[]]]}),p=planificar(previo,'modelo',`## SD1\n**Todo** desde SD se despliega por ${relacion} en SD1 en **Parte**.`);
+  expect(p.lineas.flatMap(l=>l.diagnosticos.map(d=>d.codigo))).toEqual([]);
+  const r=must(aplicarAcciones(previo,p.acciones)).modelo,[parte]=[porNombre(r,'Parte').id];
+  expect(Object.values(r.enlaces).map(e=>[e.tipo,'refinable' in e&&e.refinable,'refinador' in e&&e.refinador])).toEqual([[modo,porNombre(r,'Todo').id,parte]]);
+  expect(Object.values(r.opds).filter(o=>o.tipo==='despliegue').map(o=>[o.modo,Object.hasOwn(o.apariciones,parte)])).toEqual([[modo,true]]);
+  expect(Object.keys(r.cosas)).toHaveLength(2);
+ }
  // Con una sola relación sigue CX3: la relación ya dice el modo.
  const simple=must(aplicarAcciones(modeloCon({objetos:[['Todo',[]],['Parte',[]]],enlaces:[['agregacion','Todo','Parte']]}),[{op:'desplegar',args:{opd:'opd-1',cosa:'o-2',modo:'agregacion'}}])).modelo;
  expect(generarDocumentoOpl(simple)).toContain('**Todo** se despliega en SD1 en **Parte**.');
