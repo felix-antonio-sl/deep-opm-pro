@@ -245,9 +245,12 @@ function fusionar(grupo: readonly EnlaceVisto[], idx: Indice, opd: Id, compararT
     if (tipo === 'efecto') {
         const efectos = clase.filter((e): e is Extract<EnlaceProcedimental, { tipo: 'efecto' }> => e.tipo === 'efecto');
         let temprano: typeof efectos[number] | undefined, tardio: typeof efectos[number] | undefined;
+        // Entre miembros simultáneos (paralelos) el tiempo no decide, ni el orden de inserción: la entrada es la
+        // del estado anterior y la salida la del posterior en el orden del objeto (T-015), que el OPL conserva.
+        const posicion = (s: Id) => idx.estadoDe.get(s)?.posicion ?? 0;
         for (const e of efectos) {
-            if (e.entrada !== undefined && (!temprano || compararTiempo(e.id, temprano.id) < 0)) temprano = e;
-            if (e.salida !== undefined && (!tardio || compararTiempo(e.id, tardio.id) >= 0)) tardio = e;
+            if (e.entrada !== undefined) { const t = temprano ? compararTiempo(e.id, temprano.id) : -1; if (t < 0 || t === 0 && posicion(e.entrada) < posicion(temprano!.entrada!)) temprano = e; }
+            if (e.salida !== undefined) { const t = tardio ? compararTiempo(e.id, tardio.id) : 1; if (t > 0 || t === 0 && posicion(e.salida) > posicion(tardio!.salida!)) tardio = e; }
         }
         const entrada = temprano?.entrada, salida = tardio?.salida;
         const control: Control | undefined = 'control' in elegido ? elegido.control : undefined;

@@ -354,6 +354,21 @@ test('T-133 T-192 RF1 con dos cantidades de la misma parte vuelve desde vacío y
  // Sobre el mismo modelo, el mismo texto no cambia nada ni elige IDs por el orden de la lista.
  expect(planificar(mod,'modelo',doc).acciones).toEqual([]);
 });
+test('T-085 T-168 efectos de subprocesos paralelos se abstraen igual sea cual sea su orden de inserción',()=>{
+ const reg:Objeto={id:'o',nombre:'Registro',tipo:'objeto',esencia:'informacional',afiliacion:'sistemica',estados:[{id:'s-1',nombre:'uno'},{id:'s-2',nombre:'dos'},{id:'s-3',nombre:'tres'}]};
+ const cosas=[reg,pro('p','Procesar registro'),pro('z','Zeta'),pro('a','Alfa')];
+ const dc:Opd={id:'dc',tipo:'descomposicion',padre:'sd',cosa:'p',orden:0,objetosInternos:[],bandas:[['z','a']],apariciones:{p:{...ap,ancho:420,alto:300},o:{...ap,x:-220},z:{...ap,x:60,y:64},a:{...ap,x:240,y:64}}};
+ const zeta:Enlace={id:'e-20',tipo:'efecto',objeto:'o',proceso:'z',entrada:'s-1',salida:'s-2'},alfa:Enlace={id:'e-21',tipo:'efecto',objeto:'o',proceso:'a',entrada:'s-1',salida:'s-3'};
+ const montar=(es:readonly Enlace[])=>congelar({id:'paralelo',nombre:'Paralelo',raiz:'sd',secuencia:100,unidadTiempo:'min',cosas:Object.fromEntries(cosas.map(c=>[c.id,c])),enlaces:Object.fromEntries(es.map(e=>[e.id,e])),abanicos:{},opds:{sd:{id:'sd',tipo:'raiz',apariciones:{o:ap,p:{...ap,x:200}}},dc}}) as Modelo;
+ const [zPrimero,aPrimero]=[montar([zeta,alfa]),montar([alfa,zeta])],invertidos=montar([{...zeta,id:'e-21'},{...alfa,id:'e-20'}]);
+ for(const mod of [zPrimero,aPrimero,invertidos]){
+  expect(diagnosticar(mod).filter(d=>d.severidad==='error')).toEqual([]);
+  expect(generarDocumentoOpl(mod)).toBe(generarDocumentoOpl(zPrimero));
+  const doc=generarDocumentoOpl(mod),nuevo=must(importarOpl(mod.nombre,doc));
+  expect(nuevo.plan.lineas.flatMap(l=>l.diagnosticos.map(d=>[l.numero,d.regla]))).toEqual([]);
+  expect(generarDocumentoOpl(nuevo.modelo)).toBe(doc);
+ }
+});
 test('T-134 T-192 subprocesos que empatan en la colación no se ordenan por IDs de cosa en el contexto',()=>{
  const variantes=Array.from({length:9},(_,n)=>n).flatMap(n=>[['Zorro','Zórro'],['Zórro','Zorro']].map(([x,y])=>{
   const previos=previosB57(n).map(([c])=>`**${c}** es físico.\n`).join('');

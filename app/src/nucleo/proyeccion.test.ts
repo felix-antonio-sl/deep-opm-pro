@@ -292,7 +292,10 @@ test('T-085 orden temporal comparte prefijos paralelos y distingue banda exterio
         nieto1: { id: 'nieto1', tipo: 'descomposicion', padre: 'hijo', cosa: 's1', orden: 0, bandas: [['ss1']], objetosInternos: [], apariciones: apps('s1', 'ss1', 'b') },
         nieto2: { id: 'nieto2', tipo: 'descomposicion', padre: 'hijo', cosa: 's2', orden: 1, bandas: [['ss2']], objetosInternos: [], apariciones: apps('s2', 'ss2', 'b') }
     } });
-    expect(proyectar(m, 'raiz').enlaces[0]?.enlace).toEqual({ id: 'primero-en-mapa', tipo: 'efecto', objeto: 'b', proceso: 'p', entrada: 'b1', salida: 'b0' });
+    // ss1 y ss2 son simultáneos: decide el orden de los estados (b0 antes que b1), no el del mapa.
+    expect(proyectar(m, 'raiz').enlaces[0]?.enlace).toEqual({ id: 'primero-en-mapa', tipo: 'efecto', objeto: 'b', proceso: 'p', entrada: 'b0', salida: 'b0' });
+    const invertido = congelar({ ...m, enlaces: Object.fromEntries(Object.entries(m.enlaces).reverse()) });
+    expect(proyectar(invertido, 'raiz').enlaces[0]?.enlace).toEqual({ id: 'tardio', tipo: 'efecto', objeto: 'b', proceso: 'p', entrada: 'b0', salida: 'b0' });
 });
 
 test('T-086 abanico colapsado produce un único enlace fusionado, no ramas degeneradas', () => {
