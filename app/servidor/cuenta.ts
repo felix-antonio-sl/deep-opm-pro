@@ -1,5 +1,5 @@
 import { randomBytes, scryptSync, timingSafeEqual } from 'node:crypto';
-import { readFile, mkdir, open, rename, unlink } from 'node:fs/promises';
+import { readFile, mkdir, open, rename, unlink, stat, link } from 'node:fs/promises';
 import { join, basename } from 'node:path';
 export interface Cuenta {
     readonly email: string;
@@ -82,6 +82,77 @@ async function escribir(datos: string, c: Cuenta, nueva: boolean) {
         throw e;
     }
 }
+// El renombrado atómico no basta: dos operaciones que parten de la misma lectura pueden restaurar
+// la clave anterior o perder un incremento de versión. Toda lectura, modificación y publicación de
+// la cuenta ocurre bajo un cerrojo creado en exclusiva ('wx'), compartido entre procesos.
+const CERROJO = '.cuenta.lock', CERROJO_VENCIDO_MS = 10_000, ESPERA_MAX_MS = 15_000, PAUSA_MS = 20;
+const ocupado = (e: unknown) => typeof e === 'object' && e !== null && 'code' in e && e.code === 'EEXIST';
+// Un cerrojo más viejo que cualquier operación quedó de un proceso caído: se aparta con un nombre
+// único y sólo se borra si es el mismo archivo observado; si otro lo renovó, se devuelve intacto.
+async function retirarVencido(ruta: string): Promise<void> {
+    let antes;
+    try {
+        antes = await stat(ruta);
+    }
+    catch (e) {
+        if (ausente(e))
+            return;
+        throw e;
+    }
+    if (Date.now() - antes.mtimeMs < CERROJO_VENCIDO_MS)
+        return;
+    const apartado = `${ruta}.vencido-${randomBytes(8).toString('hex')}`;
+    try {
+        await rename(ruta, apartado);
+    }
+    catch (e) {
+        if (ausente(e))
+            return;
+        throw e;
+    }
+    const movido = await stat(apartado);
+    if (movido.ino !== antes.ino || movido.dev !== antes.dev)
+        await link(apartado, ruta).catch(() => {
+        });
+    await unlink(apartado);
+}
+async function conCerrojo<T>(datos: string, operar: () => Promise<T>): Promise<T> {
+    await mkdir(datos, {
+        recursive: true
+    });
+    const ruta = join(datos, CERROJO), limite = Date.now() + ESPERA_MAX_MS;
+    let propio;
+    for (;;) {
+        try {
+            const f = await open(ruta, 'wx', 0o600);
+            try {
+                propio = await f.stat();
+            }
+            finally {
+                await f.close();
+            }
+            break;
+        }
+        catch (e) {
+            if (!ocupado(e))
+                throw e;
+        }
+        await retirarVencido(ruta);
+        if (Date.now() > limite)
+            throw new Error('Otra operación de cuenta sigue en curso');
+        await Bun.sleep(PAUSA_MS);
+    }
+    try {
+        return await operar();
+    }
+    finally {
+        // Sólo se libera el cerrojo propio, nunca uno que otro proceso haya creado después.
+        const actual = await stat(ruta).catch(() => undefined);
+        if (actual && actual.ino === propio.ino && actual.dev === propio.dev)
+            await unlink(ruta).catch(() => {
+            });
+    }
+}
 export async function ejecutarCuenta(args: readonly string[], entrada: string, salida: (texto: string) => void = () => {
 }): Promise<number> {
     const pos = args.indexOf('--datos'), datos = pos >= 0 ? args[pos + 1] : undefined, accion = args[0];
@@ -90,35 +161,38 @@ export async function ejecutarCuenta(args: readonly string[], entrada: string, s
         return 1;
     }
     try {
-        const c = await leerCuenta(datos);
-        if (accion === 'crear' && c) {
-            salida('La cuenta ya existe');
-            return 1;
-        }
-        if (accion !== 'crear' && !c) {
-            salida('No existe una cuenta');
-            return 1;
-        }
-        const [clave, segunda] = entrada.split(/\r?\n/);
-        if (accion !== 'cerrar-sesiones' && (!clave || clave.length < 10 || clave !== segunda)) {
-            salida('La clave debe tener al menos 10 caracteres y coincidir');
-            return 1;
-        }
-        const email = accion === 'crear' ? args[1] : c!.email;
-        if (!email || email === '--datos') {
-            salida('Falta el email');
-            return 1;
-        }
-        await escribir(datos, {
-            email, hashClave: accion === 'cerrar-sesiones' ? c!.hashClave : hashPassword(clave!), versionCredencial: accion === 'crear' ? 1 : c!.versionCredencial + 1
-        }, accion === 'crear');
-        salida('Cuenta actualizada');
-        return 0;
+        return await conCerrojo(datos, () => actualizarCuenta(datos, accion!, args, entrada, salida));
     }
     catch {
         salida('No se pudo actualizar la cuenta');
         return 1;
     }
+}
+async function actualizarCuenta(datos: string, accion: string, args: readonly string[], entrada: string, salida: (texto: string) => void): Promise<number> {
+    const c = await leerCuenta(datos);
+    if (accion === 'crear' && c) {
+        salida('La cuenta ya existe');
+        return 1;
+    }
+    if (accion !== 'crear' && !c) {
+        salida('No existe una cuenta');
+        return 1;
+    }
+    const [clave, segunda] = entrada.split(/\r?\n/);
+    if (accion !== 'cerrar-sesiones' && (!clave || clave.length < 10 || clave !== segunda)) {
+        salida('La clave debe tener al menos 10 caracteres y coincidir');
+        return 1;
+    }
+    const email = accion === 'crear' ? args[1] : c!.email;
+    if (!email || email === '--datos') {
+        salida('Falta el email');
+        return 1;
+    }
+    await escribir(datos, {
+        email, hashClave: accion === 'cerrar-sesiones' ? c!.hashClave : hashPassword(clave!), versionCredencial: accion === 'crear' ? 1 : c!.versionCredencial + 1
+    }, accion === 'crear');
+    salida('Cuenta actualizada');
+    return 0;
 }
 if (import.meta.main && ['cuenta.ts', 'cuenta.js'].includes(basename(import.meta.path))) {
     const args = process.argv.slice(2);

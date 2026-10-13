@@ -1,5 +1,5 @@
 import {test,expect,afterEach} from 'bun:test';
-import {mkdtemp,rm,readFile,writeFile} from 'node:fs/promises';
+import {mkdtemp,rm,readFile,writeFile,readdir,utimes} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {hashPassword,verifyPassword,leerCuenta,ejecutarCuenta} from './cuenta';
@@ -35,6 +35,20 @@ test('WP-11 §8.2 CLI clave y cerrar-sesiones suben versión, hash válido y ema
  let c=await leerCuenta(d);expect(c?.versionCredencial).toBe(2);expect(verifyPassword('clave-nueva-sintetica',c!.hashClave)).toBe(true);
  expect(verifyPassword('clave-sintetica-larga',c!.hashClave)).toBe(false);
  expect(await ejecutarCuenta(['cerrar-sesiones','--datos',d],'')).toBe(0);c=await leerCuenta(d);expect(c?.versionCredencial).toBe(3);expect(c?.email).toBe('prueba@example.test');
+});
+test('WP-11 §8.2 clave y cerrar-sesiones intercaladas se serializan: conservan la clave nueva y suben la versión dos veces',async()=>{
+ for(const orden of [['clave','cerrar-sesiones'],['cerrar-sesiones','clave']]){
+  const d=await datos();await ejecutarCuenta(['crear','prueba@example.test','--datos',d],'clave-sintetica-larga\nclave-sintetica-larga\n');
+  const codigos=await Promise.all(orden.map(a=>ejecutarCuenta([a,'--datos',d],a==='clave'?'clave-nueva-sintetica\nclave-nueva-sintetica\n':'')));
+  expect(codigos).toEqual([0,0]);const c=await leerCuenta(d);expect(c?.versionCredencial).toBe(3);
+  expect(verifyPassword('clave-nueva-sintetica',c!.hashClave)).toBe(true);expect(verifyPassword('clave-sintetica-larga',c!.hashClave)).toBe(false);
+  expect(await readdir(d)).toEqual(['cuenta.json']);
+ }
+});
+test('WP-11 §8.2 un cerrojo de cuenta vencido se retira y la operación continúa',async()=>{
+ const d=await datos();await ejecutarCuenta(['crear','prueba@example.test','--datos',d],'clave-sintetica-larga\nclave-sintetica-larga\n');
+ const cerrojo=join(d,'.cuenta.lock');await writeFile(cerrojo,'sintetico');const viejo=new Date(Date.now()-3600_000);await utimes(cerrojo,viejo,viejo);
+ expect(await ejecutarCuenta(['cerrar-sesiones','--datos',d],'')).toBe(0);expect((await leerCuenta(d))?.versionCredencial).toBe(2);expect(await readdir(d)).toEqual(['cuenta.json']);
 });
 
 test('WP-11 §8.2 CLI real por stdin sintético y --datos: crear, clave, cerrar-sesiones',async()=>{

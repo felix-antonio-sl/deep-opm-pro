@@ -530,7 +530,10 @@ Reglas de las rutas:
   - `clave` cambia la clave y sube `versionCredencial`, lo que cierra las sesiones;
   - `cerrar-sesiones` sube `versionCredencial`.
 
-  Todas aceptan `--datos <dir>`.
+  Todas aceptan `--datos <dir>`. Cada una lee, modifica y publica la cuenta bajo el cerrojo
+  exclusivo `<dir>/.cuenta.lock`, compartido entre procesos: dos operaciones concurrentes se
+  aplican una tras otra y ninguna restaura la clave o la versión anterior. Un cerrojo de más de
+  10 s se considera abandonado y se retira; tras 15 s de espera, la operación falla sin cambios.
 - **Sesión**: la cookie es `opforja_sesion=<b64url({"v":versionCredencial,"exp":epoch})>.<b64url(HMAC-SHA256)>`,
   con `HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=2592000` (30 días; `Secure` se omite solo
   en `localhost`). Se verifica en tiempo constante; un `v` distinto del de la cuenta da 401.
