@@ -9,7 +9,7 @@ import { diagnosticar } from '../nucleo/diagnostico';
 import { violacionesContexto, noOfrecido, violacionesAbanico } from '../nucleo/matriz';
 import { textoDeTokens, refsDeTokens } from './linea';
 import { generarDocumentoOpl, importarOpl } from './documento';
-import { aplicarAccion } from '../nucleo/operaciones';
+import { aplicarAccion, aplicarAcciones } from '../nucleo/operaciones';
 import { planificar } from './planificar';
 
 const ap = { x: 0, y: 0, ancho: 140, alto: 70 };
@@ -405,6 +405,24 @@ test('T-163 T-192 un proceso cuyo nombre termina en «proceso» conserva su nomb
  expect(validarForma(mod)).toEqual([]);expect(diagnosticar(mod).filter(d=>d.severidad==='error')).toEqual([]);
  expect(generarDocumentoOpl(mod)).toContain('*Validar proceso* consume **Entrada**.');
  expect(admitidoConPuntoFijo(mod)).toBe(true);
+});
+test('T-126 T-166 T-192 el despliegue cuyos refinados se unen por dos relaciones nombra su modo con CX10 y vuelve desde vacío',()=>{
+ // «Todo consta de Parte» y «Todo exhibe Parte»: la relación no basta para leer el modo del despliegue.
+ const b=modeloCon({objetos:[['Todo',[]],['Parte',[]]],enlaces:[['agregacion','Todo','Parte'],['exhibicion','Todo','Parte']]}),todo=porNombre(b,'Todo').id;
+ for(const modo of ['agregacion','exhibicion'] as const){
+  const mod=must(aplicarAcciones(b,[{op:'desplegar',args:{opd:b.raiz,cosa:todo,modo}}])).modelo;
+  expect(diagnosticar(mod).filter(d=>d.severidad==='error')).toEqual([]);
+  const doc=generarDocumentoOpl(mod);
+  expect(doc).toContain(`**Todo** desde SD se despliega por ${modo==='agregacion'?'partes':'rasgos'} en SD1 en **Parte**.`);
+  const nuevo=must(importarOpl(mod.nombre,doc));
+  expect(nuevo.plan.lineas.flatMap(l=>l.diagnosticos.map(d=>[l.numero,d.codigo]))).toEqual([]);
+  expect(Object.values(nuevo.modelo.opds).flatMap(o=>o.tipo==='despliegue'?[o.modo]:[])).toEqual([modo]);
+  expect(generarDocumentoOpl(nuevo.modelo)).toBe(doc);
+  expect(planificar(mod,'modelo',doc).acciones).toEqual([]);
+ }
+ // Con una sola relación sigue CX3: la relación ya dice el modo.
+ const simple=must(aplicarAcciones(modeloCon({objetos:[['Todo',[]],['Parte',[]]],enlaces:[['agregacion','Todo','Parte']]}),[{op:'desplegar',args:{opd:'opd-1',cosa:'o-2',modo:'agregacion'}}])).modelo;
+ expect(generarDocumentoOpl(simple)).toContain('**Todo** se despliega en SD1 en **Parte**.');
 });
 test('T-134 T-192 subprocesos que empatan en la colación no se ordenan por IDs de cosa en el contexto',()=>{
  const variantes=Array.from({length:9},(_,n)=>n).flatMap(n=>[['Zorro','Zórro'],['Zórro','Zorro']].map(([x,y])=>{

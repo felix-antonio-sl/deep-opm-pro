@@ -1,5 +1,5 @@
-import type { Cosa, Enlace, Modelo, Multiplicidad, Operador, Ref, UnidadTiempo } from '../nucleo/tipos';
-import { esProcedimental, refinadorPorModo, ETIQUETA_POR_DEFECTO } from '../nucleo/tipos';
+import type { Cosa, Enlace, Modelo, ModoDespliegue, Multiplicidad, Operador, Ref, UnidadTiempo } from '../nucleo/tipos';
+import { esProcedimental, refinadorPorModo, esCaracterizacionConEstado, ETIQUETA_POR_DEFECTO } from '../nucleo/tipos';
 import { esParametroMultiplicidad } from '../nucleo/matriz';
 import { analizarMultiplicidad, multiplicidadDesdeOpl, requierePlural } from '../nucleo/multiplicidad';
 import { indice } from '../nucleo/indice';
@@ -45,6 +45,9 @@ const multiplicidades = { '?': ['un ', 'una '], '*': ['', ''], '+': ['al menos u
 // DEC35: entero exacto en cifras; DEC56 decide la forma de objeto explícita sin inflector.
 const fraseMultiplicidad = (m: Multiplicidad, f: boolean): string => Object.hasOwn(multiplicidades, m) ? multiplicidades[m as keyof typeof multiplicidades][f ? 1 : 0] : `${m} `;
 export { ETIQUETA_POR_DEFECTO };
+/** Palabra de CX10 para cada modo de despliegue (spec-OPL §7.2, ISO §A.4.7.2). */
+const PALABRA_DE_MODO: Readonly<Record<ModoDespliegue, string>> = { agregacion: 'partes', exhibicion: 'rasgos', generalizacion: 'especialización', clasificacion: 'instancias' };
+const MODO_DE_PALABRA: Readonly<Record<string, ModoDespliegue>> = Object.fromEntries(Object.entries(PALABRA_DE_MODO).map(([m, p]) => [p, m as ModoDespliegue]));
 const esDefaultUni = (etiqueta: string | undefined) => etiqueta === undefined || etiqueta === ETIQUETA_POR_DEFECTO;
 const colacionNombre = new Intl.Collator('es', { sensitivity: 'base' });
 /** Colación base y, si empata, escritura exacta: nombres distintos (Zorro/Zórro, frío/frio) no se ordenan por id (B-57). */
@@ -85,7 +88,7 @@ const filas: readonly [
     ['FAN5s', '{P} cambia {O} a {Q} {Lo:s}.', 'abanico'], ['FAN5e', '{P} cambia {O} de {Q} {Lo:s}.', 'abanico'], ['FAN5A', '{P} cambia {O} de {e} a {Q} {Lo:s}.', 'abanico'],
     ['FAN5s-cantidades', '{P} cambia {Q} {Lo:salidas}.', 'abanico'], ['FAN5e-cantidades', '{P} cambia {Q} {Lo:entradas}.', 'abanico'], ['FAN5A-cantidades', '{P} cambia {Q} {Lo:cambios}.', 'abanico'],
     ['FAN4', '{O} inicia {Q} {Lo:Plista}, y es afectado por el proceso que ocurre.', 'abanico'], ['CFE', '{Q^} {Lo:Plista} ocurre si {O} existe, en cuyo caso afecta {O}, de lo contrario se omite.', 'abanico'], ['C18', '{P} ocurre si {Q} {Lo:Olista} existe, en cuyo caso {P} consume {Q} {Lo:Olista}, de lo contrario {P} se omite.', 'abanico'],
-    ['CX1', '{P} se descompone en {Ly:Plista}, en esa secuencia[, así como {Ly:O}].', 'contexto'], ['CX2', '{P} se descompone en paralelo {Ly:Plista}[, así como {Ly:O}].', 'contexto'], ['CXM', '{P} se descompone en {SEC}, en esa secuencia[, así como {Ly:O}].', 'contexto'], ['CXI', '{P} se descompone en {Ly:Plista}, así como {Ly:O}.', 'contexto', 'P'], ['CXN', '{P} desde {padre} se descompone en {opd} en {SEC}, en esa secuencia.', 'contexto', 'P'], ['CX3', '{vertice} se despliega en {opd} en {Ly:C}[, así como {Ly:otro}].', 'contexto'], ['CX3s', '{vertice} se despliega en {Ly:C}.', 'contexto', 'P']
+    ['CX1', '{P} se descompone en {Ly:Plista}, en esa secuencia[, así como {Ly:O}].', 'contexto'], ['CX2', '{P} se descompone en paralelo {Ly:Plista}[, así como {Ly:O}].', 'contexto'], ['CXM', '{P} se descompone en {SEC}, en esa secuencia[, así como {Ly:O}].', 'contexto'], ['CXI', '{P} se descompone en {Ly:Plista}, así como {Ly:O}.', 'contexto', 'P'], ['CXN', '{P} desde {padre} se descompone en {opd} en {SEC}, en esa secuencia.', 'contexto', 'P'], ['CX3', '{vertice} se despliega en {opd} en {Ly:C}[, así como {Ly:otro}].', 'contexto'], ['CX3s', '{vertice} se despliega en {Ly:C}.', 'contexto', 'P'], ['CX10', '{vertice} desde {padre} se despliega por {relacion} en {opd} en {Ly:C}[, así como {Ly:otro}].', 'contexto']
 ];
 const fans: readonly [
     string,
@@ -552,7 +555,9 @@ export const LITERALES_EXPANDIDOS: readonly string[] = Object.freeze([
     // Ly/Lo son macros fonéticos definidos por nucleo/lexico. Su universo es finito.
     'y', 'e', 'o', 'u', ...Object.values(unidades).flat(),
     // Clase declarada de ENT3: hueco cerrado que P compara con la tipografía.
-    'objeto', 'proceso'
+    'objeto', 'proceso',
+    // Relación que nombra CX10: hueco cerrado de los cuatro modos de despliegue.
+    ...Object.values(PALABRA_DE_MODO)
 ]);
 export function unidad(u: UnidadTiempo, n: number): string { return unidades[u][n === 1 ? 0 : 1]; }
 /** Cota de EX1/EX2 como decimal sin exponente, la única forma numérica que P lee (`\d+(.\d+)?`).
@@ -688,8 +693,8 @@ function reconocer(id: string, h: Huecos): readonly HechoTexto[] {
         return [{ k: 'abanico', operador, ramas }];
     }
     if (id.startsWith('CX')) {
-        if (id === 'CX3' || id === 'CX3s')
-            return [{ k: 'despliegue', cosa: nombre('vertice'), ...(h.opd ? { opdHijo: x('opd').texto } : {}), refinadores: [...lista(h, 'C'), ...lista(h, 'otro')].map(v => ({ nombre: v.texto, tipo: v.marca === 'proceso' ? 'proceso' : 'objeto' })) }];
+        if (id === 'CX3' || id === 'CX3s' || id === 'CX10')
+            return [{ k: 'despliegue', cosa: nombre('vertice'), ...(h.opd ? { opdHijo: x('opd').texto } : {}), ...(h.padre ? { opdPadre: x('padre').texto } : {}), ...(h.relacion ? { modo: MODO_DE_PALABRA[x('relacion').texto]! } : {}), refinadores: [...lista(h, 'C'), ...lista(h, 'otro')].map(v => ({ nombre: v.texto, tipo: v.marca === 'proceso' ? 'proceso' : 'objeto' })) }];
         const ps = lista(h, 'Plista');
         const bandas = id === 'CX2' ? [ps.map(p => p.texto)] : h.SEC ? x('SEC').bandas?.map(b => b.map(p => p.texto)) ?? [] : ps.map(p => [p.texto]);
         return [{ k: 'descomposicion', proceso: x('P').texto, bandas, internos: lista(h, 'O').map(o => o.texto), ...(h.opd ? { opdHijo: x('opd').texto } : {}), ...(h.padre ? { opdPadre: x('padre').texto } : {}) }];
@@ -764,5 +769,11 @@ export function datosContexto(m: Modelo, opd: string): HechoGenerable | null {
     if (refinadores.length < 1)
         return null;
     const tipo = m.cosas[d.cosa]!.tipo, principal = refinadores.filter(id => m.cosas[id]!.tipo === tipo).sort(cmp), otros = refinadores.filter(id => m.cosas[id]!.tipo !== tipo).sort(cmp);
-    return { plantilla: 'CX3', huecos: { vertice: cosa(m, d.cosa), C: (principal.length ? principal : otros).map(id => cosa(m, id)), otro: principal.length ? otros.map(id => cosa(m, id)) : [], opd: { texto: idx.etiqueta.get(opd)!, ref: { tipo: 'opd', id: opd } } } };
+    const huecos = { vertice: cosa(m, d.cosa), C: (principal.length ? principal : otros).map(id => cosa(m, id)), otro: principal.length ? otros.map(id => cosa(m, id)) : [], opd: { texto: idx.etiqueta.get(opd)!, ref: { tipo: 'opd' as const, id: opd } } };
+    // CX3 deja el modo a la relación fundamental que une la cosa y sus refinados; si los une más de una, sólo
+    // CX10 lo nombra («se despliega por partes…», spec-OPL §7.2) y P lo recupera sin elegir una relación.
+    const relaciones = new Set(Object.values(m.enlaces).flatMap(e => 'refinable' in e && e.refinable === d.cosa && refinadores.includes(e.refinador) && !esCaracterizacionConEstado(e) ? [e.tipo] : []));
+    if (relaciones.size > 1)
+        return { plantilla: 'CX10', huecos: { ...huecos, padre: { texto: idx.etiqueta.get(d.padre)!, ref: { tipo: 'opd', id: d.padre } }, relacion: hueco(PALABRA_DE_MODO[d.modo]) } };
+    return { plantilla: 'CX3', huecos };
 }

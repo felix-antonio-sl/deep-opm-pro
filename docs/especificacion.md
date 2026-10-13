@@ -793,6 +793,7 @@ Estado: C, no ★ (escalonable; mientras no se ofrezca, el parser responde `unsu
 | CX interno | spec-OPL §7.1 (textual): `… se descompone en *P1* y *P2*, así como **ObjetoInterno**.`; EBNF: `…, en esa secuencia, así como …` | C·S (PUEDE, R-OPL-CX-6; no emitida; el parser acepta ambos órdenes) |
 | CX nuevo OPD | *Proceso* desde SD se descompone en SD1 en *P1* y *P2*, en esa secuencia. (EBNF) | P (DR-24) |
 | CX3 | **Cosa** se despliega en SD1 en **T1**, **T2** y **T3**. | C ★ (oración de despliegue emitida en el OPD hijo, DR-24) |
+| CX10 | **Cosa** desde SD se despliega por partes en SD1 en **T1**, **T2** y **T3**. (por partes, por rasgos [, así como …], por especialización, por instancias) | C ★ (G la emite en lugar de CX3 sólo cuando los refinados se unen a la cosa por más de una relación fundamental y CX3 no diría el modo; P reconoce las cuatro y usa el modo nombrado, B-11) |
 | despliegue sin etiqueta | **Todo** se despliega en **Parte1** y **Parte2**. (+ `, así como *Operación*` en rasgos heterogéneos) | P |
 | despliegue dedicado | `X desde SDp se despliega por {partes\|especialización\|instanciación\|rasgos} en SDh en …` | X (GAP-DESPLIEGUE-DEDICADO) |
 | CX4 | SD se refina por descomposición de *Proceso* en SD1. (+ `por despliegue de **Cosa**`) | X (GAP-REFINA) |

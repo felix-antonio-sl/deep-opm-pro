@@ -22,7 +22,6 @@ export const NO_SOPORTADAS: readonly LimiteOpl[] = [
     { patron: /\b(?:consumen|generan|afectan|requieren|manejan|invocan)\b/u, codigo: 'unsupported-canonical', regla: 'DR-12', registro: 'B-09' },
     // DEC55 ofrece 0/1 y los rangos; «exactamente un» sigue sin literal canónico.
     { patron: /\bexactamente un(?:a)? \*\*/u, codigo: 'unsupported-canonical', regla: 'R-§18-PART-1', registro: 'B-10' },
-    { patron: /\bse despliega por (?:partes|especialización|instanciación|rasgos) en\b/u, codigo: 'unsupported-canonical', regla: 'R-IMPORT-5', registro: 'B-11' },
     { patron: /^Por ruta .* (?:maneja|requiere|afecta|invoca|cambia)\b/u, codigo: 'unsupported-canonical', regla: 'R-OPL-RUTA-2', registro: 'B-07' },
     { patron: /\bes (?:persistente|transitoria|transitorio)\.$/u, codigo: 'unsupported-canonical', regla: 'R-IMPORT-5', registro: 'B-16' },
     { patron: new RegExp(`\\b${conPerseverancia('(?:persistente|transitori[oa])')}`, 'u'), codigo: 'unsupported-canonical', regla: 'R-IMPORT-5', registro: 'B-16' },

@@ -96,7 +96,6 @@ const limites = [
  ['**A** se descompone en **B** y **C**, en esa secuencia.','unsupported-canonical'],
  ['**A** y **B** consumen **C**.','unsupported-canonical'],
  ['*Procesar* consume exactamente un **Pedido**.','unsupported-canonical'],
- ['**A** se despliega por partes en SD1 en **B** y **C**.','unsupported-canonical'],
  ['Por ruta Uno, *Procesar* requiere **Pedido**.','unsupported-canonical'],
  ['**Pedido** es persistente.','unsupported-canonical'],
  ['**Pedido** es de tipo integer.','unsupported-canonical'],

@@ -347,7 +347,7 @@ function ensayar(m: Modelo, alcance: Id | 'modelo', texto: string, basePrivadaVa
         const intentar = (t: Trabajo, fn: () => void) => { if (falla) return; try { fn(); } catch (e) { if (!(e instanceof Fallo)) throw e; falla = { numero: t.l.numero, error: e }; } };
         // Contexto en preorden, antes de crear nombres que son internos de un hijo.
         for (const t of [...activos].sort((a, b) => profundidad(a.etiqueta) - profundidad(b.etiqueta) || a.l.numero - b.l.numero)) for (const h of t.hechos) if (h.k === 'descomposicion' || h.k === 'despliegue') intentar(t, () => {
-            const padreLabel = h.k === 'descomposicion' && h.opdPadre ? h.opdPadre : t.etiqueta.includes('.') ? t.etiqueta.slice(0, t.etiqueta.lastIndexOf('.')) : 'SD';
+            const padreLabel = h.opdPadre ? h.opdPadre : t.etiqueta.includes('.') ? t.etiqueta.slice(0, t.etiqueta.lastIndexOf('.')) : 'SD';
             const padre = labels.get(padreLabel); if (!padre) throw new Fallo('unknown-symbol', `OPD padre ${padreLabel} inexistente.`);
             const n = h.k === 'descomposicion' ? { nombre: h.proceso, tipo: 'proceso' as const } : h.cosa;
             const c = asegurar(t, n, padre);
@@ -358,12 +358,14 @@ function ensayar(m: Modelo, alcance: Id | 'modelo', texto: string, basePrivadaVa
                 d = actual.opds[ids.find(id => actual.opds[id])!]!;
             } else if (!d && h.k === 'despliegue') {
                 const tipos = new Set(activos.flatMap(x => x.hechos).filter((x): x is Extract<HechoTexto, { k: 'enlace' }> => x.k === 'enlace').map(x => x.enlace).filter(e => 'refinable' in e && !esRF5(e) && claveNombre(e.refinable.nombre) === claveNombre(n.nombre) && h.refinadores.some(r => claveNombre(r.nombre) === claveNombre(e.refinador.nombre))).map(e => e.tipo));
-                if (tipos.size !== 1) throw new Fallo('ambiguous-symbol', 'El despliegue requiere una relación fundamental inequívoca.');
-                const modo = [...tipos][0] as ModoDespliegue;
+                // CX10 nombra el modo; CX3 lo deja a la única relación fundamental que une la cosa y sus refinados.
+                if (!h.modo && tipos.size !== 1) throw new Fallo('ambiguous-symbol', 'El despliegue requiere una relación fundamental inequívoca.');
+                const modo = h.modo ?? [...tipos][0] as ModoDespliegue;
                 const ids = agregar(t, { op: 'desplegar', args: { opd: padre, cosa: c, modo } }, 'crear-refinamiento', 1, c); d = actual.opds[ids[0]!]!;
                 for (const r of h.refinadores) if (!buscar(r)) agregar(t, { op: 'agregarRefinadores', args: { opd: d.id, nombres: [r.nombre], tipo: r.tipo } }, 'crear-refinamiento', 1, c);
             }
             if (!d || d.tipo === 'raiz') throw new Fallo('type-mismatch', 'Contexto de refinamiento inválido.');
+            if (h.k === 'despliegue' && h.modo && d.tipo === 'despliegue' && d.modo !== h.modo) throw new Fallo('type-mismatch', 'El despliegue existente es por otra relación fundamental.');
             const esperado = h.opdHijo ?? t.etiqueta;
             const labelReal = indice(actual).etiqueta.get(d.id)!;
             if (esperado !== 'SD' && esperado !== labelReal) throw new Fallo('unknown-symbol', `Etiqueta ${esperado} no corresponde a ${labelReal}.`);
