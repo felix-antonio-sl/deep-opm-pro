@@ -18,6 +18,9 @@ const filas92:readonly {nombre:string;texto:string;tipo?:string;plantilla:string
  {nombre:'rectángulo sin sombra default',texto:'**Cuenta** es informacional.',plantilla:'D2',campo:{tipo:'objeto',esencia:'informacional'}},
  {nombre:'rectángulo punteado',texto:'**Cuenta** es ambiental.',plantilla:'D3',campo:{tipo:'objeto',afiliacion:'ambiental'}},
  {nombre:'elipse con sombra',texto:'*Gestionar* es físico.',plantilla:'D1',campo:{tipo:'proceso',esencia:'fisica'}},
+ // R-ENT-3: sombra y contorno discontinuo de la misma cosa se expresan en una sola oración D19.
+ {nombre:'rectángulo con sombra y contorno discontinuo',texto:'**Cuenta** es física y ambiental.',plantilla:'D19',campo:{tipo:'objeto',esencia:'fisica',afiliacion:'ambiental',genero:'f'}},
+ {nombre:'elipse con sombra y contorno discontinuo',texto:'*Gestionar* es físico y ambiental.',plantilla:'D19',campo:{tipo:'proceso',esencia:'fisica',afiliacion:'ambiental'}},
  {nombre:'estado dentro de objeto',texto:'**Cuenta** puede estar `nuevo`, `abierto` o `cerrado`.',plantilla:'D5'},
  {nombre:'estado borde grueso',texto:'Estado `nuevo` de **Cuenta** es inicial.',plantilla:'D7'},
  {nombre:'estado doble borde',texto:'Estado `nuevo` de **Cuenta** es final.',plantilla:'D8'},

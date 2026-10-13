@@ -56,6 +56,8 @@ const filas: readonly [
     'P'?
 ][] = [
     ['D1', '{C} es físico|física.', 'cosa'], ['D2', '{C} es informacional.', 'cosa'], ['D3', '{C} es ambiental.', 'cosa'], ['D4', '{C} es sistémico|sistémica.', 'cosa', 'P'],
+    // canon spec-OPL R-ENT-3: esencia y afiliación de una cosa en una sola oración (D19), en cualquier orden.
+    ['D19', '{C} es {esencia} y {afiliacion}.', 'cosa'], ['D19i', '{C} es {afiliacion} y {esencia}.', 'cosa', 'P'],
     ['ENT3', '{C} es un {clase} {esencia}[ y {afiliacion}].', 'cosa', 'P'], ['D11', '{C} es persistente.', 'cosa', 'P'], ['D12', '{C} es transitoria.', 'cosa', 'P'],
     ['PLURAL', 'Forma plural de {O}: «{plural}».', 'cosa'],
     ['D5', '{O} puede estar {Lo:s}.', 'cosa'], ['D6', '{O} puede estar {Lista:s}, y otros estados.', 'cosa'],
@@ -595,6 +597,12 @@ function reconocer(id: string, h: Huecos): readonly HechoTexto[] {
         return [{ k: 'esencia', cosa: nombre('C'), valor: id === 'D1' ? 'fisica' : 'informacional' }];
     if (id === 'D3' || id === 'D4')
         return [{ k: 'afiliacion', cosa: nombre('C'), valor: id === 'D3' ? 'ambiental' : 'sistemica' }];
+    if (id === 'D19' || id === 'D19i') {
+        // El género sólo sale de la concordancia del adjetivo (R-OPL-1), como en D1 y D4.
+        const esencia = x('esencia').texto, afiliacion = x('afiliacion').texto;
+        const sujeto = { ...nombre('C'), ...(esencia === 'física' || afiliacion === 'sistémica' ? { genero: 'f' as const } : {}) };
+        return [{ k: 'esencia', cosa: sujeto, valor: esencia === 'informacional' ? 'informacional' : 'fisica' }, { k: 'afiliacion', cosa: sujeto, valor: afiliacion === 'ambiental' ? 'ambiental' : 'sistemica' }];
+    }
     if (['D5', 'D6', 'ATR-E'].includes(id)) {
         const O = id === 'ATR-E' ? 'O1' : 'O';
         const hechos: HechoTexto[] = [{ k: 'estados', objeto: x(O).texto, nombres: lista(h, 's').map(s => s.texto), otros: id === 'D6' }];

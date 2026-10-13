@@ -599,10 +599,11 @@ Estado de cada plantilla: **C** = canónica en `reglas` (tabla-gate, generar y p
 
 | ID | Plantilla OPL-ES | Estado |
 |---|---|---|
-| D1 | **Cosa** es física. | C ★ (emitida si física, DR-2) |
+| D1 | **Cosa** es física. | C ★ (emitida si física y no ambiental, DR-2) |
 | D2 | **Cosa** es informacional. | C ★ (default: no se emite en canónico; parseo sí) |
-| D3 | **Cosa** es ambiental. | C ★ (emitida si ambiental) |
+| D3 | **Cosa** es ambiental. | C ★ (emitida si ambiental y no física; también en la vista `oculta`) |
 | D4 | **Cosa** es sistémica. | C ★ (default: no se emite; parseo sí) |
+| D19 | **Cosa** es {esencia} y {afiliacion}. (`**Sensor** es físico y ambiental.`; `**Prueba** es ambiental y física.`) | C·S ★ (R-ENT-3: G la emite si la cosa es física y ambiental, en el orden de D19; P la acepta en ambos órdenes y con valores por defecto, y recupera el género del adjetivo. Con perseverancia ⇒ `unsupported-canonical` o, si contradice la clase, `non-canonical` (B-16)) |
 | D5 | **Objeto** puede estar `estado1`, `estado2` o `estado3`. | C ★ |
 | D6 | **Objeto** puede estar `estado1`, …, y otros estados. | C ★ (realización EBNF: `lista_de_estados, ", y otros estados"`) |
 | D7 | Estado `s` de **Objeto** es inicial. | C ★ |
@@ -615,7 +616,7 @@ Estado de cada plantilla: **C** = canónica en `reglas` (tabla-gate, generar y p
 | D14 | **Objeto** está en `estado`. | C·S → X (B-61: G usa D5 de un elemento, DR-33; parser `unsupported-canonical`, sin mutar) |
 | D15 / D16 | Estados `s1` y `s2` de **Objeto** son iniciales. / … son finales. | C·S → X (B-61: G emite D7/D8 por estado; parser `unsupported-canonical`, sin mutar) |
 | D17 | **Objeto** está inicialmente en `s1` y finalmente en `s2` o `s3`. | C·S → X (B-61: G emite D7/D8; parser `unsupported-canonical`, sin mutar) |
-| R-ENT-3 | **Cosa** es un {objeto\|proceso} {esencia} y {afiliacion}. (`**Sensor** es un objeto físico y ambiental.`; solo esencia: `**Cosa** es un objeto físico.`; solo afiliación: `**Cosa** es un objeto ambiental.`) | C·S → P (reglas 9.2 manda la atómica, DR-2); la clase declarada debe coincidir con la tipografía: `**Pedido** es un proceso físico.` da `syntax-error` sin hechos |
+| ENT3 (perfil R-ENT-3 ext.) | **Cosa** es un {objeto\|proceso} {esencia} y {afiliacion}. (`**Sensor** es un objeto físico y ambiental.`; solo esencia: `**Cosa** es un objeto físico.`; solo afiliación: `**Cosa** es un objeto ambiental.`) | C·S → P (reglas 9.2 manda la atómica, DR-2); la clase declarada debe coincidir con la tipografía: `**Pedido** es un proceso físico.` da `syntax-error` sin hechos |
 | ENT-ATR valor | **Atributo** de **Objeto** es valor. | C (`valorSlot`) |
 | ENT-ATR rango | **Atributo** de **Objeto** varía de X a Y. | X (GAP-VARIA) |
 | ENT-ATR enum | **Atributo** de **Objeto** puede estar `valor1`, `valor2` o `valor3`. | C · P (el generador usa D5, DR-20) |
@@ -1589,7 +1590,7 @@ Brechas de bisimetría declaradas por el producto (R-§19-ROT-1): (1) procedenci
 | R-IMPORT-8 | Preservar metadato de layout/vista/estilo no expresable en OPL. | DEBE |
 | R-CONF-6 | OPL fuera de la EBNF se clasifica legacy/extensión/error; NUNCA se presenta como OPL-ES canónico. | DEBE / NO DEBE |
 | R-OPL-COND-ALT-1 | Aceptar la variante `Si **Objeto** existe entonces *Proceso* ocurre y consume **Objeto**, de lo contrario se omite *Proceso*.` | DEBE |
-| spec-OPL §2.0 | Aceptar D1–D4 atómicas y la clasificación combinada R-ENT-3. | DEBE |
+| spec-OPL §2.0 | Aceptar D1–D4 atómicas, la oración de propiedades genéricas D19 (R-ENT-3) en cualquier orden y la clasificación combinada ENT3. | DEBE |
 | R-OPL-9 | Aceptar el sufijo ` proceso` en identificadores de proceso. | PUEDE |
 | R-§18-NORM-1, R-MULT-3 | Normalizar (Unicode → ASCII en operadores y delimitadores; espacios); preservar acentos, `ñ`, `ü` en nombres. | DEBE |
 | R-OPL-KW-2 | Aceptar `y/e` y `o/u` indistintamente. | inf. |
@@ -2158,7 +2159,7 @@ Los ★ con obligación PUEDE o inferida son soportes necesarios de un DEBE ★ 
 | T-103 | Una oración por línea, terminada en punto. | DEBE | gen | R-OPL-EBNF-4/5 | ★ |
 | T-104 | Vocabulario cerrado (palabras fijas de las plantillas); verbos en 3.ª persona singular del presente; sin sinónimos. | DEBE / NO DEBE | gen | spec-OPL §1, R-OPL-VERB-1, R-§21-OPL-VOCAB, DR-27 | ★ |
 | T-105 | Emitir con las plantillas literales de reglas §4 y §7 (tablas-gate); la tabla 9.2 es el mínimo. | DEBE | gen | R-BI-TAB-1, reglas l.41 | ★ |
-| T-106 | Esencia/afiliación: D1 si física, D3 si ambiental; defaults (D2, D4) no se emiten en canónico. | DEBE | gen | R-BI-TAB-1 (tabla 9.2), DR-2 | ★ |
+| T-106 | Esencia/afiliación: D1 si física, D3 si ambiental, una sola oración D19 si ambas (R-ENT-3); defaults (D2, D4) no se emiten en canónico. | DEBE | gen | R-BI-TAB-1 (tabla 9.2), DR-2 | ★ |
 | T-107 | Estados: D5 con `puede estar` (nunca `puede ser`), en el orden del modelo, `o`/`u` final. | DEBE / NUNCA | gen | R-VERB-EST-1, R-ENT-EST-1, D5 | ★ |
 | T-108 | Designaciones D7, D8, D9 y D10 (una sola oración si inicial y final). | inf. DEBE | gen | reglas §4.4, spec-OPL §2.4 | ★ |
 | T-109 | Designación D13 para `Current` declarado. | inf. DEBE | gen | D13 | |
@@ -2209,7 +2210,7 @@ Los ★ con obligación PUEDE o inferida son soportes necesarios de un DEBE ★ 
 | T-159 | Reparseo preserva layout y metadatos no expresables en OPL (posiciones, escisión). | DEBE | par | R-IMPORT-8 | ★ |
 | T-160 | Parser estricto: sin firma canónica se rechaza; nunca grafo plausible. | DEBE / NO DEBE | par | R-BI-2, R-OPD-BIM-2, Anexo A «Parseo» | ★ |
 | T-161 | Aceptar la variante `Si **Objeto** existe entonces *Proceso* ocurre y consume **Objeto**, de lo contrario se omite *Proceso*.` | DEBE | par | R-OPL-COND-ALT-1 | ★ |
-| T-162 | Aceptar D1–D4 atómicas y la clasificación combinada R-ENT-3; ausencia ⇒ defaults. | DEBE | par | spec-OPL §2.0/§2.7/§2.8, DR-2 | ★ |
+| T-162 | Aceptar D1–D4 atómicas, D19 en cualquier orden (R-ENT-3) y la clasificación combinada ENT3; ausencia ⇒ defaults. | DEBE | par | spec-OPL §2.0/§2.7/§2.8, DR-2 | ★ |
 | T-163 | Aceptar el sufijo ` proceso` en identificadores de proceso y ambas alternancias `y/e`, `o/u`. | PUEDE / inf. | par | R-OPL-9, R-OPL-KW-2 | |
 | T-164 | TS4/TS5 parseados siempre como standalone. | DEBE | par | spec-OPL §3.5, R-ESCIND-0 | ★ |
 | T-165 | TS3 sobre modelo vacío crea el objeto y sus estados. | inf. | par | spec-OPL §3.4 |  |
@@ -2367,7 +2368,7 @@ Criterio de resolución: (1) precedencia del canon (§0.3); (2) si el canon no d
 | DR | Gap / contradicción | Fuentes en tensión | Resolución |
 |---|---|---|---|
 | DR-1 | La EBNF «formal completa» vive en `SSOT-opl Apéndice A` (fuera del canon). La única EBNF entregada (spec-OPL §18) dice cubrir todo pero omite producciones de plantillas canónicas (abanicos de habilitadores e invocación, fan de estados sin entrada común, fan bajo evento, `Pr`, `después de`, negadas, `es valor`, D10, CX4, `es afectado por`, `es manejado por`, condición con estado sobre efecto) y tiene defectos (ver DR-33). No define si el parser recibe texto con marcas. | R-OPL-EBNF-1/2, R-IMPORT-1, spec-OPL §18, opl-c §13 A/B/C/R | Gramática del producto = **tablas de plantillas** de §4.4 (validez, reglas manda) + EBNF §18 como base léxica y estructural, corregida (DR-33). Entrada = Markdown con marcas; las marcas delimitan identificadores. Parser por esqueletos (§4.10). El subconjunto soportado se declara (T-151). |
-| DR-2 | Emisión de esencia/afiliación: reglas tabla 9.2 manda `**Cosa** es física.` y no emitir el default; spec-OPL R-ENT-3 exige la oración combinada y R-OPL-CFG-1/2 un canónico `siempre`. | R-BI-TAB-1 vs R-ENT-3, R-OPL-CFG-1/2, §13 | Desempate reglas l.41: canónico emite **D1/D3 atómicas solo si difieren del default**; D2/D4 no se emiten. Parser acepta D1–D4 y la combinada; ausencia ⇒ default. Los tres modos de visibilidad operan solo en display (`siempre` añade D2 informacional en el panel). |
+| DR-2 | Emisión de esencia/afiliación: reglas tabla 9.2 manda `**Cosa** es física.` y no emitir el default; spec-OPL R-ENT-3 exige la oración combinada y R-OPL-CFG-1/2 un canónico `siempre`. | R-BI-TAB-1 vs R-ENT-3, R-OPL-CFG-1/2, §13 | Desempate reglas l.41: canónico emite **sólo las propiedades que difieren del default**; D2/D4 no se emiten. Canon 2.x: R-ENT-3 exige una sola oración de propiedades genéricas y reglas §4.4 declara D1–D4 sus formas de una propiedad, así que esencia física y afiliación ambiental de la misma cosa se emiten juntas en D19 (`**Sensor** es físico y ambiental.`), nunca como D1 seguida de D3. Parser acepta D1–D4, D19 en cualquier orden y la combinada ENT3; ausencia ⇒ default. Los tres modos de visibilidad operan solo en display (`siempre` añade D2 informacional en el panel). |
 | DR-3 | Perseverancia: «No hay otras opciones» vs procesos persistentes, D11/D12. | R-COSA-2, R-OBJ-3 vs R-PROC-2A/5..7, D11/D12 | Sin campo: derivada del tipo. D11/D12 nunca se emiten; al parsear, coherentes ⇒ `sin-cambio`, incoherentes ⇒ `non-canonical`. Proceso persistente = patrón TS3 entrada = salida (R-OPL-PERSIST-2). |
 | DR-4 | Numeración y posición de OPDs no fijadas (orden de hermanos; Bocetos fuera del árbol). | R-IDP-1/1A, R-OPL-TOTAL-1, GAP-11 reglas-b | Etiquetas por preorden con hermanos en orden de creación; si existieran Bocetos, sus bloques van tras el árbol. |
 | DR-5 | Agente «EXCLUSIVAMENTE humanos» (AP-05 DEBE bloquearse) sin dato «humano» en el modelo. | R-AG-1, AP-05, GAP-OPD-AGENTE-HUMANO, método F | Proxy declarado del propio canon: agente **solo desde objeto físico** (bloqueo); la humanidad queda como advertencia metodológica recordatoria. Sin campo nuevo. |

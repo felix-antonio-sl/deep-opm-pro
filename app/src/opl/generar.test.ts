@@ -72,12 +72,28 @@ for (const [tid, plantilla, enlace, texto] of nominales) test(`${tid} literal ${
     expect(linea?.texto).toBe(texto); expect(linea?.plantilla).toBe(plantilla);
     expect(JSON.stringify(modelo)).toBe(antes);
 });
-test('T-106 género D1, ambiental D3 y mención mínima D2 sin defaults redundantes',()=>{
+test('T-106 T-162 género y afiliación en una sola oración D19 y mención mínima D2 sin defaults redundantes',()=>{
  const base=m(), o=base.cosas.o!;
  const lineas=generarBloque(congelar({...base,cosas:{...base.cosas,o:{...o,esencia:'fisica',genero:'f',afiliacion:'ambiental'}}}),'sd');
  expect(lineas.filter(l=>l.plantilla==='D2').map(l=>l.texto)).toEqual(['*Archivar* es informacional.','*Procesar* es informacional.']);
- expect(lineas.map(l=>l.texto)).toContain('**Pedido** es física.'); expect(lineas.map(l=>l.texto)).toContain('**Pedido** es ambiental.');
+ // canon spec-OPL R-ENT-3: física y ambiental de la misma cosa van en una oración, nunca en dos.
+ expect(lineas.map(l=>l.texto)).toContain('**Pedido** es física y ambiental.'); expect(lineas.map(l=>l.texto)).not.toContain('**Pedido** es física.'); expect(lineas.map(l=>l.texto)).not.toContain('**Pedido** es ambiental.');
  expect(lineas.some(l=>l.plantilla==='D4')).toBe(false);
+});
+test('T-106 T-192 R-ENT-3 compone esencia física y afiliación ambiental en una oración D19 que P reconstruye',()=>{
+ const base=m();
+ const mod=congelar({...base,cosas:{...base.cosas,o:{...base.cosas.o!,esencia:'fisica',afiliacion:'ambiental'},a:{...base.cosas.a!,esencia:'fisica',genero:'f'},p:{...base.cosas.p!,esencia:'fisica',afiliacion:'ambiental',genero:'f'},q:{...base.cosas.q!,afiliacion:'ambiental'}}}) as Modelo;
+ const textos=generarBloque(mod,'sd').map(l=>l.texto);
+ expect(textos).toEqual(expect.arrayContaining(['**Pedido** es físico y ambiental.','**Cuenta** es física.','*Procesar* es física y ambiental.','*Archivar* es ambiental.']));
+ expect(textos.filter(t=>/^(?:\*\*Pedido\*\*|\*Procesar\*) es /.test(t))).toHaveLength(2);
+ expect(generarBloque(mod,'sd').filter(l=>l.plantilla==='D19').map(l=>l.refs)).toEqual([[{tipo:'cosa',id:'p'}],[{tipo:'cosa',id:'o'}]]);
+ // La vista sin esencia conserva sólo la afiliación; la vista «siempre» no altera el texto canónico.
+ const oculta=generarBloque(mod,'sd',{esencia:'oculta',numeracion:false}).map(l=>l.texto);
+ expect(oculta).toEqual(expect.arrayContaining(['**Pedido** es ambiental.','*Procesar* es ambiental.']));expect(oculta.some(t=>/ es f[ií]sic/.test(t))).toBe(false);
+ expect(textoCanonico(generarModelo(mod,{esencia:'siempre',numeracion:true}))).toBe(textoCanonico(generarModelo(mod)));
+ expect(validarForma(mod)).toEqual([]);expect(diagnosticar(mod).filter(d=>d.severidad==='error')).toEqual([]);expect(admitidoConPuntoFijo(mod)).toBe(true);
+ const nuevo=must(importarOpl(mod.nombre,generarDocumentoOpl(mod))).modelo;
+ expect(porNombre(nuevo,'Procesar')).toMatchObject({esencia:'fisica',afiliacion:'ambiental',genero:'f'});expect(porNombre(nuevo,'Pedido')).toMatchObject({esencia:'fisica',afiliacion:'ambiental'});expect(porNombre(nuevo,'Pedido').genero).toBeUndefined();
 });
 test('T-101 estados ocultos D6 no se nombran y el anclaje visible vence supresión',()=>{
  const base=m([{id:'e',tipo:'consumo',objeto:'o',proceso:'p',estado:'o-pend'}]), o=base.cosas.o!; if(o.tipo!=='objeto')throw Error('montaje');

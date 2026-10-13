@@ -1,5 +1,6 @@
 import { test, expect } from 'bun:test';
 import { analizar } from './analizar';
+import type { HechoTexto } from './analizar';
 import { PLANTILLAS } from './plantillas';
 
 const caso = (s: string) => analizar(s)[0]!;
@@ -56,6 +57,29 @@ test('T-138 T-162 género femenino tiene fuente literal D1/D4 y nunca el nombre'
     expect(caso('*Persona* es sistémica.').hechos).toEqual([{ k: 'afiliacion', cosa: { nombre: 'Persona', tipo: 'proceso', genero: 'f' }, valor: 'sistemica' }]);
     expect(caso('**Persona** es físico.').hechos).toEqual([{ k: 'esencia', cosa: { nombre: 'Persona', tipo: 'objeto' }, valor: 'fisica' }]);
     expect(caso('**Persona** es informacional.').hechos).toEqual([{ k: 'esencia', cosa: { nombre: 'Persona', tipo: 'objeto' }, valor: 'informacional' }]);
+});
+test('T-162 D19 reconoce la oración de propiedades genéricas en cualquier orden, con defaults y concordancia', () => {
+    // canon spec-OPL R-ENT-3: una sola oración, a lo sumo un valor de cada propiedad y en cualquier orden.
+    const props = (nombre: string, tipo: 'objeto' | 'proceso', esencia: 'fisica' | 'informacional', afiliacion: 'ambiental' | 'sistemica', genero?: 'f'): HechoTexto[] => {
+        const cosa = { nombre, tipo, ...(genero ? { genero } : {}) };
+        return [{ k: 'esencia', cosa, valor: esencia }, { k: 'afiliacion', cosa, valor: afiliacion }];
+    };
+    for (const s of ['**Sensor** es físico y ambiental.', '**Sensor** es ambiental y físico.']) {
+        expect(caso(s).diagnosticos).toEqual([]); expect(caso(s).hechos).toEqual(props('Sensor', 'objeto', 'fisica', 'ambiental'));
+    }
+    expect(caso('**Prueba** es ambiental y física.').hechos).toEqual(props('Prueba', 'objeto', 'fisica', 'ambiental', 'f'));
+    expect(caso('*Medir* es informacional y sistémico.').hechos).toEqual(props('Medir', 'proceso', 'informacional', 'sistemica'));
+    expect(caso('*Medir* es ambiental e informacional.').hechos).toEqual(props('Medir', 'proceso', 'informacional', 'ambiental'));
+    expect(caso('**Sensor** es físico y ambiental.').plantilla).toBe('D19');
+    // Dos valores de la misma propiedad no son una oración de propiedades genéricas.
+    for (const s of ['**Sensor** es físico e informacional.', '**Sensor** es ambiental y sistémico.']) {
+        expect(caso(s).hechos).toEqual([]); expect(caso(s).diagnosticos[0]?.codigo).toBe('syntax-error');
+    }
+    // La perseverancia no se ofrece (B-16): coherente con la clase es unsupported-canonical; contradictoria, non-canonical.
+    for (const [s, codigo] of [['**Sensor** es físico y persistente.', 'unsupported-canonical'], ['**Sensor** es físico, ambiental y persistente.', 'unsupported-canonical'],
+        ['*Medir* es transitorio y ambiental.', 'unsupported-canonical'], ['*Medir* es físico y persistente.', 'non-canonical'], ['**Sensor** es ambiental, transitorio y físico.', 'non-canonical']] as const) {
+        expect(caso(s).hechos).toEqual([]); expect(caso(s).diagnosticos[0]?.codigo).toBe(codigo); expect(caso(s).diagnosticos[0]?.regla).toBeTruthy();
+    }
 });
 test('T-162 T-153 ENT3 rechaza sin hechos la clase declarada que contradice la tipografía', () => {
     for (const s of ['**Pedido** es un proceso físico.', '*Validar* es un objeto físico.', '**Pedido** es un proceso físico y ambiental.', '*Validar* es un objeto informacional y sistémico.']) {

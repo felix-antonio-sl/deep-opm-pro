@@ -1,8 +1,12 @@
 import type { CodigoOpl } from './analizar';
 interface LimiteOpl { readonly patron: RegExp; readonly codigo: CodigoOpl; readonly regla: string; readonly registro: string; readonly mensaje?: string; readonly enEtiqueta?: true; readonly prosaCompuesta?: true; }
+// D19 (canon spec-OPL R-ENT-3): oración de propiedades genéricas con dos o tres valores que incluye la perseverancia.
+const propiedad = '(?:físic[oa]|informacional|ambiental|sistémic[oa]|persistente|transitori[oa])', separador = '(?:, | [ye] )';
+const conPerseverancia = (valor: string) => `(?:es (?:${propiedad}${separador})+${valor}(?:${separador}${propiedad})*|es ${valor}(?:${separador}${propiedad})+)\\.$`;
 /** Reconocimiento de límites: la prosa no se degrada a un grafo plausible. */
 export const NO_CANONIZADAS: readonly LimiteOpl[] = [
     { patron: /\*[^*]+\* es persistente\.|\*\*[^*]+\*\* es transitori[oa]\./u, codigo: 'non-canonical', regla: 'R-OPL-DESC-1', registro: 'B-16' },
+    { patron: new RegExp(`^\\*[^*]+\\* ${conPerseverancia('persistente')}|^\\*\\*[^*]+\\*\\* ${conPerseverancia('transitori[oa]')}`, 'u'), codigo: 'non-canonical', regla: 'R-OPL-DESC-1', registro: 'B-16' },
     { patron: /puede ser .*`|\binicia e invoca\b|\bpuede generarse\b|\binvoca .* si .* ocurre\b/u, codigo: 'non-canonical', regla: 'R-MOD-INPUT-2', registro: 'B-16' },
     { patron: /(?:exactamente uno de|al menos uno de).*\bPr=/u, codigo: 'unsupported-canonical', regla: 'R-FAN-PR-1', registro: 'B-16' },
     { patron: /\bPr=|\bFANLOCAL\b|\bfan local\b|\b(?:XOR|OR|AND)\b/u, codigo: 'non-canonical', regla: 'R-CONF-6', registro: 'B-16' },
@@ -21,6 +25,7 @@ export const NO_SOPORTADAS: readonly LimiteOpl[] = [
     { patron: /\bse despliega por (?:partes|especialización|instanciación|rasgos) en\b/u, codigo: 'unsupported-canonical', regla: 'R-IMPORT-5', registro: 'B-11' },
     { patron: /^Por ruta .* (?:maneja|requiere|afecta|invoca|cambia)\b/u, codigo: 'unsupported-canonical', regla: 'R-OPL-RUTA-2', registro: 'B-07' },
     { patron: /\bes (?:persistente|transitoria|transitorio)\.$/u, codigo: 'unsupported-canonical', regla: 'R-IMPORT-5', registro: 'B-16' },
+    { patron: new RegExp(`\\b${conPerseverancia('(?:persistente|transitori[oa])')}`, 'u'), codigo: 'unsupported-canonical', regla: 'R-IMPORT-5', registro: 'B-16' },
     { patron: /\bes de tipo\b|\bvaría de\b|\ben \{|\b(?:se refina por|se pliega|se recompone|referencia el sub-modelo|vista de sub-modelo|referencia externa)\b/u, codigo: 'unsupported-canonical', regla: 'R-§19-SIM-2', registro: 'B-16' },
     // «Tiene» sigue siendo etiqueta libre; no inventa una exhibición con multiplicidad.
     { patron: /\b(?:después de|no maneja|no requiere|no consume|no genera|no afecta|no cambia)\b|\[etiqueta:/u, codigo: 'unsupported-canonical', regla: 'R-IMPORT-5', registro: 'B-16' },

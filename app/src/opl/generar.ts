@@ -106,10 +106,16 @@ function construirBloque(m: Modelo, opd: Id, o?: OpcionesOpl): readonly LineaOpl
     const emit = (id: string, h: Huecos, clave: string, hechos: readonly Id[] = [], display?: true) => linea(m, opd, { plantilla: id, huecos: h }, clave, hechos, display);
     for (const c of orden) {
         const ch = cosa(m, c.id), v = vista.cosas.find(v => v.cosa === c.id)!;
-        if (c.esencia === 'fisica')
-            cosas.push(emit('D1', { C: ch }, c.id));
-        if (c.afiliacion === 'ambiental')
-            cosas.push(emit('D3', { C: ch }, c.id));
+        // R-ENT-3: las propiedades que difieren del default van en una sola oración (D19); la vista sin
+        // esencia conserva sólo la afiliación.
+        if (c.esencia === 'fisica' && c.afiliacion === 'ambiental' && o?.esencia !== 'oculta')
+            cosas.push(emit('D19', { C: ch, esencia: hueco(c.genero === 'f' ? 'física' : 'físico'), afiliacion: hueco('ambiental') }, c.id));
+        else {
+            if (c.esencia === 'fisica')
+                cosas.push(emit('D1', { C: ch }, c.id));
+            if (c.afiliacion === 'ambiental')
+                cosas.push(emit('D3', { C: ch }, c.id));
+        }
         if (c.tipo === 'objeto') {
             if (c.nombrePlural !== undefined) cosas.push(emit('PLURAL', { O: ch, plural: hueco(c.nombrePlural) }, c.id));
             if (v.estadosVisibles.length)
