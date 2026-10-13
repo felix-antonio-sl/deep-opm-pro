@@ -15,8 +15,11 @@ export function CapaUi(p:{modelo:Modelo;escena:Escena;seleccion:Seleccion;hover:
     }))];
     const seleccionado=(ref:Ref)=>ref.tipo==='cosa'?p.seleccion.cosas.includes(ref.id):ref.tipo==='estado'?p.seleccion.estados.includes(ref.id):false;
     // En el efecto el objeto es el destino nuclear aunque la flecha de entrada del par (TS3, TS4, TS5) salga de él.
+    // TS4/TS5 sueltos: la flecha complementaria, anclada al rectángulo, no dice si es entrada o salida, y
+    // reanclar su terminal de objeto cambiaría el estado de la otra (R-OPD-EDIT-4); eso va por el inspector.
     const extremos=p.escena.aristas.filter(a=>p.seleccion.enlaces.includes(a.ref.id)).flatMap(a=>{const e=p.modelo.enlaces[a.ref.id],deObjeto=(t:typeof a.tramos[number])=>e?.tipo==='efecto'&&t.extremos?.[0]===e.objeto;
-        return a.tramos.flatMap(t=>[{p:t.puntos[0]!,extremo:deObjeto(t)?'destino':'origen'},{p:t.puntos.at(-1)!,extremo:deObjeto(t)?'origen':'destino'}].map(x=>({...x,enlace:a.ref.id})));});
+        const complementaria=e?.tipo==='efecto'&&!e.escision&&!e.entrada!==!e.salida&&a.tramos.length===2?(e.entrada?1:0):-1;
+        return a.tramos.flatMap((t,i)=>[{p:t.puntos[0]!,extremo:deObjeto(t)?'destino':'origen'},{p:t.puntos.at(-1)!,extremo:deObjeto(t)?'origen':'destino'}].filter(x=>!(i===complementaria&&x.extremo==='destino')).map(x=>({...x,enlace:a.ref.id})));});
     const inicio=()=>{if(p.gesto.k!=='conectando')return null;const r=p.gesto.desde;const n=p.escena.nodos.find(n=>n.ref.id===r.cosa);const b=r.estado?n?.estados.find(s=>s.ref.id===r.estado)?.caja:n?.caja;return b?{x:b.x+b.ancho,y:b.y+b.alto/2}:null;};
     const a=inicio(),g=p.gesto;
     const recta=(a:Punto,b:Punto)=><line x1={a.x} y1={a.y} x2={b.x} y2={b.y} class="guia-ui" pointer-events="none" />;

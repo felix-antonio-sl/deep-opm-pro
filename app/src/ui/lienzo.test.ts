@@ -159,7 +159,10 @@ test('T-209 T-011 asas de reanclaje de TS3, TS4, TS5 y mitades escindidas nombra
     };
     for (const campos of [{ entrada: nuevo, salida: listo }, { entrada: nuevo }, { salida: listo }, { entrada: nuevo, escision: { par: 'x', mitad: 'entrada' as const } }, { salida: listo, escision: { par: 'x', mitad: 'salida' as const } }]) {
         const m = { ...b, enlaces: { e: { id: 'e', tipo: 'efecto' as const, objeto: o.id, proceso: p, ...campos } } }, e = escena(m, m.raiz);
-        const esperadas = e.aristas[0]!.tramos.flatMap(t => [{ ...t.puntos[0]!, extremo: t.extremos![0] === o.id ? 'destino' : 'origen' }, { ...t.puntos.at(-1)!, extremo: t.extremos![1] === o.id ? 'destino' : 'origen' }]);
+        // TS4/TS5 sueltos no ofrecen el terminal de objeto de su flecha complementaria (sin estado): sería ambiguo.
+        const complementaria = !('escision' in campos) && !('entrada' in campos && 'salida' in campos) ? ('entrada' in campos ? 1 : 0) : -1;
+        const esperadas = e.aristas[0]!.tramos.flatMap((t, i) => [{ ...t.puntos[0]!, extremo: t.extremos![0] === o.id ? 'destino' : 'origen' }, { ...t.puntos.at(-1)!, extremo: t.extremos![1] === o.id ? 'destino' : 'origen' }].filter(x => !(i === complementaria && x.extremo === 'destino')));
+        expect(esperadas).toHaveLength('escision' in campos ? 2 : 'entrada' in campos && 'salida' in campos ? 4 : 3);
         const dibujo = CapaUi({ modelo: m, escena: e, seleccion: { cosas: [], estados: [], enlaces: ['e'], abanicos: [] }, hover: null, realce: [], gesto: { k: 'reposo' }, zoom: 1, legal: () => false });
         expect(asas(dibujo)).toEqual(esperadas);
     }
