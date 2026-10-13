@@ -255,13 +255,13 @@ function construirDocumento(texto:string,l:Lectura,fusionar:FusionarPares|undefi
     if(Array.isArray(o.ordenInzoom)) o.ordenInzoom=o.ordenInzoom.map(b=>Array.isArray(b)?b.map(v=>map('entidades',v)):b);
   }
   for (const f of Object.values(data.abanicos)) { if(Array.isArray(f.enlaceIds)) f.enlaceIds=f.enlaceIds.map(v=>map('enlaces',v)); if(f.opdId!==undefined) f.opdId=map('opds',f.opdId); }
-  const slots:{cosa:string;opd:string;tipo:string;modo?:string;ruta:string}[]=[];
+  const slots:{cosa:string;opd:string;tipo:string;modo?:unknown;ruta:string}[]=[];
   for (const e of Object.values(data.entidades)) {
     // Sin prototipo: un tipo legacy `constructor` o `__proto__` es una ranura propia, no una propiedad heredada.
     const refs:Registro=Object.assign(Object.create(null),registro(e.refinamientos));
     if(e.refinamientos!==undefined&&!esRegistro(e.refinamientos)) l.perder(`entidades.${e.id}.refinamientos`,e.refinamientos,'F-7','Refinamientos no representables');
     if(e.refinamiento!==undefined) { const r=registro(e.refinamiento), t=str(r.tipo); if(!Object.hasOwn(refs,t)) refs[t]={opdId:r.opdId,...(r.modo!==undefined?{modo:r.modo}:{})}; l.norm(`entidades.${e.id}.refinamiento`,'Refinamiento legacy → plural.'); l.desconocidos(r,`entidades.${e.id}.refinamiento`,['tipo','opdId','modo']); }
-    for(const [tipo,v] of Object.entries(refs)) { const s=registro(v); slots.push({cosa:str(e.id),opd:map('opds',s.opdId),tipo,...(typeof s.modo==='string'?{modo:s.modo}:{}),ruta:`entidades.${e.id}.refinamientos.${tipo}`}); l.desconocidos(s,`entidades.${e.id}.refinamientos.${tipo}`,['opdId','modo']); }
+    for(const [tipo,v] of Object.entries(refs)) { const s=registro(v); slots.push({cosa:str(e.id),opd:map('opds',s.opdId),tipo,...(s.modo!==undefined?{modo:s.modo}:{}),ruta:`entidades.${e.id}.refinamientos.${tipo}`}); l.desconocidos(s,`entidades.${e.id}.refinamientos.${tipo}`,['opdId','modo']); }
   }
   // Etapa 3: acumular referencias rotas antes de perder campos no representables.
   const ref=(c:Col,id:unknown,r:string):void=> { if(typeof id!=='string' || !Object.hasOwn(data[c],id)) l.rechazar(r,`Referencia inexistente: ${JSON.stringify(id)}.`); };
@@ -373,7 +373,7 @@ function construirDocumento(texto:string,l:Lectura,fusionar:FusionarPares|undefi
   return {ok:true,modelo:result,informe:l.informe};
 }
 
-function construirOpds(data:Record<Col,Record<string,Registro>>, apps:Map<string,Registro[]>, slots:{cosa:string;opd:string;tipo:string;modo?:string;ruta:string}[], raiz:string, cosas:Record<string,Cosa>, opds:Record<string,Opd>, l:Lectura, modelo:()=>Modelo):void {
+function construirOpds(data:Record<Col,Record<string,Registro>>, apps:Map<string,Registro[]>, slots:{cosa:string;opd:string;tipo:string;modo?:unknown;ruta:string}[], raiz:string, cosas:Record<string,Cosa>, opds:Record<string,Opd>, l:Lectura, modelo:()=>Modelo):void {
   const asignados=new Map<string,typeof slots[number]>(), porCosa=new Set<string>();
   for(const s of [...slots].sort((a,b)=>natural(a.cosa,b.cosa))) {
     if(!['descomposicion','despliegue'].includes(s.tipo) || s.opd===raiz || asignados.has(s.opd) || porCosa.has(`${s.cosa}:${s.tipo}`) || !apps.get(s.opd)?.some(a=>a.entidadId===s.cosa)) { l.perder(s.ruta,s,'F-7','Ranura de refinamiento no representable'); continue; }
@@ -426,7 +426,8 @@ function construirOpds(data:Record<Col,Record<string,Registro>>, apps:Map<string
     if(id===raiz) { opds[id]={id,tipo:'raiz',apariciones}; continue; }
     if(!s) continue;
     if(s.tipo==='despliegue'||objetoDescomp) {
-      const modo=['agregacion','exhibicion','generalizacion','clasificacion'].includes(s.modo??'')?s.modo as 'agregacion':'agregacion';
+      // Un modo presente de otro tipo no es ausencia: se declara perdido con su valor, no se normaliza.
+      const modo=typeof s.modo==='string'&&['agregacion','exhibicion','generalizacion','clasificacion'].includes(s.modo)?s.modo as 'agregacion':'agregacion';
       if(objetoDescomp) {
         const partes=new Set(Object.values(data.enlaces).filter(e=>e.tipo==='agregacion'&&registro(e.origenId).id===s.cosa).map(e=>str(registro(e.destinoId).id)));
         const sinParte=Object.keys(apariciones).filter(c=>c!==s.cosa&&cosas[c]?.tipo==='objeto'&&!partes.has(c)).sort(natural);

@@ -49,6 +49,7 @@ test('T-006 campos reconocidos con tipo o lugar inesperado se declaran perdidos 
  const estados=(extra:Raw)=>documento([entidad('o-1')],[],[{id:'s-1',entidadId:'o-1',nombre:'nuevo',...extra},{id:'s-2',entidadId:'o-1',nombre:'listo'}]);
  const consumo=(extra:Raw)=>documento([entidad('o-1'),entidad('p-2','proceso')],[enlace('e-3','consumo','o-1','p-2',extra)]);
  const conModelo=(campo:string,valor:unknown)=>{const d=documento([entidad('o-1')]);d.modelo[campo]=valor;return d;};
+ const desplegado=(modo:unknown)=>{const d=documento([entidad('o-1','objeto',{refinamientos:{despliegue:{opdId:'opd-2',modo}}})]);d.modelo.opds['opd-2']={id:'opd-2',nombre:'SD1',padreId:'opd-1',ordenLocal:0,apariencias:{'a-opd-2-o-1':apariencia('o-1','opd-2')},enlaces:{}};return d;};
  const conOpd=(f:(o:Raw)=>void)=>{const d=documento([entidad('o-1')],[],[{id:'s-1',entidadId:'o-1',nombre:'nuevo'},{id:'s-2',entidadId:'o-1',nombre:'listo'}]);f(d.modelo.opds['opd-1']);return d;};
  const casos:[Raw,string,unknown][]=[
   [conModelo('descripcion',{x:1}),'descripcion',{x:1}],
@@ -73,6 +74,8 @@ test('T-006 campos reconocidos con tipo o lugar inesperado se declaran perdidos 
   [documento([entidad('o-1'),entidad('o-2')],[enlace('e-3','etiquetadoBidireccional','o-1','o-2',{etiqueta:'une',backwardTag:7})]),'enlaces.e-3.backwardTag',7],
   [conOpd(o=>{o.nombre=5;}),'opds.opd-1.nombre',5],
   [conOpd(o=>{o.apariencias['a-opd-1-o-1'].estadosSuprimidos='s-1';}),'opds.opd-1.apariencias.a-opd-1-o-1.estadosSuprimidos','s-1'],
+  // Un modo de despliegue presente con otro tipo no es ausencia: no se normaliza al default en silencio.
+  [desplegado({texto:'exhibicion'}),'entidades.o-1.refinamientos.despliegue.modo',{texto:'exhibicion'}],
  ];
  for(const [d,ruta,valor] of casos){
   const r=leer(d),e=r.informe.descartado.find(x=>x.ruta===ruta);
