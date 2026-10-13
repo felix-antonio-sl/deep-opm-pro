@@ -713,6 +713,7 @@ Nota (spec-OPL §5.3, DEBE): «`unidades-tiempo` es metavariable; la superficie 
 | RF3b | **Especialización** es un **General**. | C ★ |
 | RF4 | **Instancia** es una instancia de **Clase**. | C ★ |
 | RF4b | **Instancia1** y **Instancia2** son instancias de **Clase**. | C ★ |
+| RF5 | **Especialización** exhibe **Atributo** en `valor`. | C·S no ofrecida (B-37): `unsupported-canonical`, sin hechos ni acciones |
 | RX1 | **Especial** puede ser **General1** o **General2**. | C → X hasta resolver dirección (DR-10) |
 | RX2 | **Especial** puede ser uno de **General1**, **General2** o **General3**. | C → X (DR-10) |
 | RH1 | **Especial** es un **General1** y un **General2**. | C ★ |
@@ -722,6 +723,14 @@ Nota (spec-OPL §5.3, DEBE): «`unidades-tiempo` es metavariable; la superficie 
 | sufijo | `**Todo** consta de **Parte**. [etiqueta: componente critico]` | X |
 
 Variantes de proceso (R-OPL-RF-1): agregación, exhibición, especialización e instanciación DEBEN soportar variantes de objeto y de proceso (misma plantilla con cursivas).
+
+RF5 (canon spec-OPL §6.2, R-STRE-2) caracteriza un objeto especializado por un valor
+del atributo discriminante heredado. El parser reconoce la forma tipada completa y
+emite un aviso visible en el editor, sin degradarla a un enlace etiquetado ni crear
+entidades. En un documento mixto sólo se aplican las otras líneas soportadas. La
+etiqueta explícita `«exhibe»` sigue siendo un hecho etiquetado distinto (DEC53), y RF2
+conserva su exhibición ordinaria. La grafía histórica con valor antepuesto conserva
+`non-canonical`. Este límite no implementa RF5 en núcleo, generación, dibujo o UI.
 
 Estructurales con estado especificado (reglas §4.10, textual):
 

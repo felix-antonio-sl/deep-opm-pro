@@ -1,5 +1,5 @@
 import type { CodigoOpl } from './analizar';
-interface LimiteOpl { readonly patron: RegExp; readonly codigo: CodigoOpl; readonly regla: string; readonly registro: string; readonly enEtiqueta?: true; readonly prosaCompuesta?: true; }
+interface LimiteOpl { readonly patron: RegExp; readonly codigo: CodigoOpl; readonly regla: string; readonly registro: string; readonly mensaje?: string; readonly enEtiqueta?: true; readonly prosaCompuesta?: true; }
 /** Reconocimiento de límites: la prosa no se degrada a un grafo plausible. */
 export const NO_CANONIZADAS: readonly LimiteOpl[] = [
     { patron: /\*[^*]+\* es persistente\.|\*\*[^*]+\*\* es transitori[oa]\./u, codigo: 'non-canonical', regla: 'R-OPL-DESC-1', registro: 'B-16' },
@@ -7,10 +7,12 @@ export const NO_CANONIZADAS: readonly LimiteOpl[] = [
     { patron: /(?:exactamente uno de|al menos uno de).*\bPr=/u, codigo: 'unsupported-canonical', regla: 'R-FAN-PR-1', registro: 'B-16' },
     { patron: /\bPr=|\bFANLOCAL\b|\bfan local\b|\b(?:XOR|OR|AND)\b/u, codigo: 'non-canonical', regla: 'R-CONF-6', registro: 'B-16' },
     { patron: /\binicia .* (?:ocurre si|de lo contrario)|\bestá en .* afecta .* de lo contrario/u, codigo: 'non-canonical', regla: 'AP-28', registro: 'B-16' },
-    // Caracterización con estado especificado («**X** exhibe `valor` **Atributo**»): sin plantilla en reglas ni spec-OPL.
+    // Grafía histórica: el canon vigente escribe RF5 con el estado pospuesto al atributo.
     { patron: /\bexhiben? `s` \*\*N\*\*/u, codigo: 'non-canonical', regla: 'R-ZNC-1', registro: 'B-37' }
 ];
 export const NO_SOPORTADAS: readonly LimiteOpl[] = [
+    // RF5 (§6.2): la forma tipada completa prima sobre SSE5; «exhibe» citado sigue siendo etiqueta.
+    { patron: /^\*\*N\*\* [Ee][Xx][Hh][Ii][Bb][Ee] \*\*N\*\* en `s`\.$/u, codigo: 'unsupported-canonical', regla: 'R-STRE-2', registro: 'B-37', mensaje: 'RF5: la caracterización con estado especificado aún no está soportada (B-37). La oración no produce cambios.' },
     // Son metadatos sólo fuera del hueco de etiqueta de una lista cerrada reconocida.
     { patron: / [ye] más\.$|\bdonde\b|\bordenados por\b/u, codigo: 'unsupported-canonical', regla: 'R-OPL-SE-4', registro: 'B-54', enEtiqueta: true },
     { patron: /\bpuede ser\b/u, codigo: 'unsupported-canonical', regla: 'R-OPL-RF-5', registro: 'B-01' },
