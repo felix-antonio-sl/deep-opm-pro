@@ -10,6 +10,7 @@ import { violacionesContexto, noOfrecido, violacionesAbanico } from '../nucleo/m
 import { textoDeTokens, refsDeTokens } from './linea';
 import { generarDocumentoOpl, importarOpl } from './documento';
 import { aplicarAccion } from '../nucleo/operaciones';
+import { planificar } from './planificar';
 
 const ap = { x: 0, y: 0, ancho: 140, alto: 70 };
 const obj = (id: string, nombre: string): Objeto => ({ id, nombre, tipo: 'objeto', esencia: 'informacional', afiliacion: 'sistemica', estados: [{ id: `${id}-pend`, nombre: 'pendiente' }, { id: `${id}-pag`, nombre: 'pagado' }] });
@@ -340,6 +341,18 @@ test('T-044 T-192 un efecto sustentado en estados heredados vuelve desde vacío 
  expect(nuevo.plan.lineas.flatMap(l=>l.diagnosticos.map(d=>[l.numero,d.regla]))).toEqual([]);
  expect(Object.values(nuevo.modelo.enlaces).map(e=>e.tipo).sort()).toEqual(['efecto','generalizacion']);
  expect(generarDocumentoOpl(nuevo.modelo)).toBe(doc);
+});
+test('T-133 T-192 RF1 con dos cantidades de la misma parte vuelve desde vacío y conserva cada miembro',()=>{
+ // Como en la lista UNI (B-42), cada cantidad es un hecho admitido; P no puede tratarlos como conflicto.
+ const b=modeloCon({objetos:[['Equipo',[]],['Modulo',[]]],enlaces:[['agregacion','Equipo','Modulo'],['agregacion','Equipo','Modulo']]}),[e2,e3]=Object.keys(b.enlaces),parte=porNombre(b,'Modulo');
+ const mod=congelar({...b,cosas:{...b.cosas,[parte.id]:{...parte,nombrePlural:'Modulos'}},enlaces:{[e2!]:{...b.enlaces[e2!]!,mult:'2'},[e3!]:{...b.enlaces[e3!]!,mult:'3'}}} as Modelo);
+ expect(diagnosticar(mod).filter(d=>d.severidad==='error')).toEqual([]);
+ const doc=generarDocumentoOpl(mod),nuevo=must(importarOpl(mod.nombre,doc));
+ expect(nuevo.plan.lineas.flatMap(l=>l.diagnosticos.map(d=>d.codigo))).toEqual([]);
+ expect(Object.values(nuevo.modelo.enlaces).map(e=>e.tipo==='agregacion'?e.mult:e.tipo).sort()).toEqual(['2','3']);
+ expect(generarDocumentoOpl(nuevo.modelo)).toBe(doc);
+ // Sobre el mismo modelo, el mismo texto no cambia nada ni elige IDs por el orden de la lista.
+ expect(planificar(mod,'modelo',doc).acciones).toEqual([]);
 });
 test('T-134 T-192 subprocesos que empatan en la colación no se ordenan por IDs de cosa en el contexto',()=>{
  const variantes=Array.from({length:9},(_,n)=>n).flatMap(n=>[['Zorro','Zórro'],['Zórro','Zorro']].map(([x,y])=>{

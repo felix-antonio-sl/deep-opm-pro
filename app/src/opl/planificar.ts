@@ -111,6 +111,9 @@ function cosasEnlace(e: EnlaceTexto): NombreTipado[] {
     return [e.origen, e.destino as ExtremoTexto];
 }
 interface Trabajo { l: LineaAnalizada; hechos: readonly HechoTexto[]; etiqueta: string; }
+// Listas cuyos miembros pueden repetir el par con otra cantidad: cada miembro es su propio hecho.
+const enumeraMiembros = (t: Trabajo, e: EnlaceTexto) => e.tipo === 'etiquetado' && (t.l.plantilla === 'SE1L' || t.l.plantilla === 'SE2L')
+    || e.tipo === 'agregacion' && (t.l.plantilla === 'RF1' || t.l.plantilla === 'RF1i');
 // SD es la raíz; SD1 y SD2 son hijos; SD1.1 es nieto.
 const profundidad = (etiqueta: string): number => etiqueta === 'SD' ? 0 : etiqueta.split('.').length;
 // RF5 depende de la especialización y de la exhibición de su general (R-STRE-2), en cualquier línea u OPD.
@@ -167,9 +170,9 @@ function ensayar(m: Modelo, alcance: Id | 'modelo', texto: string, basePrivadaVa
         }
         let k = claveHecho(h); if (!k) continue;
         if (h.k === 'cota') { const ex=t.hechos.find((x):x is Extract<HechoTexto,{k:'enlace'}>=>x.k==='enlace'&&(x.enlace.tipo==='excepcionSobretiempo'||x.enlace.tipo==='excepcionSubtiempo')); if(ex)k+=`:${estable(ex.enlace)}`; }
-        // Una lista UNI cerrada puede enumerar hechos de cantidad distintos del
+        // Una lista UNI cerrada o un RF1 pueden enumerar hechos de cantidad distintos del
         // mismo par. Otra línea que ajuste ese par conserva la guarda de conflicto.
-        registrar(k, estable(h), t.l.numero, h.k === 'enlace' && h.enlace.tipo === 'etiquetado' && (t.l.plantilla === 'SE1L' || t.l.plantilla === 'SE2L'), h);
+        registrar(k, estable(h), t.l.numero, h.k === 'enlace' && enumeraMiembros(t, h.enlace), h);
     }
     const declaradas = new Map<string,string>();
     const formas = new Map<string,Map<string,Set<number>>>();
@@ -414,7 +417,7 @@ function ensayar(m: Modelo, alcance: Id | 'modelo', texto: string, basePrivadaVa
         const generaliza = (t: Trabajo) => t.hechos.length > 0 && t.hechos.every(h => h.k === 'enlace' && h.enlace.tipo === 'generalizacion');
         for (const t of [...activos].sort((a, b) => Number(generaliza(b)) - Number(generaliza(a)) || profundidad(b.etiqueta) - profundidad(a.etiqueta) || a.l.numero - b.l.numero)) intentar(t, () => {
             const candidatos = new Map<HechoTexto, EnlaceNuevo>(), correspondencias = new Map<EnlaceNuevo, Id | false>();
-            if (t.l.plantilla === 'SE1L' || t.l.plantilla === 'SE2L') {
+            if (t.hechos.some(h => h.k === 'enlace' && enumeraMiembros(t, h.enlace))) {
                 const grupos = new Map<string, EnlaceNuevo[]>();
                 for (const h of t.hechos) if (h.k === 'enlace') {
                     const c = candidato(t, h.enlace), k = identidadEnlace(c);
