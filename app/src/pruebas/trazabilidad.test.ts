@@ -66,6 +66,15 @@ test('T-003 toda regla de contexto y catálogo acredita primaria local o límite
  expect(REGLAS_CONTEXTO.find(r=>r.id==='R-ROL-1')).toMatchObject({codigo:'no-ofrecido',registro:'B-34'});
 });
 
+test('T-001 todo T-ID que encabeza el título de una prueba existe en la especificación',()=>{
+ const raiz=new URL('../../',import.meta.url).pathname,existentes=new Set([...readFileSync(`${raiz}../docs/especificacion.md`,'utf8').matchAll(/^\| (T-\d{3}) \|/gm)].map(x=>x[1]));
+ const citados=new Map<string,string>();
+ for(const dir of ['src','servidor','herramientas','e2e'])for(const f of new Bun.Glob('**/*.{test,spec}.ts').scanSync(`${raiz}${dir}`))
+  for(const t of readFileSync(`${raiz}${dir}/${f}`,'utf8').matchAll(/\btest(?:\.\w+)?\(\s*[`'"]((?:T-\d{3}[ ,]+)+)/g))
+   for(const id of t[1]!.match(/T-\d{3}/g)!)citados.set(id,`${dir}/${f}`);
+ expect(citados.size).toBeGreaterThan(200);
+ expect([...citados].filter(([id])=>!existentes.has(id))).toEqual([]);
+});
 test('T-014 perseverancia se deriva del tipo nuclear sin campo persistido ni glifo añadido',()=>{
  const m=congelar(modeloCon({objetos:[['Pedido',[]]],procesos:['Procesar']})),antes=exportarV0(m);
  sano(m);const e=escena(m,m.raiz);expect(e.nodos.map(n=>n.tipo)).toEqual(['objeto','proceso']);
