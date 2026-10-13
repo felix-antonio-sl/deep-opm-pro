@@ -125,7 +125,7 @@ test('T-074 fijarBandas acepta partición completa, realiza Y y conserva enlaces
         const mal = fijarBandas(m, { opd: 'dc', bandas }); expect(mal.ok).toBe(false); if (!mal.ok) expect(mal.rechazo.codigo).toBe('forma');
     }
 });
-for (const regla of ['AP-27', 'R-INV-2B'] as const)
+for (const regla of ['AP-27', 'R-INV-2D'] as const)
     test(`T-082 T-269 moverSubproceso permite ${regla} recuperable; fijarBandas normal rechaza`, () => {
         const externo = refinado(3, { id: 'e', tipo: 'agente', objeto: 'o', proceso: 'a', control: 'e' }), dc = externo.opds.dc! as OpdDescomposicion;
         const { o: aparicionExterna, ...aparicionesRaiz } = externo.opds.sd!.apariciones;

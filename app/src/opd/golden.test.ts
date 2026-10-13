@@ -139,7 +139,7 @@ for (const c of casos)
     test(`T-223 golden ${c.nombre}: ${c.oraculo}`, () => {
         let svg: string;
         // DEC33: R-ROL-UNIC-1 rige por proceso; sólo estas vistas conservan un error recuperable real.
-        const reglasDiagnosticas: Record<string, string> = { 'fixture-OnStar_System-profundo': 'R-INV-2B', 'fixture-SD_Async-profundo': 'R-EFE-1', 'fixture-SD_Sync-profundo': 'R-EFE-1' };
+        const reglasDiagnosticas: Record<string, string> = { 'fixture-OnStar_System-profundo': 'R-INV-2D', 'fixture-SD_Async-profundo': 'R-EFE-1', 'fixture-SD_Sync-profundo': 'R-EFE-1' };
         const regla = reglasDiagnosticas[c.nombre];
         if (regla) {
             // Modelos históricos recuperables: dibujo diagnóstico, nunca export canónico.
@@ -158,7 +158,7 @@ for (const c of casos)
             if (c.nombre === 'fixture-SD_Sync-sd') {
                 // DEC32 oculta sólo las falsas invocaciones elevadas de esta vista.
                 expect(gatesExportacion(c.m, { opd: c.opd })).toEqual([]);
-                expect(erroresContexto(c.m).some(e => e.regla === 'R-INV-2B')).toBe(true);
+                expect(erroresContexto(c.m).some(e => e.regla === 'R-INV-2D')).toBe(true);
             }
             svg = dibujoExportado(c.m, c.opd, c.nombre);
         }

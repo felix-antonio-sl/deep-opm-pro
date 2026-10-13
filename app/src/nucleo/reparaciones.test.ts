@@ -25,7 +25,7 @@ const casos: readonly [string, string, () => Modelo][] = [
     ['T-260', 'general-redundante', () => modelo([o, b, obj('t', 'Documento')], [{ id: 'e1', tipo: 'generalizacion', refinable: 'o', refinador: 't' }, { id: 'e2', tipo: 'generalizacion', refinable: 'b', refinador: 't' }, { id: 'e3', tipo: 'generalizacion', refinable: 'o', refinador: 'b' }])],
     ['T-075', 'R-DIST-1', () => refined({ id: 'e', tipo: 'consumo', objeto: 'o', proceso: 'p' })],
     ['T-074', 'AP-07', () => refined({ id: 'e', tipo: 'efecto', objeto: 'o', proceso: 'p', entrada: 'o-nuevo', salida: 'o-listo' })],
-    ['T-082', 'R-INV-2B', () => refined({ id: 'e', tipo: 'invocacion', origen: 'a', destino: 'z' })],
+    ['T-082', 'R-INV-2D', () => refined({ id: 'e', tipo: 'invocacion', origen: 'a', destino: 'z' })],
     ['T-040', 'R-EDIT-1', () => modelo([p, proc('q', 'Archivar Pedido')], [{ id: 'e-9', tipo: 'invocacion', origen: 'p', destino: 'q' }, { id: 'e-10', tipo: 'invocacion', origen: 'p', destino: 'q' }])],
     ['T-030', 'orden-vertical-contradictorio', () => { const m = refined({ id: 'e', tipo: 'agente', objeto: 'o', proceso: 'p' }), h = m.opds.dc as OpdDescomposicion; return congelar({ ...m, opds: { ...m.opds, dc: { ...h, apariciones: { ...h.apariciones, a: { ...h.apariciones.z!, x: h.apariciones.a!.x }, z: { ...h.apariciones.a!, x: h.apariciones.z!.x } } } } }); }],
 ];
@@ -74,7 +74,7 @@ test('T-040 CC-23 B-58 una copia idéntica que es rama de un abanico exige decis
     }
 });
 test('T-261 CC-23 inventario cerrado: todas las reparaciones ejecutables tienen fixture real', () => {
-    expect(REGLAS_CONTEXTO.filter(r => r.reparacion).map(r => r.id)).toEqual(['R-EDIT-1', 'R-DIST-1', 'AP-07', 'R-INV-2B']);
+    expect(REGLAS_CONTEXTO.filter(r => r.reparacion).map(r => r.id)).toEqual(['R-EDIT-1', 'R-DIST-1', 'AP-07', 'R-INV-2D']);
     const reales = new Set(casos.flatMap(([, , construir]) => diagnosticar(construir()).filter(d => d.reparacion).map(d => d.codigo)));
     expect([...reales].sort()).toEqual(['afiliacion-incoherente', 'enlace-invalido', 'estado-duplicado', 'estado-fuera-de-lexico', 'general-redundante', 'manejador-no-ambiental', 'nombre-duplicado', 'nombre-fuera-de-lexico', 'orden-vertical-contradictorio']);
     expect(CATALOGO.filter(c => reales.has(c.codigo))).toHaveLength(9);

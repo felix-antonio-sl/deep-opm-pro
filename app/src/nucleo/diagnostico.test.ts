@@ -196,7 +196,7 @@ test('T-261 reparación literal distribución y eliminación de invocación redu
     const m = refinado([c('e'), { id: 'iv', tipo: 'invocacion', origen: 'p1', destino: 'p2' }]);
     const ds = diagnosticar(m);
     expect(ds.find(d => d.regla === 'R-DIST-1')?.reparacion).toEqual({ op: 'distribuirEnlace', args: { enlace: 'e' } });
-    expect(ds.find(d => d.regla === 'R-INV-2B')?.reparacion).toEqual({ op: 'eliminarEnlaces', args: { enlaces: ['iv'] } });
+    expect(ds.find(d => d.regla === 'R-INV-2D')?.reparacion).toEqual({ op: 'eliminarEnlaces', args: { enlaces: ['iv'] } });
     expect(ds.find(d => d.regla === 'R-ROL-UNIC-1')?.reparacion).toBeUndefined();
 });
 test('T-268 EX subtiempo exige min, max y esperada no la suplen, cero sí es cota', () => {

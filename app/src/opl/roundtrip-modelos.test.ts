@@ -14,10 +14,10 @@ const dir = new URL('../../fixtures/v0/', import.meta.url);
 // Gates del Modelo importado, sin limpiar hechos ni convertir rechazo en roundtrip.
 const rechazos: Readonly<Record<string, readonly (readonly [string, string])[]>> = {
     // DEC33: R-ROL-UNIC-1 rige por proceso; los duplicados idénticos de Async se funden al importar.
-    'OnStar_System.json': [['R-INV-2B', 'e-93']],
+    'OnStar_System.json': [['R-INV-2D', 'e-93']],
     // B-47: «Main I/O Output» cumple ISO A.3.2; el apóstrofo de «I/O Object's Relevant Attribute» no.
     'SD_Async.json': [['R-EFE-1', 'e-76'], ['R-EFE-1', 'e-78'], ['R-EFE-1', 'e-80'], ['T-025, R-§18-LEX-1', 'o-53'], ['A8.2', 'e-74']],
-    'SD_Sync.json': [['R-EFE-1', 'e-88'], ['R-EFE-1', 'e-94'], ['R-EFE-1', 'e-96'], ['R-EFE-1', 'e-98'], ['R-INV-2B', 'e-102'], ['R-INV-2B', 'e-104'], ['R-INV-2B', 'e-106']],
+    'SD_Sync.json': [['R-EFE-1', 'e-88'], ['R-EFE-1', 'e-94'], ['R-EFE-1', 'e-96'], ['R-EFE-1', 'e-98'], ['R-INV-2D', 'e-102'], ['R-INV-2D', 'e-104'], ['R-INV-2D', 'e-106']],
 };
 for (const nombre of readdirSync(dir).filter(n => n.endsWith('.json')).sort()) {
     test(`T-191 T-196 WP-10 auto-reparseo de cada OPD real ${nombre}`, () => {

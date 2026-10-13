@@ -362,7 +362,7 @@ R-CONF-1 a R-CONF-5 siguen en canon reglas, «Conformidad OPM».
 > Corregida v2.0: la semántica del orden es la disposición vertical (canon R-INV-2, R-INV-2A, R-INV-2B, R-INV-2C; ISO §14.2.2.1–§14.2.2.2). El «orden declarado» es la representación de OpForja de ese orden, no otra fuente de verdad.
 
 - Fragmento retirado de R-INV-2B (canon reglas §5.4 conserva la regla ISO) [endurecimiento]: en invocación implícita NO DEBE dibujarse enlace explícito.
-- **R-INV-2D** (frontera implícito/explícito de la invocación entre subprocesos; panel deliberativo ratificado 2026-06-14): la fuente de verdad del orden de ejecución de una descomposición es el **orden declarado** de la descomposición (presentación del preorden por bandas con cardinalidad), NO los enlaces de invocación entre hermanos. Un enlace de invocación que repite un orden ya expresado como transición de banda **adyacente** es **doble vara** y viola R-INV-2B. La frontera reparte el orden en clases con realización fija:
+- **R-INV-2D** (frontera implícito/explícito de la invocación entre subprocesos; panel deliberativo ratificado 2026-06-14): la fuente de verdad del orden de ejecución de una descomposición es el **orden declarado** de la descomposición (presentación del preorden por bandas con cardinalidad), NO los enlaces de invocación entre hermanos. Un enlace de invocación que repite un orden ya expresado como transición de banda **adyacente** es **doble vara** y el producto lo bloquea por esta regla (endurecimiento: el canon R-INV-2B lo admite como el mismo hecho; brecha B-60). La frontera reparte el orden en clases con realización fija:
 
   | Caso | Clase | Realización |
   |---|---|---|

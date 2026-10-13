@@ -279,11 +279,12 @@ export const REGLAS_CONTEXTO: readonly ReglaContexto[] = Object.freeze([
     regla({ id: 'AP-07', tipos: ['efecto'], severidad: 'error', accion: 'Escinde: TS4 en el primero, TS5 en el último', reparacion: e => ({ op: 'distribuirEnlace', args: { enlace: e.id } }), viola(m, e, idx) { return e.tipo === 'efecto' && e.entrada !== undefined && e.salida !== undefined && subprocesos(m, e.proceso, idx).length >= 2 ? 'El cambio completo debe escindirse al descomponer.' : null; } }),
     regla({ id: 'AP-27', tipos: PRE, severidad: 'error', accion: 'Dirige el evento al primer subproceso o declara la omisión (c) de los previos', viola(m, e, idx) { const p = previos(m, e, idx); return p.evento && p.obligatorio ? 'El evento omite una banda anterior con transformación obligatoria.' : null; } }),
     regla({ id: 'AP-27', tipos: PRE, severidad: 'warning', accion: 'Dirige el evento al primer subproceso o declara la omisión (c) de los previos', viola(m, e, idx) { const p = previos(m, e, idx); return p.evento && !p.obligatorio ? 'El evento llega a una banda no primera; los previos son omisibles.' : null; } }),
-    regla({ id: 'R-INV-2B', tipos: ['invocacion'], severidad: 'error', accion: 'Quita el rayo: la secuencia ya invoca la banda siguiente', reparacion: e => ({ op: 'eliminarEnlaces', args: { enlaces: [e.id] } }), viola(_m, e, idx) {
+    // Endurecimiento de perfil (R-INV-2D, «doble vara»): el canon admite ese rayo como el mismo hecho (R-INV-2B).
+    regla({ id: 'R-INV-2D', tipos: ['invocacion'], severidad: 'error', accion: 'Quita el rayo: la secuencia ya invoca la banda siguiente', reparacion: e => ({ op: 'eliminarEnlaces', args: { enlaces: [e.id] } }), viola(_m, e, idx) {
             if (e.tipo !== 'invocacion')
                 return null;
             const a = idx.subprocesoDe.get(e.origen), b = idx.subprocesoDe.get(e.destino);
-            return a && b && a.opd === b.opd && b.banda === a.banda + 1 ? 'La invocación duplica la transición a la banda siguiente.' : null;
+            return a && b && a.opd === b.opd && b.banda === a.banda + 1 ? 'La invocación duplica la transición a la banda siguiente: el perfil la bloquea; el canon la admite como el mismo hecho (R-INV-2B).' : null;
         } }),
 ]);
 function contexto(m: Modelo, e: Enlace, erroresSolo: boolean): readonly Violacion[] {
