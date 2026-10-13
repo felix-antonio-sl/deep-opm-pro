@@ -372,6 +372,9 @@ todo el trabajo de las sesiones claude» (RH1/RF3, colección incompleta derivad
 B-57 había indicado además «integra la rama en main». Sus commits, no publicados y sobre `6ba88bd5`, entran
 en main en ese orden por avance rápido y cherry-pick, sin merges ni reescritura de historia publicada,
 seguidos de B-45. La integración no autoriza despliegue.
+Después pidió: «toma control también sobre la sesión "Cerrar B-58 y las invocaciones duplicadas en OPL"».
+Su trabajo, ya decidido por Félix y sin commit, se cierra como commit propio y entra en main después de
+B-45, también sin merge.
 
 **Rol repetido en un abanico (B-58) y copias idénticas.** Ante los dos defectos de roundtrip hallados al
 cerrar B-57, Félix eligió las opciones recomendadas: que el núcleo los rechace y no que el parser los
