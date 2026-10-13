@@ -4,7 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "check": "tsc --noEmit -p . && bun test src servidor herramientas",
+    "check": "tsc --noEmit -p . && bun test src servidor herramientas --path-ignore-patterns='**/rendimiento.test.ts'",
+    "check:completo": "OPFORJA_SEMILLAS=50 bun run check && bun run rendimiento",
+    "rendimiento": "bun test src/rendimiento.test.ts",
     "dev": "bun herramientas/dev.ts",
     "build": "vite build && bun build servidor/principal.ts servidor/cuenta.ts --target=bun --outdir dist-servidor --entry-naming '[name].js'",
     "e2e": "bun run build && playwright test",

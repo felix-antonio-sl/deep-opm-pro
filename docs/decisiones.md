@@ -358,6 +358,11 @@ de una evaluación completa, repetirla, publicar y desplegar. Las decisiones de 
 - El respaldo programado se instala fuera del checkout. El temporizador instalado llamaba a un script
   de PostgreSQL retirado y fallaba a diario; se reemplaza en el despliegue autorizado.
 
+**Pruebas por niveles (2026-10-13).** «sí, implementa 1 a 3 y el 4 con 10 semillas»: las mediciones de
+rendimiento salen de `check` y corren aparte con los mismos límites; las propiedades exhaustivas afirman sus
+discrepancias una vez, sin re-serializar el modelo congelado en cada candidato; `check` usa 10 semillas
+aleatorias y `check:completo`, antes de publicar, las 50 (`OPFORJA_SEMILLAS`).
+
 **Limpieza del repositorio (2026-10-13).** «limpia el repositorio para que sea solo producto y
 documentación minimamente suficiente». Félix eligió conservar el contrato vigente (canon, perfil,
 especificación, conformidad, decisiones y documentos de uso) y retirar la historia; archivar fuera del
@@ -421,7 +426,7 @@ original ISO ni sustituye las cuatro primarias locales.
 `src/rendimiento.test.ts` construye el modelo con `pruebas/azar.ts` (semilla fija, perfil
 `hodom`); cada meta usa la mediana de cinco identidades frescas tras calentar con otra, nunca una respuesta cacheada, y falla si supera **3×** su objetivo.
 
-T-192 conserva todos sus casos y aserciones de corrección; su tiempo se mide por separado en `rendimiento.test.ts` con esa metodología y el mismo límite de **3000 ms**.
+T-192 conserva todos sus casos y aserciones de corrección; su tiempo se mide por separado en `rendimiento.test.ts` con esa metodología y el mismo límite de **3000 ms**. Las mediciones no forman parte de `bun run check`: corren con `bun run rendimiento`, incluido en `bun run check:completo`, sin otras suites en paralelo.
 
 ---
 

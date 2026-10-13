@@ -26,7 +26,9 @@ No inventes reglas OPM locales. Si el canon no decide, aplica la válvula de sim
 - Prefiere el menor incremento vertical observable; no refactorices capas vecinas por conveniencia.
 
 ## Verificación
-Desde `app/`: `bun run check`. Añade solo lo que corresponda: el escenario e2e afectado para
+Desde `app/`: `bun run check` (funcional y determinista, con 10 semillas aleatorias). Antes de publicar,
+`bun run check:completo`: las 50 semillas y las mediciones de rendimiento (`bun run rendimiento`), en solitario,
+porque compiten con cualquier otra suite. Añade solo lo que corresponda: el escenario e2e afectado para
 interacción; `bun run golden` comprueba el render contra expectativas conservadas, sin reescribirlas; `bun run build`
 para empaquetado; `bun test ../deploy` al tocar `deploy/`. No declares roundtrip ni fidelidad
 visual sin observarlos. El título de cada prueba de un requisito empieza por su T-ID.

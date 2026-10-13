@@ -57,7 +57,10 @@ test('andamiaje: dependencias y check corresponden a DESIGN §§2.2 y 10.1', () 
   const paquete = JSON.parse(readFileSync(resolve(app, 'package.json'), 'utf8'));
   expect(Object.keys(paquete.dependencies).sort()).toEqual(['@fontsource/inria-serif', 'preact']);
   expect(Object.keys(paquete.devDependencies).sort()).toEqual(['@playwright/test', '@preact/preset-vite', '@types/bun', 'typescript', 'vite']);
-  expect(paquete.scripts.check).toBe('tsc --noEmit -p . && bun test src servidor herramientas');
+  // Las mediciones de rendimiento corren aparte y en solitario; check:completo agrega las 50 semillas.
+  expect(paquete.scripts.check).toBe("tsc --noEmit -p . && bun test src servidor herramientas --path-ignore-patterns='**/rendimiento.test.ts'");
+  expect(paquete.scripts.rendimiento).toBe('bun test src/rendimiento.test.ts');
+  expect(paquete.scripts['check:completo']).toBe('OPFORJA_SEMILLAS=50 bun run check && bun run rendimiento');
   const tsconfig = JSON.parse(readFileSync(resolve(app, 'tsconfig.json'), 'utf8'));
   expect(tsconfig.compilerOptions.strict).toBe(true);
   expect(tsconfig.compilerOptions.paths).toBeUndefined();

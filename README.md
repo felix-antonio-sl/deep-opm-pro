@@ -27,14 +27,19 @@ Desde `app/`:
 bun run check
 bun run golden
 bun run e2e
+bun run check:completo
 ```
 
 `check` incluye TypeScript y las pruebas de núcleo, códec, OPL, OPD, editor, servidor
-y herramientas. `golden` compara el render con las expectativas sin reescribirlas;
-`golden:update` las regenera sólo ante un cambio de render autorizado, revisando cada
-SVG cambiado. `e2e` compila y recorre los escenarios de `e2e/` contra un servidor
-propio con datos sintéticos (`OPFORJA_E2E_PUERTO`, default 8787). Chromium sale de
-`PW_CHROMIUM` o del registro instalado de Playwright; no se descarga al probar.
+y herramientas, con 10 semillas aleatorias; es la verificación de cada cambio.
+`check:completo` corre las 50 semillas y las mediciones de rendimiento: se usa antes
+de publicar y sin otras suites en paralelo, porque las mediciones compiten por la CPU.
+
+`golden` compara el render con las expectativas sin reescribirlas; `golden:update` las
+regenera sólo ante un cambio de render autorizado, revisando cada SVG cambiado. `e2e`
+compila y recorre los escenarios de `e2e/` contra un servidor propio con datos
+sintéticos (`OPFORJA_E2E_PUERTO`, default 8787). Chromium sale de `PW_CHROMIUM` o del
+registro instalado de Playwright; no se descarga al probar.
 
 ## Mapa
 

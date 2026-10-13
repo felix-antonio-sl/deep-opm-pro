@@ -1,6 +1,7 @@
 import { afterEach, expect, test } from 'bun:test';
 import { modeloCon, congelar } from '../pruebas/constructores';
 import { azar } from '../pruebas/azar';
+import { SEMILLAS } from '../pruebas/semillas';
 import { crearEnlace } from './enlaces';
 import { tiposLegales } from './matriz';
 import { validarForma } from './forma';
@@ -52,7 +53,7 @@ afterEach(() => {
 const muestras = [modeloCon({ objetos: [['Pedido', ['nuevo', 'listo']], ['Caja', []]], procesos: ['Procesar'] }), modeloCon({ objetos: [['Agua', ['fria', 'caliente']], ['Peso', ['alto']]], procesos: ['Hervir', 'Medir'], enlaces: [['consumo', 'Agua', 'Hervir']] }), modeloCon({ objetos: [['Pedido', ['creado', 'pagado']], ['Factura', ['emitida']]], procesos: ['Pagar', 'Emitir'], enlaces: [['exhibicion', 'Pedido', 'Factura'], ['instrumento', 'Factura', 'Emitir']] })];
 // Cada discrepancia se acumula y se afirma una vez: el fallo lista todos los casos, no sólo el primero.
 // El modelo está congelado, así que basta comprobar al final que no cambió.
-for (const [i, m] of [...muestras, ...Array.from({ length: 50 }, (_, i) => azar(i + 1, 'completo'))].entries())
+for (const [i, m] of [...muestras, ...Array.from({ length: SEMILLAS }, (_, i) => azar(i + 1, 'completo'))].entries())
     test(`T-040 propiedad exhaustiva ${i < 3 ? 'muestra ' + (i + 1) : 'semilla ' + (i - 2)}: todos pares, 15 tipos, ambas orientaciones`, () => {
         const snapshot = JSON.stringify(m);
         originales.push(m);
@@ -119,7 +120,7 @@ test('T-120 pendientes no tienen candidato ni IDs, completación y normalizació
 import { descomponer } from './refinamiento';
 import { erroresContexto } from './matriz';
 import { must } from '../pruebas/constructores';
-for (const [i, original] of [...muestras, ...Array.from({ length: 50 }, (_, i) => azar(i + 1, 'completo'))].entries()) {
+for (const [i, original] of [...muestras, ...Array.from({ length: SEMILLAS }, (_, i) => azar(i + 1, 'completo'))].entries()) {
     const cantidades = i < 3 ? [0, 1, 3] : [i % 3];
     for (const n of cantidades) test(`T-040 T-075 B-28 propiedad refinada muestra${i} subprocesos${n}, ambas orientaciones`, () => {
         const padre = Object.values(original.cosas).find(c => c.tipo === 'proceso')!.id;
