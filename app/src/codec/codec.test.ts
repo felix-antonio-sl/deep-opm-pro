@@ -150,6 +150,16 @@ test('T-050 etapa 7: bidireccional igual→recíproco; etiqueta vacía divide; a
   d.modelo.enlaces.e.backwardTag = ''; expect(Object.values(ok(d).modelo.enlaces).map(e => e.tipo)).toEqual(['etiquetado', 'etiquetado']);
   d.modelo.estados.s = estado('s'); d.modelo.enlaces.e = enlace('e', 'etiquetadoBidireccional', 's', 'o-2', { origenId: extremo('s', 'estado') }); const r = ok(d); expect(r.modelo.enlaces.e).toEqual({ id: 'e', tipo: 'reciproco', origen: 'o-1', destino: 'o-2' }); expect(r.informe.descartado.some(e => e.ruta === 'enlaces.e.estados' && e.regla === 'reglas §4.10')).toBe(true);
 });
+test('T-287 API total: bidireccional con etiqueta sólo de espacios rechaza con ruta, sin lanzar ni recortar', () => {
+  const casos: [string, string, string[]][] = [[' ', 'distinta', ['enlaces.e-3.etiqueta']], ['une', '  ', ['enlaces.e-3.backwardTag']], [' ', '\t', ['enlaces.e-3.etiqueta', 'enlaces.e-3.backwardTag']]];
+  for (const [etiqueta, backwardTag, rutas] of casos) {
+    const d = documento([entidad('o-1'), entidad('o-2')], [enlace('e-3', 'etiquetadoBidireccional', 'o-1', 'o-2', { etiqueta, backwardTag })]);
+    let r: ReturnType<typeof importarV0> | undefined;
+    expect(() => { r = leer(d); }).not.toThrow();
+    expect(r?.ok).toBe(false); expect(r?.informe.rechazos.map(e => e.ruta)).toEqual(rutas);
+    expect(r?.informe.rechazos.every(e => !e.mensaje.includes('Error interno'))).toBe(true);
+  }
+});
 test('T-050 R-STRE-1 legado se informa y solo documento canónico exacto evita repetición', () => {
   const d=documento([entidad('o-1'),entidad('o-2')],[enlace('e','etiquetadoBidireccional','o-1','o-2',{etiqueta:'une',backwardTag:'une'})]);
   const r=ok(d);expect(r.informe.normalizado.some(e=>e.regla==='R-STRE-1')).toBe(true);

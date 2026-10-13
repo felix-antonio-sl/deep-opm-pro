@@ -359,9 +359,12 @@ function construirDocumento(texto:string,l:Lectura,fusionar:FusionarPares|undefi
   l.desconocidos(raw,'',['id','nombre','descripcion','unidadTiempo','opdRaizId','nextSeq',...cols,'ontologia','satisfaccionesRequisito','declaracionesNoNucleares','familiasEfectosPreestado','anclasNormativas','notasMesa','mesaExploracion','estereotipos','procedencia','fichaTrabajo','lentesConocimiento','submodelos','pieceLineage','referenciaPadreSubmodelo','archivado','archivadoEn','versiones','crearVersionAlGuardar']);
   if(l.rechazos.length) return fallo();
   const residual=validarForma(result);
+  // §3.4.1: importarV0 es total en todo entorno. Una violación residual es un error del importador
+  // que se rechaza con la ruta de su primera referencia; nunca se lanza ni se guarda un modelo sin forma.
   if(residual.length) {
-    if(!(import.meta as ImportMeta & {env?:{PROD?:boolean}}).env?.PROD) throw Error(`Error interno del importador: ${JSON.stringify(residual)}`);
-    for(const v of residual) l.rechazar('$',`Error interno del importador: ${v.mensaje}`); return fallo();
+    const colecciones={cosa:'entidades',estado:'estados',enlace:'enlaces',abanico:'abanicos',opd:'opds'} as const;
+    for(const v of residual) { const x=v.refs[0]; l.rechazar(x?`${colecciones[x.tipo]}.${x.id}`:'$',`Error interno del importador (${v.regla}): ${v.mensaje}`); }
+    return fallo();
   }
   diffVisibilidad(result,linksOpd,data,remap,l);
   // §3.4.4: excepción del DOCUMENTO directo canónico propio, sin limpiar pérdidas/diff.
@@ -578,6 +581,10 @@ function construirEnlaces(data:Record<Col,Record<string,Registro>>, cosas:Record
         const secondId=Object.hasOwn(data.enlaces,`${id}~inv`)?nuevo('e'):`${id}~inv`;
         segundo={id:secondId,tipo:'etiquetado',origen:b.cosa,destino:a.cosa,...(back?{etiqueta:back}:{}),...(b.estado?{estadoOrigen:b.estado}:{}),...(a.estado?{estadoDestino:a.estado}:{}),...(md?{multOrigen:md}:{}),...(mo?{multDestino:mo}:{})};
         l.norm(r,`Etiqueta vacía → dos enlaces opuestos (${secondId}).`,'DS-13');
+      } else if(!tag.trim()||!back.trim()) {
+        // F-11: etiquetas distintas formadas sólo por espacios no se recortan ni se inventan; el documento se rechaza.
+        for(const [k,v] of [['etiqueta',tag],['backwardTag',back]] as const) if(!v.trim()) l.rechazar(`${r}.${k}`,`Etiqueta formada sólo por espacios: el bidireccional exige etiquetas distintas y no vacías (F-11): ${JSON.stringify(v)}.`);
+        continue;
       } else out={...out,etiqueta:tag,inversa:back,...(a.estado?{estadoOrigen:a.estado}:{}),...(b.estado?{estadoDestino:b.estado}:{})};
     }
     const internalTipo=out.tipo as Enlace['tipo'];

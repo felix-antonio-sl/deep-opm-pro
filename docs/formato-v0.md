@@ -228,6 +228,8 @@ vacío; un campo opcional irrepresentable va a `descartado` con su ruta y su val
      - con `backwardTag === etiqueta` (ambas vacías incluidas) pasa a `reciproco` (`normalizado`,
        R-STRE-1);
      - con exactamente una vacía, da dos `etiquetado` opuestos (`normalizado`, DS-13);
+     - con etiquetas distintas y alguna formada sólo por espacios, es rechazo con la ruta de esa
+       etiqueta (F-11): no se recorta ni se inventa una etiqueta;
      - un estado solo en el destino, o un estado de destino en un bidireccional con etiquetas
        distintas, va a `descartado` como anclaje (V-30, AP-11).
    - **`modificador`** `condicion|evento` pasa a `c|e`. Si falta y `subtipoModificador` es `C|E`,
@@ -310,8 +312,9 @@ vacío; un campo opcional irrepresentable va a `descartado` con su ruta y su val
     - Toda clave desconocida va a `descartado` como «campo desconocido» (patrón
       `collectUnrepresented`).
 11. **Cierre.** `validarForma(modelo)` debe ser vacía. Una violación residual es un error del
-    importador: en pruebas y en desarrollo lanza; en producción da rechazo «error interno del
-    importador», con las violaciones. Nunca se guarda un modelo sin forma.
+    importador: en todo entorno da rechazo «error interno del importador», con la regla y la ruta
+    de la primera referencia de cada violación; `importarV0` nunca lanza (§3.4.1). Nunca se guarda
+    un modelo sin forma.
 12. **Diff de visibilidad** (SYNTHESIS §3.9-14 y §8-21). Definición exacta (CC-12), para cada OPD
     `o`, con `V = proyectar(modelo, o)`:
     - `v0(o)` = los ids de `opds[o].enlaces[*].enlaceId`, tras mapear reasignaciones (etapa 2),
