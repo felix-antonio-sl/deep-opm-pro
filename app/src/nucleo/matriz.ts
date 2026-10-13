@@ -1,6 +1,6 @@
 import { validarForma } from './forma';
 import { planificarDistribucion } from './refinamiento';
-import { esProcedimental, extremos, reciprocoConEstados } from './tipos';
+import { esProcedimental, extremos, reciprocoConEstados, comoHecho } from './tipos';
 import { indice } from './indice';
 import { generales } from './herencia';
 import { validarEtiqueta } from './lexico';
@@ -548,7 +548,7 @@ function mismoHecho(a: Enlace | EnlaceNuevo, b: Enlace | EnlaceNuevo): boolean {
     if ('objeto' in a && 'objeto' in b && (a.objeto !== b.objeto || a.proceso !== b.proceso)) return false;
     if ('refinable' in a && 'refinable' in b && (a.refinable !== b.refinable || a.refinador !== b.refinador)) return false;
     if ('origen' in a && 'origen' in b && (a.origen !== b.origen || a.destino !== b.destino)) return false;
-    return serializarHecho(a, true) === serializarHecho(b, true);
+    return serializarHecho(comoHecho(a), true) === serializarHecho(comoHecho(b), true);
 }
 // R-ROL-UNIC-1 (canon: «un objeto o un estado … un solo enlace procedimental»): las ramas de un abanico
 // difieren en extremo o estado (DR-6); la cantidad, la ruta y la contraparte escindida no hacen otro

@@ -1,5 +1,5 @@
 import type { Cosa, Enlace, Modelo, Multiplicidad, Operador, Ref, UnidadTiempo } from '../nucleo/tipos';
-import { esProcedimental, refinadorPorModo } from '../nucleo/tipos';
+import { esProcedimental, refinadorPorModo, ETIQUETA_POR_DEFECTO } from '../nucleo/tipos';
 import { esParametroMultiplicidad } from '../nucleo/matriz';
 import { analizarMultiplicidad, multiplicidadDesdeOpl, requierePlural } from '../nucleo/multiplicidad';
 import { indice } from '../nucleo/indice';
@@ -44,8 +44,7 @@ const cuantificadores = { XOR: 'exactamente uno de', OR: 'al menos uno de' } as 
 const multiplicidades = { '?': ['un ', 'una '], '*': ['', ''], '+': ['al menos un ', 'al menos una '], '2..*': ['al menos dos ', 'al menos dos '], '1': ['un ', 'una '], muchos: ['muchos ', 'muchas '] } as const;
 // DEC35: entero exacto en cifras; DEC56 decide la forma de objeto explícita sin inflector.
 const fraseMultiplicidad = (m: Multiplicidad, f: boolean): string => Object.hasOwn(multiplicidades, m) ? multiplicidades[m as keyof typeof multiplicidades][f ? 1 : 0] : `${m} `;
-/** Etiqueta reservada de SE2 (T-119): la emite un etiquetado sin etiqueta y la lee el parser como ausencia de etiqueta. */
-export const ETIQUETA_POR_DEFECTO = 'se relaciona con';
+export { ETIQUETA_POR_DEFECTO };
 const esDefaultUni = (etiqueta: string | undefined) => etiqueta === undefined || etiqueta === ETIQUETA_POR_DEFECTO;
 const colacionNombre = new Intl.Collator('es', { sensitivity: 'base' });
 /** Colación base y, si empata, escritura exacta: nombres distintos (Zorro/Zórro, frío/frio) no se ordenan por id (B-57). */

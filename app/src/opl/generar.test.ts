@@ -327,6 +327,12 @@ test('T-133 T-192 dos invocaciones idénticas no quedan admitidas sin punto fijo
  expect(diagnosticar(mod).filter(d=>d.severidad==='error').map(d=>[d.regla,d.refs])).toEqual([['R-EDIT-1',[{tipo:'enlace',id:'e-5'}]]]);
  expect(admitidoConPuntoFijo(mod)).toBe(true);
 });
+test('T-133 T-192 B-38 un etiquetado sin etiqueta y su copia con la etiqueta reservada no quedan admitidos sin punto fijo',()=>{
+ const base=modeloCon({objetos:[['Alfa',[]],['Beta',[]]]}),[a,b]=Object.keys(base.cosas);
+ const mod=congelar({...base,enlaces:{'e-9':{id:'e-9',tipo:'etiquetado',origen:a!,destino:b!},'e-10':{id:'e-10',tipo:'etiquetado',origen:a!,destino:b!,etiqueta:'se relaciona con'}},secuencia:100}) as Modelo;
+ expect(diagnosticar(mod).filter(d=>d.severidad==='error').map(d=>[d.regla,d.refs])).toEqual([['R-EDIT-1',[{tipo:'enlace',id:'e-10'}]]]);
+ expect(admitidoConPuntoFijo(mod)).toBe(true);
+});
 test('T-134 T-192 subprocesos que empatan en la colación no se ordenan por IDs de cosa en el contexto',()=>{
  const variantes=Array.from({length:9},(_,n)=>n).flatMap(n=>[['Zorro','Zórro'],['Zórro','Zorro']].map(([x,y])=>{
   const previos=previosB57(n).map(([c])=>`**${c}** es físico.\n`).join('');

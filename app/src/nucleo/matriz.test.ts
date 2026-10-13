@@ -299,6 +299,16 @@ test('T-040 un enlace idéntico a otro es error R-EDIT-1 en la copia posterior p
     const r = aplicarAccion(sano(poner(m, { ...et, estadoOrigen: s(m) } as Enlace, { ...et, id: 'e-102' })), { op: 'eliminarEstado', args: { estado: s(m) } });
     expect(r.ok ? null : r.rechazo.regla).toBe('R-EDIT-1');
 });
+test('T-040 B-38 la copia que sólo cambia la etiqueta UNI reservada por su ausencia es R-EDIT-1 reparable', () => {
+    const m = base(), [a, b] = ids(m), uni = (id: string, x: object = {}) => ({ id, tipo: 'etiquetado', origen: a!, destino: b!, ...x } as Enlace);
+    for (const [x, y] of [[{}, { etiqueta: 'se relaciona con' }], [{ etiqueta: 'se relaciona con' }, {}]] as const) {
+        const vs = erroresContexto(poner(m, uni('e-9', x), uni('e-10', y))).filter(v => v.regla === 'R-EDIT-1');
+        expect(vs.map(v => v.refs)).toEqual([[{ tipo: 'enlace', id: 'e-10' }]]);
+    }
+    // Etiqueta, estado y cantidad distintos siguen siendo hechos distintos.
+    for (const y of [{ etiqueta: 'conoce' }, { estadoOrigen: s(m) }, { multDestino: '2' }])
+        expect(erroresContexto(poner(m, uni('e-9'), uni('e-10', y))).filter(v => v.regla === 'R-EDIT-1')).toEqual([]);
+});
 test('T-041 import con campos de estado ajenos a la fila se rechaza', () => {
     const m = base();
     for (const e of [{ ...enlace(m, 'agregacion'), estado: s(m) }, { ...enlace(m, 'invocacion'), estadoOrigen: s(m) }, { ...enlace(m, 'etiquetadoBidireccional'), estados: { origen: s(m) } }])

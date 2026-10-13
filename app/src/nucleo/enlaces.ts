@@ -1,5 +1,5 @@
 import type { Id, Modelo, Enlace, EnlaceNuevo, Operador, TipoEnlace, Control, Multiplicidad, Ref, Objeto } from './tipos';
-import { extremos, esProcedimental, reciprocoConEstados } from './tipos';
+import { extremos, esProcedimental, reciprocoConEstados, comoHecho } from './tipos';
 import type { Operacion, Tx, CodigoRechazo } from './resultado';
 import { transaccion } from './resultado';
 import type { EstadosEnlace, ExtremoRef } from './operaciones';
@@ -60,7 +60,7 @@ function comprobar(tx: Tx, e: Enlace) {
 }
 function datos(e: Enlace | EnlaceNuevo): string {
     const ordenar = (x: unknown): unknown => Array.isArray(x) ? x.map(ordenar) : x !== null && typeof x === 'object' ? Object.fromEntries(Object.entries(x).filter(([k, v]) => k !== 'id' && v !== undefined).sort(([a], [b]) => a.localeCompare(b)).map(([k, v]) => [k, ordenar(v)])) : x;
-    return JSON.stringify(ordenar(e));
+    return JSON.stringify(ordenar(comoHecho(e)));
 }
 function duplicado(tx: Tx, e: Enlace) {
     let firma: string | undefined;

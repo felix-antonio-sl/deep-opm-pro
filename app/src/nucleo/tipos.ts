@@ -129,6 +129,12 @@ export interface Etiquetado extends EtiquetadoBase {
     readonly estadoOrigen?: Id;
     readonly estadoDestino?: Id;
 }
+/** Etiqueta reservada de SE2 (T-119): la emite un etiquetado sin etiqueta y la lee el parser como ausencia de etiqueta. */
+export const ETIQUETA_POR_DEFECTO = 'se relaciona con';
+/** B-38: ausencia y literal reservado de UNI son el mismo hecho; sólo para comparar, nunca para guardar. */
+export function comoHecho<E extends Enlace | EnlaceNuevo>(e: E): E {
+    return e.tipo === 'etiquetado' && e.etiqueta === ETIQUETA_POR_DEFECTO ? { ...e, etiqueta: undefined } : e;
+}
 export interface Bidireccional extends EtiquetadoBase {
     readonly tipo: 'etiquetadoBidireccional';
     readonly etiqueta: string;

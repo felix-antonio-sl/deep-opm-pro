@@ -63,6 +63,14 @@ test('T-040 creación rechaza firma y duplicado semántico con claves anidadas p
     const e: Enlace = { id: 'e-20', tipo: 'generalizacion', refinable: 'o-2', refinador: 'o-5', estados: { general: 's-3', especializacion: 's-6' } };
     mal(op.crearEnlace(con(m, e), { opd: m.raiz, candidato: { tipo: 'generalizacion', refinable: 'o-2', refinador: 'o-5', estados: { especializacion: 's-6', general: 's-3' } } }), 'ya-existe');
 });
+test('T-040 B-38 la etiqueta UNI reservada explícita y su ausencia son el mismo enlace al crear', () => {
+    const m = base(), uni: Enlace = { id: 'e-20', tipo: 'etiquetado', origen: 'o-2', destino: 'o-5' };
+    mal(op.crearEnlace(con(m, uni), { opd: m.raiz, candidato: { tipo: 'etiquetado', origen: 'o-2', destino: 'o-5', etiqueta: 'se relaciona con' } }), 'ya-existe', 'R-EDIT-1');
+    mal(op.crearEnlace(con(m, { ...uni, etiqueta: 'se relaciona con' }), { opd: m.raiz, candidato: { tipo: 'etiquetado', origen: 'o-2', destino: 'o-5' } }), 'ya-existe', 'R-EDIT-1');
+    // Otra etiqueta sigue siendo otro hecho; el campo guardado no se normaliza.
+    const n = bien(op.crearEnlace(con(m, { ...uni, etiqueta: 'se relaciona con' }), { opd: m.raiz, candidato: { tipo: 'etiquetado', origen: 'o-2', destino: 'o-5', etiqueta: 'conoce' } }));
+    expect(n.enlaces['e-20']).toEqual({ ...uni, etiqueta: 'se relaciona con' });
+});
 test('T-066 aparición activa y alcance del interno se validan antes de reservar ids', () => {
     const m = base(), apariciones = { ...m.opds[m.raiz]!.apariciones };
     delete apariciones['o-5'];
