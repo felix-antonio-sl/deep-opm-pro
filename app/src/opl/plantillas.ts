@@ -364,7 +364,7 @@ export function datosEnlace(m: Modelo, e: Enlace, inverso = false): HechoGenerab
         if (n === undefined)
             id += 'r';
         else {
-            h.n = hueco(String(n));
+            h.n = hueco(decimalSinExponente(n));
             h.u = hueco(unidad(dur?.unidad ?? m.unidadTiempo, n));
             h.unidad = hueco(dur?.unidad ?? m.unidadTiempo);
         }
@@ -553,6 +553,15 @@ export const LITERALES_EXPANDIDOS: readonly string[] = Object.freeze([
     'objeto', 'proceso'
 ]);
 export function unidad(u: UnidadTiempo, n: number): string { return unidades[u][n === 1 ? 0 : 1]; }
+/** Cota de EX1/EX2 como decimal sin exponente, la única forma numérica que P lee (`\d+(.\d+)?`).
+ *  String(n) ya da los dígitos más cortos que reconstruyen n; sólo se despliega su exponente. */
+export function decimalSinExponente(n: number): string {
+    const s = String(n), m = /^(\d+)(?:\.(\d+))?e([+-]\d+)$/.exec(s);
+    if (!m) return s;
+    const digitos = m[1]! + (m[2] ?? ''), punto = m[1]!.length + Number(m[3]);
+    if (punto <= 0) return '0.' + '0'.repeat(-punto) + digitos;
+    return punto >= digitos.length ? digitos + '0'.repeat(punto - digitos.length) : digitos.slice(0, punto) + '.' + digitos.slice(punto);
+}
 function reconocer(id: string, h: Huecos): readonly HechoTexto[] {
     const x = (k: string) => uno(h, k), nombre = (k: string): NombreTipado => ({ nombre: x(k).texto, tipo: x(k).marca === 'proceso' ? 'proceso' : 'objeto', ...(x(k).genero ? { genero: x(k).genero } : {}) });
     const extremo = (v: Hueco): ExtremoTexto => ({ nombre: v.texto, tipo: v.marca === 'proceso' ? 'proceso' : 'objeto', ...(v.nombrePlural ? { nombrePlural: v.nombrePlural } : {}), ...(v.genero ? { genero: v.genero } : {}), ...(v.mult ? { mult: v.mult } : {}), ...(v.estado ? { estado: v.estado.texto } : {}) });

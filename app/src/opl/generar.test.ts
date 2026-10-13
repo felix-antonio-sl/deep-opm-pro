@@ -146,6 +146,21 @@ test('T-115 excepciones transportan cotas propias y unidad en singular/plural si
  expect(generarBloque(mod,'sd').filter(l=>l.hechos.length).map(l=>l.texto)).toEqual(['*Archivar* ocurre si duración de *Procesar* excede 1 hora.','*Archivar* ocurre si duración de *Procesar* es menor que 0.5 horas.']);
  expect(lineaDeEnlace(base,'sd',{tipo:'excepcionSobretiempo',origen:'p',destino:'q'})!.texto).toBe('*Archivar* ocurre si duración de *Procesar* excede su duración máxima.');
 });
+test('T-115 T-192 cotas extremas se escriben como decimal sin exponente y la excepción se reconstruye con punto fijo',()=>{
+ const conCota=(n:number)=>{const base=m();return m([{id:'e1',tipo:'excepcionSobretiempo',origen:'p',destino:'q'},{id:'e2',tipo:'excepcionSubtiempo',origen:'p',destino:'q'}],{cosas:{...base.cosas,p:{...pro('p','Procesar'),tipo:'proceso',duracion:{min:n,max:n,unidad:'sec'}}}});};
+ const casos:readonly (readonly [number,string])[]=[[0.0000001,'0.0000001'],[1.5e-10,'0.00000000015'],[1e21,'1000000000000000000000'],[1.2345e25,'12345000000000000000000000'],[0.1+0.2,'0.30000000000000004'],[123456789.125,'123456789.125']];
+ for(const [n,texto] of casos){
+  const mod=conCota(n);expect(validarForma(mod)).toEqual([]);expect(diagnosticar(mod).filter(d=>d.severidad==='error')).toEqual([]);
+  expect(generarBloque(mod,'sd').filter(l=>l.hechos.length).map(l=>l.texto)).toEqual([`*Archivar* ocurre si duración de *Procesar* excede ${texto} segundos.`,`*Archivar* ocurre si duración de *Procesar* es menor que ${texto} segundos.`]);
+  expect(admitidoConPuntoFijo(mod)).toBe(true);
+ }
+ // Los extremos del doble también se escriben sin exponente y P recupera exactamente la misma cota.
+ for(const n of [Number.MIN_VALUE,Number.MAX_VALUE]){
+  const mod=conCota(n),doc=generarDocumentoOpl(mod);expect(doc).not.toMatch(/\de[+-]?\d/);
+  const nuevo=must(importarOpl(mod.nombre,doc));const p=Object.values(nuevo.modelo.cosas).find(c=>c.nombre==='Procesar');
+  expect(p?.tipo==='proceso'?p.duracion:undefined).toEqual({min:n,max:n,unidad:'sec'});expect(admitidoConPuntoFijo(mod)).toBe(true);
+ }
+});
 test('T-128 multiplicidad usa género de objeto cuantificado y no glifos',()=>{
  const base=m();const mod=m([],{cosas:{...base.cosas,o:{...base.cosas.o!,genero:'f'}}});
  expect(lineaDeEnlace(mod,'sd',{tipo:'consumo',objeto:'o',proceso:'p',mult:'?'})!.texto).toBe('*Procesar* consume una **Pedido** opcional.');

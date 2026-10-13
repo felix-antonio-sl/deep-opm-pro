@@ -47,6 +47,13 @@ test('T-129 la ruta pertenece a la plantilla y su inversa conserva el campo orig
 test('T-106 D4 reconoce los dos géneros y conserva afiliación sistémica sin emisión',()=>{
  const p=tabla.PLANTILLAS.find(p=>p.id==='D4')!;expect(p.estado).toBe('P');expect(p.desde).toBeUndefined();for(const genero of [undefined,'f'] as const)expect(p.hacia({C:{texto:'Cuenta',marca:'objeto',...(genero?{genero}:{})}})).toEqual([{k:'afiliacion',cosa:{nombre:'Cuenta',tipo:'objeto',...(genero?{genero}:{})},valor:'sistemica'}]);expect(p.patron).toContain('sistémico|sistémica');
 });
+test('T-115 la cota se escribe como decimal sin exponente que P lee y que reconstruye el mismo número',()=>{
+ const p=tabla.PLANTILLAS.find(p=>p.id==='EX1')!,base={P1:{texto:'Archivar',marca:'proceso' as const},P2:{texto:'Procesar',marca:'proceso' as const},u:{texto:'segundos'}};
+ const valores=[1,0.5,5,1e-7,1.5e-10,9.999999999999999e-7,1e-6,1e21,1.2345e25,1e20,0.1+0.2,Number.MIN_VALUE,Number.MAX_VALUE,Number.EPSILON];
+ for(let e=-30;e<=30;e++)valores.push(1.2345678901234567*10**e,3*10**e);
+ for(const n of valores){const t=tabla.decimalSinExponente(n);expect(t).toMatch(/^\d+(?:\.\d+)?$/);expect(Number(t)).toBe(n);expect(p.restricciones!({...base,n:{texto:t}})).toBe(true);}
+ expect(tabla.decimalSinExponente(1e-7)).toBe('0.0000001');expect(tabla.decimalSinExponente(1e21)).toBe('1000000000000000000000');expect(tabla.decimalSinExponente(0.5)).toBe('0.5');
+});
 test('T-115 restricciones de cota rechazan unidad ajena y número no decimal',()=>{
  const p=tabla.PLANTILLAS.find(p=>p.id==='EX1')!,base={P1:{texto:'Archivar',marca:'proceso' as const},P2:{texto:'Procesar',marca:'proceso' as const}};expect(p.restricciones!({...base,n:{texto:'1'},u:{texto:'años'}})).toBe(true);expect(p.restricciones!({...base,n:{texto:'NaN'},u:{texto:'años'}})).toBe(false);expect(p.restricciones!({...base,n:{texto:'1'},u:{texto:'centurias'}})).toBe(false);
 });
