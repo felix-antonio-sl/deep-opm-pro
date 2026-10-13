@@ -1,8 +1,12 @@
+# Instalación (usuario, desde una versión publicada; no desde el checkout de desarrollo):
+#   install -Dm700 deploy/respaldo.sh ~/.local/lib/opforja/respaldo.sh
+#   install -Dm644 -t ~/.config/systemd/user deploy/systemd/opforja-respaldo.service deploy/systemd/opforja-respaldo.timer
+#   systemctl --user daemon-reload && systemctl --user enable --now opforja-respaldo.timer
 [Unit]
 Description=Respaldo privado de los archivos de OpForja
 
 [Service]
 Type=oneshot
-Environment=OPFORJA_REPO=/home/felix/projects/deep-opm-pro
+Environment=OPFORJA_RESPALDOS=%h/.local/state/opforja/respaldos
 UMask=0077
-ExecStart=/bin/bash -c 'exec "$OPFORJA_REPO/deploy/respaldo.sh"'
+ExecStart=%h/.local/lib/opforja/respaldo.sh
