@@ -183,14 +183,16 @@ function ensayar(m: Modelo, alcance: Id | 'modelo', texto: string, basePrivadaVa
     }
     for (const grupo of formas.values()) if (grupo.size > 1) for (const numeros of grupo.values()) for (const numero of numeros)
         diagnosticar(numero, { codigo:'patch-conflict',severidad:'error',linea:numero,mensaje:'Declaraciones o referencias de forma plural incompatibles.',regla:'DEC56/DR-12' });
-    // Dos oraciones dirigidas opuestas del mismo bloque son UN hecho bidireccional.
+    // Dos oraciones dirigidas opuestas del mismo bloque son UN hecho bidireccional, si sus estados y
+    // cantidades se invierten; si no, un bidireccional perdería las de una dirección y quedan dos dirigidos.
     for (let i = 0; i < trabajos.length; i++) {
         const a = trabajos[i]!, ea = a.hechos.length === 1 && a.hechos[0]?.k === 'enlace' ? a.hechos[0].enlace : null;
         if (!ea || ea.tipo !== 'etiquetado' || typeof ea.origen === 'string') continue;
         for (let j = i + 1; j < trabajos.length; j++) {
             const b = trabajos[j]!, eb = b.hechos.length === 1 && b.hechos[0]?.k === 'enlace' ? b.hechos[0].enlace : null;
             if (b.etiqueta !== a.etiqueta || !eb || eb.tipo !== 'etiquetado' || typeof eb.origen === 'string') continue;
-            if (claveNombre(ea.origen.nombre) === claveNombre(eb.destino.nombre) && claveNombre(ea.destino.nombre) === claveNombre(eb.origen.nombre) && ea.origen.estado === eb.destino.estado && ea.destino.estado === eb.origen.estado) {
+            if (claveNombre(ea.origen.nombre) === claveNombre(eb.destino.nombre) && claveNombre(ea.destino.nombre) === claveNombre(eb.origen.nombre) && ea.origen.estado === eb.destino.estado && ea.destino.estado === eb.origen.estado
+                && ea.origen.mult === eb.destino.mult && ea.destino.mult === eb.origen.mult) {
                 // Una mitad leída como SE2 no trae etiqueta: en el par vale la reservada que la emitió.
                 const distintas = ea.etiqueta !== eb.etiqueta;
                 a.hechos = [{ k: 'enlace', enlace: { ...ea, tipo: distintas ? 'etiquetadoBidireccional' : 'reciproco', ...(distintas ? { etiqueta: ea.etiqueta ?? ETIQUETA_POR_DEFECTO, inversa: eb.etiqueta ?? ETIQUETA_POR_DEFECTO } : {}) } }];

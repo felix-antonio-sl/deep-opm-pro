@@ -262,6 +262,6 @@ JSON conserva los datos. WP-9 reproduce las diez primeras parciales y lente la 1
 | 6 | Descripción/género si no hay un/una | parcial | lente: descripción/género sin hueco explícito siguen JSON; no inferencia de nombre. |
 | 7 | Refinamiento sin hijos | parcial | lente: el placeholder vacío no tiene CX y no se reconstruye; con un hijo emite CX y se reconstruye (DEC50). |
 | 8 | Operador de fan con ruta DS-10 | parcial | lente/roundtrip-matriz: ruta por rama permanece; XOR/OR no viaja en DS10. |
-| 9 | Etiquetados opuestos de etiquetas distintas | parcial | lente: dos dirigidos opuestos se recomponen bidireccionales, conserva etiquetas distintas. |
+| 9 | Etiquetados opuestos de etiquetas distintas | parcial | lente: dos dirigidos opuestos se recomponen bidireccionales, conserva etiquetas distintas. Sólo si sus estados y cantidades se invierten; si no, siguen siendo dos dirigidos con su texto. |
 | 10 | Cosas sin aparición / enlaces sin vista | parcial | lente: cosa sin aparición/enlace sin vista no aparece en texto; JSON y original íntegros. |
 | 11 | Colección incompleta declarada que ninguna oración distingue: cada vista con oración de la relación ya es parcial, o no queda refinador de esa relación | parcial | lente: auto-no-op conserva la declaración; desde vacío no se declara y el texto coincide. roundtrip-proyeccion: la parcial derivada de la vista no se declara. |
