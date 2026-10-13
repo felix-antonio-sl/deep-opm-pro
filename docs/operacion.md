@@ -184,10 +184,17 @@ inyectable en pruebas con filas falsas.
 docker run --rm -v opforja-datos:/datos:ro -v "$DESTINO":/respaldo alpine tar czf /respaldo/opforja-$(date +%F).tgz -C /datos .
 ```
 
-La retención es de 14 días. El temporizador systemd corre a diario a las 03:30
-(`deploy/systemd/opforja-respaldo.timer`, con `Environment=OPFORJA_REPO=`). Restaurar es detener,
-hacer `tar xzf` en el volumen y arrancar. Los archivos son JSON legibles, así que un modelo también
-se recupera a mano.
+La retención es de 14 días. El temporizador systemd de usuario corre a diario a las 03:30
+(`deploy/systemd/opforja-respaldo.timer`). El servicio ejecuta una copia instalada del script,
+`~/.local/lib/opforja/respaldo.sh`, y escribe en `OPFORJA_RESPALDOS=~/.local/state/opforja/respaldos`,
+ambos fuera del checkout; la cabecera de `opforja-respaldo.service` da los comandos de instalación, que
+se hacen desde una versión publicada. Restaurar es detener, hacer `tar xzf` en el volumen y arrancar.
+Los archivos son JSON legibles, así que un modelo también se recupera a mano.
+
+`deploy.sh` no revierte solo si la verificación posterior falla. Antes de desplegar, conserve la
+imagen en servicio con `docker tag opforja:latest opforja:previo`; para volver a ella,
+`docker tag opforja:previo opforja:latest` y `docker compose up -d --no-build`. `/salud` informará
+entonces la versión anterior.
 
 ---
 
