@@ -6,9 +6,8 @@ import type { EnlaceVisto } from '../nucleo/proyeccion';
 import { noOfrecido, violacionesForma, violacionesAbanico, normalizarEtiquetas } from '../nucleo/matriz';
 import type { OpcionesOpl, LineaOpl, TokenOpl } from './linea';
 import { textoDeTokens, refsDeTokens } from './linea';
-import { cosa, estadoHueco, hueco, datosEnlace, datosRamasCuantificadas, tokensPlantilla, datosContexto, PLANTILLAS, claveAnd, datosAnd, datosFanEstados, claveInstrumentoAnd, datosInstrumentoAnd, claveAgenteAnd, datosAgenteAnd, claveEtiquetadosLista, datosEtiquetadosLista } from './plantillas';
+import { cosa, estadoHueco, hueco, datosEnlace, datosRamasCuantificadas, tokensPlantilla, datosContexto, PLANTILLAS, claveAnd, datosAnd, datosFanEstados, claveInstrumentoAnd, datosInstrumentoAnd, claveAgenteAnd, datosAgenteAnd, claveEtiquetadosLista, datosEtiquetadosLista, compararNombre, ETIQUETA_POR_DEFECTO } from './plantillas';
 import type { Huecos, HechoGenerable } from './plantillas';
-const colacionNombre = new Intl.Collator('es',{sensitivity:'base'});
 // Ramas hacia estados del mismo objeto: orden del modelo, no del id (T-101), para que OPL→modelo→OPL sea idéntico.
 const posicionEstado = (m: Modelo, e: Enlace): number => {
     if (!esProcedimental(e)) return -1;
@@ -17,8 +16,38 @@ const posicionEstado = (m: Modelo, e: Enlace): number => {
 };
 // La colación base empata nombres distintos (Zorro, Zórro); los decide su escritura exacta. El id sólo
 // separa nombres exactos repetidos, que claveNombre ya declara duplicados.
-const nominal = (a: Cosa, b: Cosa) => colacionNombre.compare(a.nombre, b.nombre) || (a.nombre < b.nombre ? -1 : a.nombre > b.nombre ? 1 : 0);
+const nominal = (a: Cosa, b: Cosa) => compararNombre(a.nombre, b.nombre);
 const cmp = (a: Cosa, b: Cosa) => nominal(a, b) || a.id.localeCompare(b.id);
+// B-57: hechos distintos con los mismos extremos se ordenan por su contenido, nunca por id de enlace o de
+// estado: estados por orden persistido, nombres y etiquetas por compararNombre, cantidades normalizadas por
+// escritura exacta. El id sólo separa hechos idénticos.
+const exacta = (a = '', b = '') => a < b ? -1 : a > b ? 1 : 0;
+const enOrden = (m: Modelo, s?: Id) => s === undefined ? -1 : indice(m).estadoDe.get(s)?.posicion ?? -1;
+const normal = (e: Enlace): EnlaceNuevo => { const r = normalizarEtiquetas(e); return r.ok ? r.valor : e; };
+const cantidad = (e: EnlaceNuevo) => 'mult' in e ? e.mult : undefined;
+// Grupos estructurales (clave: relación, vértice y estado) cuyo primer enlace comparte refinador: vértice, RF1→RF4,
+// estado de la clave; dentro de un RFE, el estado de la especialización.
+const RELACIONES = ['agregacion', 'exhibicion', 'generalizacion', 'clasificacion'];
+const estadoDeGrupo = (e: Enlace) => e.tipo === 'generalizacion' ? e.estados?.general : e.tipo === 'exhibicion' ? e.estado : undefined;
+const especializacion = (e: Enlace) => e.tipo === 'generalizacion' ? e.estados?.especializacion : undefined;
+const porGrupo = (m: Modelo, e: Enlace, f: Enlace) => 'refinable' in e && 'refinable' in f
+    ? cmp(m.cosas[e.refinable]!, m.cosas[f.refinable]!) || RELACIONES.indexOf(e.tipo) - RELACIONES.indexOf(f.tipo) || enOrden(m, estadoDeGrupo(e)) - enOrden(m, estadoDeGrupo(f))
+        || enOrden(m, especializacion(e)) - enOrden(m, especializacion(f)) : 0;
+// Miembros de abanico con el mismo extremo y la misma entrada: salida y cantidad.
+const porRama = (m: Modelo, e: Enlace, f: Enlace) => (e.tipo === 'efecto' ? enOrden(m, e.salida) : -1) - (f.tipo === 'efecto' ? enOrden(m, f.salida) : -1)
+    || exacta(cantidad(normal(e)), cantidad(normal(f)));
+// Etiquetados con el mismo origen y destino: tipo, estados, etiqueta efectiva (B-38), inversa y cantidades.
+const ETIQUETADOS = ['etiquetado', 'etiquetadoBidireccional', 'reciproco'];
+const estadosEtiquetado = (e: EnlaceNuevo) => e.tipo === 'reciproco' ? [e.estados?.origen, e.estados?.destino] : e.tipo === 'etiquetado' || e.tipo === 'etiquetadoBidireccional' ? [e.estadoOrigen, e.estadoDestino] : [];
+const etiquetaEfectiva = (e: EnlaceNuevo) => e.tipo === 'etiquetado' ? e.etiqueta ?? ETIQUETA_POR_DEFECTO : e.tipo === 'reciproco' || e.tipo === 'etiquetadoBidireccional' ? e.etiqueta ?? '' : '';
+const multEtiquetado = (e: EnlaceNuevo, lado: 'multOrigen' | 'multDestino') => lado in e ? (e as Extract<EnlaceNuevo, { tipo: 'etiquetado' }>)[lado] : undefined;
+function porEtiquetado(m: Modelo, a: Enlace, b: Enlace): number {
+    const x = normal(a), y = normal(b), [xo, xd] = estadosEtiquetado(x), [yo, yd] = estadosEtiquetado(y);
+    return ETIQUETADOS.indexOf(x.tipo) - ETIQUETADOS.indexOf(y.tipo) || enOrden(m, xo) - enOrden(m, yo) || enOrden(m, xd) - enOrden(m, yd)
+        || compararNombre(etiquetaEfectiva(x), etiquetaEfectiva(y))
+        || compararNombre(x.tipo === 'etiquetadoBidireccional' ? x.inversa : '', y.tipo === 'etiquetadoBidireccional' ? y.inversa : '')
+        || exacta(multEtiquetado(x, 'multOrigen'), multEtiquetado(y, 'multOrigen')) || exacta(multEtiquetado(x, 'multDestino'), multEtiquetado(y, 'multDestino'));
+}
 function profundidad(m: Modelo, opd: Id): number { let n = 0, o = m.opds[opd]; while (o && o.tipo !== 'raiz') {
     n++;
     o = m.opds[o.padre];
@@ -111,7 +140,7 @@ function construirBloque(m: Modelo, opd: Id, o?: OpcionesOpl): readonly LineaOpl
     const ordenProceso = new Map(orden.map((c, i) => [c.id, i]));
     const porProceso = (e: Enlace) => esProcedimental(e) ? e.proceso : 'origen' in e ? e.origen : '';
     const otro = (e: Enlace) => esProcedimental(e) ? e.objeto : extremos(e).destino;
-    const sorted = [...vista.enlaces].sort((a, b) => { const e = a.enlace, f = b.enlace; return (ordenProceso.get(porProceso(e)) ?? Infinity) - (ordenProceso.get(porProceso(f)) ?? Infinity) || fuerza.indexOf(e.tipo) - fuerza.indexOf(f.tipo) || cmp(m.cosas[otro(e)]!, m.cosas[otro(f)]!) || e.id.localeCompare(f.id); });
+    const sorted = [...vista.enlaces].sort((a, b) => { const e = a.enlace, f = b.enlace; return (ordenProceso.get(porProceso(e)) ?? Infinity) - (ordenProceso.get(porProceso(f)) ?? Infinity) || fuerza.indexOf(e.tipo) - fuerza.indexOf(f.tipo) || cmp(m.cosas[otro(e)]!, m.cosas[otro(f)]!) || porGrupo(m, e, f) || e.id.localeCompare(f.id); });
     const invalidos = new Set<string>(), agrupados = new Set<string>();
     const porHecho = new Map(vista.enlaces.flatMap(v => v.hechos.map(id => [id, v] as const)));
     const fanPorHecho = new Map<string, string>();
@@ -132,7 +161,7 @@ function construirBloque(m: Modelo, opd: Id, o?: OpcionesOpl): readonly LineaOpl
             continue;
         const porP = esProcedimental(first) && ls.every(v => esProcedimental(v.enlace) && v.enlace.proceso === first.proceso);
         const invComunDestino = first.tipo === 'invocacion' && ls.every(v => v.enlace.tipo === 'invocacion' && v.enlace.destino === first.destino);
-        const items = [...ls].sort((a, b) => { const endpoint = (e: Enlace) => esProcedimental(e) ? (porP ? e.objeto : e.proceso) : invComunDestino ? extremos(e).origen : extremos(e).destino; return cmp(m.cosas[endpoint(a.enlace)]!, m.cosas[endpoint(b.enlace)]!) || posicionEstado(m, a.enlace) - posicionEstado(m, b.enlace) || a.enlace.id.localeCompare(b.enlace.id); });
+        const items = [...ls].sort((a, b) => { const endpoint = (e: Enlace) => esProcedimental(e) ? (porP ? e.objeto : e.proceso) : invComunDestino ? extremos(e).origen : extremos(e).destino; return cmp(m.cosas[endpoint(a.enlace)]!, m.cosas[endpoint(b.enlace)]!) || posicionEstado(m, a.enlace) - posicionEstado(m, b.enlace) || porRama(m, a.enlace, b.enlace) || a.enlace.id.localeCompare(b.enlace.id); });
         const completo = esProcedimental(first) && !porP && items.some(v => 'mult' in v.enlace && v.enlace.mult !== undefined)
             && (first.tipo === 'agente' || first.tipo === 'efecto' || items.some(v => !('mult' in v.enlace) || v.enlace.mult !== first.mult));
         if (completo) {
@@ -180,7 +209,7 @@ function construirBloque(m: Modelo, opd: Id, o?: OpcionesOpl): readonly LineaOpl
                         invalidos.add(id);
                     continue;
                 } // Sin literal completo: falla cerrado; el import preserva los enlaces sueltos.
-                (h.s as import('./plantillas').Hueco[]).sort((a, b) => a.texto.localeCompare(b.texto, 'es', { sensitivity: 'base' }) || (a.ref!.id.localeCompare(b.ref!.id)));
+                (h.s as import('./plantillas').Hueco[]).sort((a, b) => compararNombre(a.texto, b.texto) || a.ref!.id.localeCompare(b.ref!.id));
                 const cuantificado = datosFanEstados(m, ef, pid, h);
                 pid = cuantificado.plantilla; Object.assign(h, cuantificado.huecos);
             }
@@ -211,7 +240,7 @@ function construirBloque(m: Modelo, opd: Id, o?: OpcionesOpl): readonly LineaOpl
         for (const id of fan.enlaces)
             fanPorHecho.set(id, fan.id);
     }
-    const estructurales = sorted.filter(v => 'refinable' in v.enlace), etiquetados = sorted.filter(v => ['etiquetado', 'etiquetadoBidireccional', 'reciproco'].includes(v.enlace.tipo));
+    const estructurales = sorted.filter(v => 'refinable' in v.enlace), etiquetados = sorted.filter(v => ETIQUETADOS.includes(v.enlace.tipo));
     const gruposAnd = new Map<string, EnlaceVisto[]>(), lineasAnd = new Map<EnlaceVisto, LineaOpl>(), emitidosAnd = new Set<LineaOpl>();
     for (const v of sorted) {
         const clave = claveAnd(v.enlace);
@@ -351,7 +380,7 @@ function construirBloque(m: Modelo, opd: Id, o?: OpcionesOpl): readonly LineaOpl
             return nominal(m.cosas[x.refinable]!, m.cosas[y.refinable]!) || nominal(m.cosas[x.refinador]!, m.cosas[y.refinador]!) || valor(x) - valor(y); });
         for (const v of caracterizaciones) enlaces.push(...emitirEnlace(m, opd, v));
     }
-    etiquetados.sort((a, b) => cmp(m.cosas[extremos(a.enlace).origen]!, m.cosas[extremos(b.enlace).origen]!) || cmp(m.cosas[extremos(a.enlace).destino]!, m.cosas[extremos(b.enlace).destino]!) || a.enlace.id.localeCompare(b.enlace.id));
+    etiquetados.sort((a, b) => cmp(m.cosas[extremos(a.enlace).origen]!, m.cosas[extremos(b.enlace).origen]!) || cmp(m.cosas[extremos(a.enlace).destino]!, m.cosas[extremos(b.enlace).destino]!) || porEtiquetado(m, a.enlace, b.enlace) || a.enlace.id.localeCompare(b.enlace.id));
     const gruposEtiquetados = new Map<string, EnlaceVisto[]>(), listasEtiquetadas = new Map<EnlaceVisto, LineaOpl>();
     for (const v of etiquetados) {
         const clave = claveEtiquetadosLista(v.enlace);

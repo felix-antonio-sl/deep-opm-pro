@@ -131,7 +131,7 @@ test('T-191 token externo congelado conserva ref externa mutable sin contaminar 
  const circular:tabla.Huecos={};(circular as Record<string,unknown>).extra=circular;expect(()=>tabla.tokensPlantilla('NO-EXISTE',circular)).toThrow('Plantilla desconocida: NO-EXISTE');
 });
 
-test('T-127 colación de contexto conserva Unicode, equivalencias y desempate por ID anterior', () => {
+test('T-127 colación de contexto conserva Unicode, equivalencias y desempata por escritura exacta antes que por ID', () => {
     const nombres = ['Árbol', 'Arbol', 'A\u0301rbol', 'Índice', 'indice', 'I\u0301ndice', 'Ñandú', 'Nandu', 'Órbita', 'Operar 2', 'Operar 10', '', ' '] as const;
     for (const a of nombres) for (const b of nombres) {
         const m: import('../nucleo/tipos').Modelo = { id: 'm-orden', nombre: 'Orden', raiz: 'sd', unidadTiempo: 'min', secuencia: 10,
@@ -140,8 +140,8 @@ test('T-127 colación de contexto conserva Unicode, equivalencias y desempate po
                 'p-10': {id:'p-10', tipo:'proceso', nombre:b, esencia:'informacional', afiliacion:'sistemica'} }, enlaces:{}, abanicos:{},
             opds:{sd:{id:'sd', tipo:'raiz', apariciones:{}}, h:{id:'h', tipo:'descomposicion', padre:'sd', cosa:'p', orden:0, bandas:[['p-2','p-10']], objetosInternos:[], apariciones:{}}} };
         const antes = JSON.stringify(m), h = tabla.datosContexto(m, 'h')!;
-        // Expresión previa independiente: el nuevo comparador debe ser extensionalmente idéntico.
-        const esperado = ['p-2','p-10'].sort((x,y) => m.cosas[x]!.nombre.localeCompare(m.cosas[y]!.nombre, 'es', {sensitivity:'base'}) || x.localeCompare(y));
+        // Expresión independiente: colación base, escritura exacta y, sólo con la misma escritura, ID (B-57).
+        const esperado = ['p-2','p-10'].sort((x,y) => { const a = m.cosas[x]!.nombre, b = m.cosas[y]!.nombre; return a.localeCompare(b, 'es', {sensitivity:'base'}) || (a < b ? -1 : a > b ? 1 : 0) || x.localeCompare(y); });
         expect(h.plantilla).toBe('CX2'); expect((h.huecos.Plista as tabla.Hueco[]).map(x=>x.ref!.id)).toEqual(esperado);
         expect(JSON.stringify(m)).toBe(antes);
     }

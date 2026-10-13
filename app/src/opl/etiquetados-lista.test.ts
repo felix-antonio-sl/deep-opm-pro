@@ -415,7 +415,7 @@ test('T-121 T-194 B-41 destinos repetidos con estados propios conservan todas su
     const r = must(crearEnlace(m, { opd: m.raiz, candidato: { tipo: 'etiquetado', origen: porNombre(m, 'Origen').id, destino: alfa.id, estadoDestino: alfa.estados[0]!.id, etiqueta: 'conoce' } })); m = r.modelo;
     const ls = hechos(m); expect(ls).toHaveLength(1); expect(ls[0]!.hechos).toHaveLength(3);
     expect(new Set(ls[0]!.hechos)).toEqual(new Set([...ids, r.creados[0]!]));
-    expect(ls[0]!.texto).toBe('**Origen** «conoce» **Alfa** en `activo`, **Alfa** en `pendiente` y **Beta** en `pendiente`.');
+    expect(ls[0]!.texto).toBe('**Origen** «conoce» **Alfa** en `pendiente`, **Alfa** en `activo` y **Beta** en `pendiente`.'); // B-57: orden persistido del estado, no creación
     const doc = generarDocumentoOpl(m), imp = must(importarOpl(m.nombre, doc)); expect(generarDocumentoOpl(imp.modelo)).toBe(doc); expect(Object.keys(imp.modelo.enlaces)).toHaveLength(3);
     expect(planificar(m, 'modelo', doc).acciones).toEqual([]);
 });

@@ -1,8 +1,9 @@
 import {proyectar} from '../nucleo/proyeccion';
 import { expect, test } from 'bun:test';
 import { generarBloque, generarModelo, lineaDeEnlace, textoCanonico } from './generar';
-import { congelar, must } from '../pruebas/constructores';
-import type { Modelo, Cosa, Objeto, Enlace, EnlaceNuevo, Opd, Abanico } from '../nucleo/tipos';
+import { congelar, must, porNombre } from '../pruebas/constructores';
+import type { DatosModelo } from '../pruebas/constructores';
+import type { Modelo, Cosa, Objeto, Enlace, EnlaceNuevo, Opd, Abanico, TipoEnlace } from '../nucleo/tipos';
 import { validarForma } from '../nucleo/forma';
 import { diagnosticar } from '../nucleo/diagnostico';
 import { violacionesContexto, noOfrecido, violacionesAbanico } from '../nucleo/matriz';
@@ -238,7 +239,70 @@ test('T-134 T-192 nombres que empatan en la colación se ordenan por su escritur
   expect(generarDocumentoOpl(nuevo.modelo)).toBe(doc);
  }
 });
-test('T-136descripción y geometría son meta y no emiten oraciones',()=>{
+// B-57: los mismos hechos, creados en otro orden o con IDs que cruzan 9→10 (o-9/o-10, s-9/s-10,
+// e-9/e-10), emiten las mismas líneas y alcanzan punto fijo al importarse desde vacío.
+const previosB57=(n:number)=>Array.from({length:n},(_,i)=>[`A${i}`,[]] as const);
+type EnlaceB57=readonly [TipoEnlace,string,string,(b:Modelo)=>object];
+function variantesB57(objetos:DatosModelo['objetos'],enlaces:readonly EnlaceB57[],abanico=false):Modelo[]{
+ return Array.from({length:9},(_,n)=>n).flatMap(n=>[enlaces,[...enlaces].reverse()].map(es=>{
+  const b=modeloCon({objetos:[...previosB57(n),...objetos!],procesos:['P'],enlaces:es.map(([t,o,d])=>[t,o,d] as const)}),ids=Object.keys(b.enlaces);
+  return congelar({...b,enlaces:Object.fromEntries(ids.map((id,i)=>[id,{...b.enlaces[id]!,...es[i]![3](b)} as Enlace])),abanicos:abanico?{f:{id:'f',operador:'XOR' as const,enlaces:ids}}:{}});
+ }));
+}
+const estadoB57=(b:Modelo,objeto:string,nombre:string)=>(porNombre(b,objeto) as Objeto).estados.find(s=>s.nombre===nombre)!.id;
+function sinIdsB57(variantes:readonly Modelo[],elegir:(l:string)=>boolean):string[]{
+ const lineas=variantes.map(mod=>{
+  const doc=generarDocumentoOpl(mod),nuevo=must(importarOpl(mod.nombre,doc));
+  expect(nuevo.plan.lineas.flatMap(l=>l.diagnosticos)).toEqual([]);
+  expect(generarDocumentoOpl(nuevo.modelo)).toBe(doc);
+  return doc.split('\n').filter(elegir);
+ });
+ for(const l of lineas)expect(l).toEqual(lineas[0]!);
+ return lineas[0]!;
+}
+test('T-134 T-192 etiquetados con los mismos extremos no se ordenan por IDs de enlace',()=>{
+ // Tipo, estados por orden persistido (tibio antes que frío) y etiqueta por colación y escritura exacta.
+ const objetos=[['A',['tibio','frío']],['B',[]]] as const,entre=(l:string)=>l.startsWith('**A**')&&l.includes('**B**');
+ expect(sinIdsB57(variantesB57(objetos,[['etiquetado','A','B',()=>({etiqueta:'alfa'})],['etiquetado','A','B',()=>({etiqueta:'beta'})]]),entre)).toEqual(['**A** «alfa» **B**.','**A** «beta» **B**.']);
+ expect(sinIdsB57(variantesB57(objetos,[['etiquetado','A','B',b=>({etiqueta:'alfa',estadoOrigen:estadoB57(b,'A','frío')})],['etiquetado','A','B',b=>({etiqueta:'alfa',estadoOrigen:estadoB57(b,'A','tibio')})]]),entre)).toEqual(['**A** en `tibio` «alfa» **B**.','**A** en `frío` «alfa» **B**.']);
+ expect(sinIdsB57(variantesB57(objetos,[['reciproco','A','B',()=>({etiqueta:'socio'})],['etiquetado','A','B',()=>({etiqueta:'zeta'})]]),entre)).toEqual(['**A** «zeta» **B**.','**A** y **B** son «socio».']);
+});
+test('T-134 T-192 relaciones estructurales con el mismo refinador no se ordenan por IDs de enlace',()=>{
+ // Tras el refinador común: vértice por nombre y relación en orden RF1→RF4.
+ const objetos=[['A',[]],['B',[]],['X',[]]] as const,conX=(l:string)=>l.includes('**X**')&&l!=='**X** es físico.';
+ expect(sinIdsB57(variantesB57(objetos,[['agregacion','A','X',()=>({})],['agregacion','B','X',()=>({})]]),conX)).toEqual(['**A** consta de **X**.','**B** consta de **X**.']);
+ expect(sinIdsB57(variantesB57(objetos,[['agregacion','B','X',()=>({})],['generalizacion','A','X',()=>({})]]),conX)).toEqual(['**X** es un **A**.','**B** consta de **X**.']);
+ expect(sinIdsB57(variantesB57(objetos,[['agregacion','A','X',()=>({})],['exhibicion','A','X',()=>({})]]),conX)).toEqual(['**A** consta de **X**.','**A** exhibe **X**.']);
+ // En un RFE, dos especializaciones del mismo refinador siguen el orden persistido de sus estados (t2 antes que t1).
+ const rfe=(b:Modelo,t:string)=>({estados:{general:estadoB57(b,'A','s1'),especializacion:estadoB57(b,'X',t)}});
+ expect(sinIdsB57(variantesB57([['A',['s1']],['X',['t2','t1']]],[['generalizacion','A','X',b=>rfe(b,'t1')],['generalizacion','A','X',b=>rfe(b,'t2')]]),l=>l.includes(' son **A**'))).toEqual(['**X** en `t2` y **X** en `t1` son **A** en `s1`.']);
+});
+test('T-134 T-192 estados de abanico que empatan en la colación no se ordenan por IDs de estado ni de enlace',()=>{
+ // frío y frio son estados distintos (claveNombre conserva la tilde) que la colación base empata: decide
+ // su escritura exacta (frio antes que frío), no el orden persistido ni el id del estado o del enlace.
+ const objetos=[['O',['tibio','frío','frio']]] as const,deP=(l:string)=>l.startsWith('*P*'),s=(b:Modelo,n:string)=>estadoB57(b,'O',n);
+ expect(sinIdsB57(variantesB57(objetos,[['efecto','O','P',b=>({salida:s(b,'frío')})],['efecto','O','P',b=>({salida:s(b,'frio')})]],true),deP)).toEqual(['*P* cambia **O** a exactamente uno de `frio` o `frío`.']);
+ expect(sinIdsB57(variantesB57(objetos,[['efecto','O','P',b=>({entrada:s(b,'tibio'),salida:s(b,'frío')})],['efecto','O','P',b=>({entrada:s(b,'tibio'),salida:s(b,'frio')})]],true),deP)).toEqual(['*P* cambia **O** de `tibio` a exactamente uno de `frio` o `frío`.']);
+ expect(sinIdsB57(variantesB57(objetos,[['efecto','O','P',b=>({entrada:s(b,'tibio'),salida:s(b,'frío'),mult:'2'})],['efecto','O','P',b=>({entrada:s(b,'tibio'),salida:s(b,'frio')})]],true),deP)).toEqual(['*P* cambia exactamente uno de **O** de `tibio` a `frio` u 2 **O** de `tibio` a `frío`.']);
+});
+test('T-134 ramas de abanico con el mismo extremo y estado se ordenan por cantidad y no por IDs de enlace',()=>{
+ // El parser aún no reconstruye ramas que sólo difieren en cantidad (B-58): se contrasta el generador, sin punto fijo.
+ const ramas=variantesB57([['O',['frío','tibio']]],[['consumo','O','P',b=>({estado:estadoB57(b,'O','frío'),mult:'3'})],['consumo','O','P',b=>({estado:estadoB57(b,'O','frío'),mult:'2'})]],true);
+ for(const mod of ramas){
+  expect(validarForma(mod)).toEqual([]);expect(diagnosticar(mod).filter(d=>d.severidad==='error')).toEqual([]);
+  expect(generarDocumentoOpl(mod).split('\n').filter(l=>l.startsWith('*P*'))).toEqual(['*P* consume exactamente uno de 2 **O** en `frío` o 3 **O** en `frío`.']);
+ }
+});
+test('T-134 T-192 subprocesos que empatan en la colación no se ordenan por IDs de cosa en el contexto',()=>{
+ const variantes=Array.from({length:9},(_,n)=>n).flatMap(n=>[['Zorro','Zórro'],['Zórro','Zorro']].map(([x,y])=>{
+  const previos=previosB57(n).map(([c])=>`**${c}** es físico.\n`).join('');
+  const r=must(importarOpl('Prueba',`# Prueba\n\n## SD\n${previos}*P* consume **O**.\n## SD1 · descomposición de *P* · en SD\n*P* se descompone en paralelo *${x}* y *${y}*.\n*Zorro* consume **O**.`));
+  expect(r.plan.lineas.flatMap(l=>l.diagnosticos)).toEqual([]);
+  return r.modelo;
+ }));
+ expect(sinIdsB57(variantes,l=>l.includes(' se descompone '))).toEqual(['*P* se descompone en paralelo *Zorro* y *Zórro*.']);
+});
+test('T-136 descripción y geometría son meta y no emiten oraciones',()=>{
  const base=m(),mod=m([],{descripcion:'No emitir esta descripción',cosas:{...base.cosas,p:{...base.cosas.p!,descripcion:'Tampoco esta nota'}},opds:{sd:{id:'sd',tipo:'raiz',apariciones:Object.fromEntries(Object.keys(base.cosas).map(id=>[id,{...ap,x:777,y:333}]))}}});expect(textoCanonico(generarModelo(mod))).toBe(textoCanonico(generarModelo(base)));
 });
 test('T-137 ninguna aparición sin clasificación fabrica instanciación',()=>{

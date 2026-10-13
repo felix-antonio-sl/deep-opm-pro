@@ -47,6 +47,9 @@ const fraseMultiplicidad = (m: Multiplicidad, f: boolean): string => Object.hasO
 /** Etiqueta reservada de SE2 (T-119): la emite un etiquetado sin etiqueta y la lee el parser como ausencia de etiqueta. */
 export const ETIQUETA_POR_DEFECTO = 'se relaciona con';
 const esDefaultUni = (etiqueta: string | undefined) => etiqueta === undefined || etiqueta === ETIQUETA_POR_DEFECTO;
+const colacionNombre = new Intl.Collator('es', { sensitivity: 'base' });
+/** Colación base y, si empata, escritura exacta: nombres distintos (Zorro/Zórro, frío/frio) no se ordenan por id (B-57). */
+export const compararNombre = (a: string, b: string): number => colacionNombre.compare(a, b) || (a < b ? -1 : a > b ? 1 : 0);
 const filas: readonly [
     string,
     string,
@@ -492,8 +495,8 @@ export function datosFanEstados(m: Modelo, es: readonly Extract<Enlace, { tipo: 
     plantilla: string, h: Huecos): HechoGenerable {
     const primero = es[0]!, q = primero.mult ? analizarMultiplicidad(primero.mult) : null;
     if (!es.every(e => e.mult === primero.mult)) {
-        const ordenados = [...es].sort((a, b) => estadoHueco(m, a.salida ?? a.entrada!).texto.localeCompare(
-            estadoHueco(m, b.salida ?? b.entrada!).texto, 'es', { sensitivity: 'base' }));
+        const ordenados = [...es].sort((a, b) => compararNombre(estadoHueco(m, a.salida ?? a.entrada!).texto,
+            estadoHueco(m, b.salida ?? b.entrada!).texto));
         const and = datosAnd(m, ordenados)!;
         return { plantilla: plantilla + '-cantidades', huecos: { ...h, ...and.huecos } };
     }
@@ -710,13 +713,12 @@ export function datosRamasCuantificadas(m: Modelo, es: readonly Enlace[], operad
     });
     return { plantilla: `FAN-ramas-${es[0]!.tipo}-${operador}`, huecos: { operador: hueco(operador), ramas } };
 }
-const colacionContexto = new Intl.Collator('es', { sensitivity: 'base' });
 /** La secuencia conserva cada banda; solo los miembros de una banda se ordenan por nombre. */
 export function datosContexto(m: Modelo, opd: string): HechoGenerable | null {
     const d = m.opds[opd]!;
     if (d.tipo === 'raiz')
         return null;
-    const cmp = (a: string, b: string) => colacionContexto.compare(m.cosas[a]!.nombre, m.cosas[b]!.nombre) || a.localeCompare(b);
+    const cmp = (a: string, b: string) => compararNombre(m.cosas[a]!.nombre, m.cosas[b]!.nombre) || a.localeCompare(b);
     const idx = indice(m);
     if (d.tipo === 'descomposicion') {
         if (d.bandas.flat().length < 1)

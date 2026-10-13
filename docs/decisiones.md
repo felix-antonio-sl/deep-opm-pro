@@ -351,6 +351,18 @@ el texto no distingue es la bisimetría parcial 11 de §5.9. Después indicó «
 la rama en main y haz push»: el commit se rebasa sobre main y se publica por avance rápido, sin
 reescribir historia publicada. No autoriza despliegue.
 
+**Desempate por contenido del generador (B-57).** Para los desempates por id de enlace o de estado,
+Félix eligió las opciones recomendadas: los etiquetados con los mismos extremos se ordenan por los
+campos del hecho (tipo; estados de origen y destino por orden persistido; etiqueta efectiva e inversa por
+colación y escritura exacta; cantidades por escritura exacta); los grupos estructurales con el mismo
+refinador, por vértice, relación RF1→RF4 y estado por orden persistido; los estados de FAN5 que empatan en
+la colación, por escritura exacta, y las ramas con el mismo extremo y entrada, por salida y cantidad.
+Incluyó el contexto CX con el desempate nominal vigente, pidió declarar el abanico de ramas que sólo
+difieren en cantidad (B-58) y tareas aparte para esa brecha y para las invocaciones duplicadas, y autorizó
+un commit local sin push. La implementación aplica el mismo orden persistido al estado de la especialización
+dentro de un RFE, el único empate de la familia estructural que la clave del grupo no separa
+(especificación §4.5).
+
 ### 1.6 Decisiones de esta síntesis (DS-n)
 
 Estas son las resoluciones que CANON.md no fija, o que ajustan una DR por una exigencia más fuerte
