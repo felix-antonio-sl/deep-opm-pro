@@ -1,6 +1,8 @@
 import { expect, test } from 'bun:test';
 import { modeloCon, must, porNombre } from '../pruebas/constructores';
 import { crearEnlace, fijarMultiplicidad } from '../nucleo/enlaces';
+import { fijarNombrePlural } from '../nucleo/cosas';
+import { aplicarAccion } from '../nucleo/operaciones';
 import { desplegar } from '../nucleo/refinamiento';
 import { gatesExportacion } from '../nucleo/diagnostico';
 import { noOfrecido } from '../nucleo/matriz';
@@ -31,6 +33,236 @@ function lista(tipo: 'objeto' | 'proceso', n: number, etiqueta?: string, anclaje
     return { m, ids };
 }
 const hechos = (m: Modelo, opd = m.raiz) => generarBloque(m, opd).filter(l => l.hechos.length);
+for (const cantidad of ['"a o b"; "a o b">=1', '"a y b"; "a y b">=1', 'n; n=1,3',
+    'n; n en {2,4}', 'n; n en {2,4}; n>=1', 'n; n>=(a+y)/2', 'n; n>=((a+o)/2+y)'] as const)
+    for (const multOrigen of ['1', '2'] as const) for (const etiqueta of [undefined, 'conoce', 'se relaciona con', 'se relacionan con'])
+        for (const estados of [false, true]) for (const editar of [0, 1])
+            test(`T-119 T-128 T-182 T-194 B-42 lista UNI edita miembro=${editar} con restricción=${cantidad}/origen=${multOrigen}/etiqueta=${etiqueta ?? 'default'}/estados=${estados}`, () => {
+                let m = modeloCon({ objetos: [['Dato', ['listo']], ['Análisis', ['vigente']], ['Ítem', ['activo']]] });
+                for (const [nombre, plural] of [['Dato', 'Datos'], ['Análisis', 'Análisis'], ['Ítem', 'Ítems de entrada']] as const)
+                    m = must(fijarNombrePlural(m, { cosa: porNombre(m, nombre).id, nombre: plural })).modelo;
+                const origen = porNombre(m, 'Dato'), ids: string[] = [];
+                if (origen.tipo !== 'objeto') throw Error('Objeto de origen');
+                for (const nombre of ['Análisis', 'Ítem']) {
+                    const destino = porNombre(m, nombre); if (destino.tipo !== 'objeto') throw Error('Objeto de destino');
+                    const r = must(crearEnlace(m, { opd: m.raiz, candidato: { tipo: 'etiquetado', origen: origen.id, destino: destino.id,
+                        multOrigen, multDestino: cantidad, ...(etiqueta ? { etiqueta } : {}),
+                        ...(estados ? { estadoOrigen: origen.estados[0]!.id, estadoDestino: destino.estados[0]!.id } : {}) } }));
+                    m = r.modelo; ids.push(r.creados[0]!);
+                }
+                const antes = exportarV0(m), id = ids[editar]!, target = must(fijarMultiplicidad(m, { enlace: id, extremo: 'destino', valor: '4' })).modelo;
+                const doc = generarDocumentoOpl(target), linea = hechos(target)[0]!;
+                expect(linea.hechos).toEqual(ids);
+                expect(analizar(linea.texto)[0]!.diagnosticos).toEqual([]);
+                const p = planificar(m, 'modelo', doc);
+                expect(p.resumen.noAplicables).toBe(0); expect(p.acciones).toHaveLength(2);
+                expect(p.acciones.every(a => 'enlace' in a.args && a.args.enlace === id)).toBe(true);
+                const r = must(aplicarPlan(m, p));
+                expect(exportarV0(r.modelo)).toBe(exportarV0(target));
+                expect(Object.keys(r.modelo.enlaces)).toEqual(ids);
+                expect(r.modelo.enlaces[ids[1 - editar]!]).toEqual(m.enlaces[ids[1 - editar]!]);
+                const nuevo = must(importarOpl(target.nombre, doc));
+                expect(nuevo.plan.resumen.noAplicables).toBe(0); expect(generarDocumentoOpl(nuevo.modelo)).toBe(doc);
+                expect(exportarV0(m)).toBe(antes);
+            });
+function paralelosDefault(reservadoPrimero: boolean, estados: boolean) {
+    let m = modeloCon({ objetos: [['Origen', ['listo']], ['Destino', ['activo']]] });
+    m = must(fijarNombrePlural(m, { cosa: porNombre(m, 'Destino').id, nombre: 'Destinos' })).modelo;
+    const origen = porNombre(m, 'Origen'), destino = porNombre(m, 'Destino');
+    if (origen.tipo !== 'objeto' || destino.tipo !== 'objeto') throw Error('Objetos de los enlaces');
+    const ids: string[] = [];
+    for (const reservado of reservadoPrimero ? [true, false] : [false, true]) {
+        const r = must(crearEnlace(m, { opd: m.raiz, candidato: { tipo: 'etiquetado', origen: origen.id, destino: destino.id,
+            multDestino: reservado ? '3' : '2', ...(reservado ? { etiqueta: 'se relaciona con' } : {}),
+            ...(estados ? { estadoOrigen: origen.estados[0]!.id, estadoDestino: destino.estados[0]!.id } : {}) } }));
+        m = r.modelo; ids.push(r.creados[0]!);
+    }
+    expect(gatesExportacion(m, 'modelo')).toEqual([]);
+    return { m, ids };
+}
+for (const reservadoPrimero of [false, true]) for (const estados of [false, true]) for (const editar of [0, 1])
+    test(`T-119 T-128 T-177 T-182 T-194 B-38 dos UNI del mismo par conservan identidades reservadoPrimero=${reservadoPrimero}/estados=${estados}/editar=${editar}`, () => {
+        const { m, ids } = paralelosDefault(reservadoPrimero, estados), antes = exportarV0(m), id = ids[editar]!;
+        expect(planificar(m, 'modelo', generarDocumentoOpl(m)).acciones).toEqual([]);
+        const target = must(fijarMultiplicidad(m, { enlace: id, extremo: 'destino', valor: '4' })).modelo;
+        const doc = generarDocumentoOpl(target), p = planificar(m, 'modelo', doc);
+        expect(p.resumen.noAplicables).toBe(0); expect(p.acciones).toHaveLength(2);
+        expect(p.acciones.every(a => 'enlace' in a.args && a.args.enlace === id)).toBe(true);
+        const r = must(aplicarPlan(m, p));
+        expect(exportarV0(r.modelo)).toBe(exportarV0(target)); expect(Object.keys(r.modelo.enlaces)).toEqual(ids);
+        expect(r.modelo.enlaces[ids[1 - editar]!]).toEqual(m.enlaces[ids[1 - editar]!]);
+        const nuevo = must(importarOpl(m.nombre, doc));
+        expect(nuevo.plan.resumen.noAplicables).toBe(0); expect(Object.values(nuevo.modelo.enlaces)).toHaveLength(2);
+        expect(Object.values(nuevo.modelo.enlaces).map(e => (e as Etiquetado).multDestino).sort())
+            .toEqual(Object.values(target.enlaces).map(e => (e as Etiquetado).multDestino).sort());
+        expect(generarDocumentoOpl(nuevo.modelo)).toBe(doc);
+        expect(exportarV0(m)).toBe(antes);
+    });
+test('T-064 T-177 T-182 B-38 no elige entre dos IDs si ambas cantidades cambian sin coincidencia completa', () => {
+    const { m, ids } = paralelosDefault(false, false), antes = exportarV0(m);
+    let target = must(fijarMultiplicidad(m, { enlace: ids[0]!, extremo: 'destino', valor: '4' })).modelo;
+    target = must(fijarMultiplicidad(target, { enlace: ids[1]!, extremo: 'destino', valor: '5' })).modelo;
+    const p = planificar(m, 'modelo', generarDocumentoOpl(target));
+    expect(p.resumen.noAplicables).toBe(1); expect(p.acciones).toEqual([]);
+    expect(p.lineas.flatMap(l => l.diagnosticos.map(d => d.codigo))).toContain('ambiguous-symbol');
+    expect(must(aplicarPlan(m, p)).modelo).toBe(m); expect(exportarV0(m)).toBe(antes);
+});
+test('T-178 B-38 una lista legal no admite un ajuste contradictorio en otra línea', () => {
+    const { m, ids } = paralelosDefault(false, false), antes = exportarV0(m);
+    const target = must(fijarMultiplicidad(m, { enlace: ids[1]!, extremo: 'destino', valor: '4' })).modelo;
+    const lista = hechos(target)[0]!.texto;
+    const p = planificar(m, m.raiz, lista + '\n**Origen** «se relaciona con» 5 **Destinos** [nombre: «Destino»].');
+    expect(p.resumen.noAplicables).toBe(2); expect(p.acciones).toEqual([]);
+    expect(p.lineas.map(l => l.diagnosticos.map(d => d.codigo))).toEqual([['patch-conflict'], ['patch-conflict']]);
+    expect(exportarV0(m)).toBe(antes);
+});
+for (const operador of ['XOR', 'OR'] as const) for (const cantidad of ['n; n=1,3', '"a o b"; "a o b"=1,3'])
+    test(`T-054 T-128 T-182 T-194 B-42 ${operador} conserva unión relacional por miembro=${cantidad}`, () => {
+        let m = modeloCon({ objetos: [['Análisis', []], ['Ítem', []]], procesos: ['Preparar'] });
+        for (const [nombre, plural] of [['Análisis', 'Análisis'], ['Ítem', 'Ítems de entrada']] as const)
+            m = must(fijarNombrePlural(m, { cosa: porNombre(m, nombre).id, nombre: plural })).modelo;
+        const ids: string[] = [];
+        for (const nombre of ['Análisis', 'Ítem']) {
+            const r = must(crearEnlace(m, { opd: m.raiz, candidato: { tipo: 'consumo', objeto: porNombre(m, nombre).id,
+                proceso: porNombre(m, 'Preparar').id, mult: cantidad } }));
+            m = r.modelo; ids.push(r.creados[0]!);
+        }
+        m = must(aplicarAccion(m, { op: 'formarAbanico', args: { enlaces: ids, operador } })).modelo;
+        const antes = exportarV0(m), target = must(fijarMultiplicidad(m, { enlace: ids[1]!, extremo: 'objeto', valor: '4' })).modelo;
+        const doc = generarDocumentoOpl(target), p = planificar(m, 'modelo', doc);
+        expect(p.resumen.noAplicables).toBe(0);
+        expect(exportarV0(must(aplicarPlan(m, p)).modelo)).toBe(exportarV0(target));
+        const nuevo = must(importarOpl(target.nombre, doc)); expect(generarDocumentoOpl(nuevo.modelo)).toBe(doc);
+        expect(Object.values(nuevo.modelo.abanicos)[0]?.operador).toBe(operador);
+        expect(Object.values(nuevo.modelo.enlaces).map(e => 'mult' in e ? e.mult : undefined).sort()).toEqual([cantidad, '4'].sort());
+        expect(exportarV0(m)).toBe(antes);
+    });
+for (const tipo of ['consumo', 'resultado'] as const) for (const operador of ['XOR', 'OR'] as const)
+    for (const restriccion of ['n=1,3', 'n>=1'] as const)
+        test(`T-054 T-128 T-178 T-194 B-42 ${tipo}/${operador} sólo admite restricción legacy unívoca ${restriccion}`, () => {
+            let m = modeloCon({ objetos: [['Alfa', []], ['Beta', []]], procesos: ['Operar'] });
+            const ids: string[] = [];
+            for (const [nombre, plural, mult] of [['Alfa', 'Alfas', `n; ${restriccion}`], ['Beta', 'Betas', '4']] as const) {
+                m = must(fijarNombrePlural(m, { cosa: porNombre(m, nombre).id, nombre: plural })).modelo;
+                const r = must(crearEnlace(m, { opd: m.raiz, candidato: { tipo, objeto: porNombre(m, nombre).id,
+                    proceso: porNombre(m, 'Operar').id, mult } }));
+                m = r.modelo; ids.push(r.creados[0]!);
+            }
+            m = must(aplicarAccion(m, { op: 'formarAbanico', args: { enlaces: ids, operador } })).modelo;
+            const antes = exportarV0(m), linea = hechos(m)[0]!.texto;
+            const plain = linea.replace(/\*\*(donde [^\n]+?)\*\*/gu, '$1');
+            expect(plain).not.toBe(linea);
+            const canon = analizar(linea)[0]!, lectura = analizar(plain)[0]!, plan = planificar(m, m.raiz, plain);
+            expect(canon.diagnosticos).toEqual([]);
+            expect(plan.acciones).toEqual([]);
+            expect(lectura.texto).toBe(plain);
+            if (restriccion === 'n=1,3') {
+                expect(lectura.hechos).toEqual([]);
+                expect(lectura.diagnosticos.map(d => d.codigo)).toEqual(['ambiguous-symbol']);
+                expect(plan.resumen.noAplicables).toBe(1);
+            } else {
+                expect(lectura.diagnosticos).toEqual([]); expect(lectura.hechos).toEqual(canon.hechos);
+                expect(plan.resumen.noAplicables).toBe(0);
+                const doc = generarDocumentoOpl(m), legacy = doc.replace(linea, plain);
+                expect(generarDocumentoOpl(must(importarOpl(m.nombre, legacy)).modelo)).toBe(doc);
+            }
+            expect(Object.keys(m.enlaces)).toEqual(ids); expect(exportarV0(m)).toBe(antes);
+        });
+test('T-119 T-128 T-178 T-194 B-42 una unión relacional plain conserva una lista AND unívoca', () => {
+    let m = modeloCon({ objetos: [['Dato', []], ['Alfa', []], ['Beta', []]] });
+    for (const [nombre, plural, multDestino] of [['Alfa', 'Alfas', 'n; n=1,3'], ['Beta', 'Betas', '4']] as const) {
+        m = must(fijarNombrePlural(m, { cosa: porNombre(m, nombre).id, nombre: plural })).modelo;
+        m = must(crearEnlace(m, { opd: m.raiz, candidato: { tipo: 'etiquetado', origen: porNombre(m, 'Dato').id,
+            destino: porNombre(m, nombre).id, etiqueta: 'conoce', multDestino } })).modelo;
+    }
+    const antes = exportarV0(m), doc = generarDocumentoOpl(m), plain = doc.replace(/\*\*(donde [^\n]+?)\*\*/gu, '$1');
+    const p = planificar(m, 'modelo', plain);
+    expect(p.resumen.noAplicables).toBe(0); expect(p.acciones).toEqual([]);
+    expect(generarDocumentoOpl(must(importarOpl(m.nombre, plain)).modelo)).toBe(doc);
+    expect(exportarV0(m)).toBe(antes);
+});
+for (const modo of ['entrada', 'salida', 'cambio'] as const) for (const operador of ['XOR', 'OR'] as const)
+    for (const restriccion of ['n=1,3', 'n>=1'] as const)
+        test(`T-054 T-128 T-178 T-194 B-42 ${modo}/${operador} conserva estados y sólo admite legacy unívoco ${restriccion}`, () => {
+            let m = modeloCon({ objetos: [['Pieza', ['nueva', 'lista', 'usada']]], procesos: ['Operar'] });
+            m = must(fijarNombrePlural(m, { cosa: porNombre(m, 'Pieza').id, nombre: 'Piezas' })).modelo;
+            const objeto = porNombre(m, 'Pieza'); if (objeto.tipo !== 'objeto') throw Error('Objeto con estados');
+            const ids: string[] = [];
+            for (const i of [0, 1]) {
+                const r = must(crearEnlace(m, { opd: m.raiz, candidato: { tipo: 'efecto', objeto: objeto.id,
+                    proceso: porNombre(m, 'Operar').id, mult: i ? '4' : `n; ${restriccion}`,
+                    ...(modo !== 'salida' ? { entrada: objeto.estados[modo === 'cambio' ? 0 : i + 1]!.id } : {}),
+                    ...(modo !== 'entrada' ? { salida: objeto.estados[i + 1]!.id } : {}) },
+                    ...(i ? { abanicoCon: { enlace: ids[0]!, operador } } : {}) }));
+                m = r.modelo; ids.push(r.creados[0]!);
+            }
+            const antes = exportarV0(m), linea = hechos(m)[0]!.texto, canon = analizar(linea)[0]!;
+            const plain = linea.replace(/\*\*(donde [^\n]+?)\*\*/gu, '$1'), lectura = analizar(plain)[0]!;
+            expect(canon.diagnosticos).toEqual([]); expect(plain).not.toBe(linea);
+            const p = planificar(m, m.raiz, plain); expect(p.acciones).toEqual([]);
+            if (restriccion === 'n=1,3') {
+                expect(lectura.hechos).toEqual([]);
+                expect(lectura.diagnosticos.map(d => d.codigo)).toEqual(['ambiguous-symbol']);
+                expect(p.resumen.noAplicables).toBe(1);
+            } else {
+                expect(lectura.diagnosticos).toEqual([]); expect(lectura.hechos).toEqual(canon.hechos);
+                expect(p.resumen.noAplicables).toBe(0);
+                const doc = generarDocumentoOpl(m), legacy = doc.replace(linea, plain);
+                expect(generarDocumentoOpl(must(importarOpl(m.nombre, legacy)).modelo)).toBe(doc);
+            }
+            expect(exportarV0(m)).toBe(antes);
+        });
+for (const modo of ['entrada', 'salida', 'cambio'] as const)
+    test(`T-128 T-178 T-194 B-42 ${modo} AND conserva la unión legacy y el par de estados propio`, () => {
+        let m = modeloCon({ objetos: [['Alfa', ['nueva', 'lista']], ['Beta', ['nueva', 'lista']]], procesos: ['Operar'] });
+        for (const [nombre, plural, mult] of [['Alfa', 'Alfas', 'n; n=1,3'], ['Beta', 'Betas', '4']] as const) {
+            m = must(fijarNombrePlural(m, { cosa: porNombre(m, nombre).id, nombre: plural })).modelo;
+            const objeto = porNombre(m, nombre); if (objeto.tipo !== 'objeto') throw Error('Objeto con estados');
+            m = must(crearEnlace(m, { opd: m.raiz, candidato: { tipo: 'efecto', objeto: objeto.id,
+                proceso: porNombre(m, 'Operar').id, mult,
+                ...(modo !== 'salida' ? { entrada: objeto.estados[0]!.id } : {}),
+                ...(modo !== 'entrada' ? { salida: objeto.estados[1]!.id } : {}) } })).modelo;
+        }
+        const antes = exportarV0(m), doc = generarDocumentoOpl(m), plain = doc.replace(/\*\*(donde [^\n]+?)\*\*/gu, '$1');
+        const p = planificar(m, 'modelo', plain);
+        expect(p.resumen.noAplicables).toBe(0); expect(p.acciones).toEqual([]);
+        expect(generarDocumentoOpl(must(importarOpl(m.nombre, plain)).modelo)).toBe(doc);
+        expect(exportarV0(m)).toBe(antes);
+    });
+test('T-119 T-128 T-182 T-194 B-42 restricción propia no corta dos o más legacy ni rescata una restricción rota', () => {
+    let m = modeloCon({ objetos: [['Dato', []], ['Análisis', []], ['Ítem', []]] });
+    for (const [nombre, plural] of [['Análisis', 'Análisis'], ['Ítem', 'Ítems de entrada']] as const)
+        m = must(fijarNombrePlural(m, { cosa: porNombre(m, nombre).id, nombre: plural })).modelo;
+    for (const [nombre, multDestino] of [['Análisis', '"a o b"; "a o b">=1'], ['Ítem', '2..*']] as const)
+        m = must(crearEnlace(m, { opd: m.raiz, candidato: { tipo: 'etiquetado', origen: porNombre(m, 'Dato').id,
+            destino: porNombre(m, nombre).id, etiqueta: 'conoce', multDestino } })).modelo;
+    const antes = exportarV0(m), doc = generarDocumentoOpl(m), legacy = doc.replace('al menos dos **Ítems de entrada**', 'dos o más **Ítems de entrada**');
+    expect(legacy).not.toBe(doc);
+    const p = planificar(m, 'modelo', legacy);
+    expect(p.resumen.noAplicables).toBe(0); expect(p.acciones).toEqual([]);
+    const nuevo = must(importarOpl(m.nombre, legacy)); expect(generarDocumentoOpl(nuevo.modelo)).toBe(doc);
+    const sinEstilo = legacy.replace(/, \*\*(donde ([^\n]+?))\*\*/gu, ', $1');
+    const plano = planificar(m, 'modelo', sinEstilo);
+    expect(plano.resumen.noAplicables).toBe(0); expect(plano.acciones).toEqual([]);
+    expect(generarDocumentoOpl(must(importarOpl(m.nombre, sinEstilo)).modelo)).toBe(doc);
+    for (const restriccion of ['"a o b" >=', '"a o b >= 1', 'n en {2, 4', 'n >= (a + y']) {
+        const roto = doc.replace('"a o b" >= 1', restriccion);
+        expect(roto).not.toBe(doc);
+        const rechazo = planificar(m, 'modelo', roto);
+        expect(rechazo.resumen.noAplicables).toBe(1); expect(rechazo.acciones).toEqual([]);
+        expect(exportarV0(m)).toBe(antes);
+    }
+});
+test('T-182 T-194 B-42 un marcador privado de restricción no es entrada ni fabrica cantidades', () => {
+    const m = modeloCon({ objetos: [['Origen', []], ['Destino', []]] }), antes = exportarV0(m);
+    for (const texto of ['**Origen** «conoce» 2 **Destino**, donde §r0§.',
+        '**Origen** «conoce» 2 **Destino**, **donde n >= 1** y 3 **Destino**, donde §r0§.']) {
+        expect(analizar(texto)[0]!.hechos).toEqual([]);
+        const p = planificar(m, 'modelo', texto);
+        expect(p.resumen.noAplicables).toBe(1); expect(p.acciones).toEqual([]);
+        expect(exportarV0(m)).toBe(antes);
+    }
+});
 for (const tipo of ['objeto', 'proceso'] as const) for (const etiqueta of [undefined, 'conoce']) for (const n of [2, 3]) {
     test(`T-119 T-194 B-41 bifurcada ${tipo} etiqueta=${etiqueta ?? 'nula'} n=${n}: literal, identidad e inversa`, () => {
         const { m, ids } = lista(tipo, n, etiqueta), antes = exportarV0(m), ls = hechos(m);
@@ -215,16 +447,22 @@ test('T-194 B-41 lista etiquetada estable frente a permutación del almacenamien
     expect(generarDocumentoOpl(permutado)).toBe(esperado); expect(exportarV0(m)).toBe(antes);
 });
 
-test('T-057 T-194 B-41 rechaza creación B-04 y no la convierte en miembro ofrecido', () => {
+test('T-057 T-194 B-42 conserva cantidad y estado de cada miembro UNI ofrecido', () => {
     let { m, ids } = lista('objeto', 3, 'conoce'); const malo = m.enlaces[ids[2]!] as Etiquetado, o = porNombre(m, 'Índice');
     if (o.tipo !== 'objeto') throw Error('Objeto');
     m = { ...m, enlaces: { ...m.enlaces, [malo.id]: { ...malo, estadoDestino: o.estados[0]!.id, multDestino: '3' } } };
-    expect(noOfrecido(m, m.enlaces[malo.id]!)?.registro).toBe('B-04');
+    const antes = exportarV0(m);
+    expect(noOfrecido(m, m.enlaces[malo.id]!)).toBeNull();
     const intento = crearEnlace(m, { opd: m.raiz, candidato: { tipo: 'etiquetado', origen: malo.origen, destino: malo.destino, estadoDestino: o.estados[1]!.id, multDestino: '3', etiqueta: 'conoce' } });
-    expect(intento.ok).toBe(false); if (intento.ok) throw Error('Creación no ofrecida admitida');
-    expect(intento.rechazo.regla).toBe('DR-44');
-    expect(hechos(m).map(l => l.hechos)).toEqual([ids.slice(0, 2)]);
-    expect(hechos(m)[0]!.texto).toBe('**Origen** «conoce» **Alfa** y **Beta**.');
+    expect(intento.ok).toBe(true); if (!intento.ok) throw Error('Creación ofrecida rechazada');
+    expect(hechos(m).map(l => l.hechos)).toEqual([ids]);
+    expect(hechos(m)[0]!.texto).toBe('**Origen** «conoce» **Alfa**, **Beta** y 3 **Índice** en `pendiente`.');
+    const n = intento.valor.modelo, texto = generarDocumentoOpl(n), leido = must(importarOpl(n.nombre, texto));
+    expect(hechos(n).map(l => l.hechos)).toEqual([[...ids, intento.valor.creados[0]!]]);
+    expect(generarDocumentoOpl(leido.modelo)).toBe(texto);
+    expect(Object.values(leido.modelo.enlaces)).toHaveLength(4);
+    expect(planificar(n, 'modelo', texto).acciones).toEqual([]);
+    expect(exportarV0(m)).toBe(antes);
 });
 
 

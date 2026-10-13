@@ -65,10 +65,15 @@ export function transaccion(m: Modelo, cuerpo: (tx: Tx) => void, o?: {
     try {
         cuerpo(tx);
         if (!o?.permiteErroresNuevos) {
-            const previos = new Set(errores(m).map(clave));
-            const nuevo = errores(actual).find(v => !previos.has(clave(v)));
-            if (nuevo)
-                return { ok: false, rechazo: { codigo: nuevo.codigo === 'no-ofrecido' ? 'no-ofrecido' : 'contexto', regla: nuevo.regla, mensaje: nuevo.mensaje, refs: nuevo.refs, ...(nuevo.accion ? { accion: nuevo.accion } : {}) } };
+            const anteriores = errores(m), actuales = errores(actual);
+            // Ambos contextos se comprueban; sin violaciones finales no hay
+            // claves nuevas que comparar ni un Set previo que consultar.
+            if (actuales.length) {
+                const previos = new Set(anteriores.map(clave));
+                const nuevo = actuales.find(v => !previos.has(clave(v)));
+                if (nuevo)
+                    return { ok: false, rechazo: { codigo: nuevo.codigo === 'no-ofrecido' ? 'no-ofrecido' : 'contexto', regla: nuevo.regla, mensaje: nuevo.mensaje, refs: nuevo.refs, ...(nuevo.accion ? { accion: nuevo.accion } : {}) } };
+            }
         }
         return { ok: true, valor: { modelo: actual, creados }, trazas };
     }

@@ -116,15 +116,52 @@ const cerca = (a: Punto, b: Punto, n: number): Punto => {
 // T-218: el centro del glifo queda a 11 px del eje y fuera de la punta de su extremo (14 px sin
 // marcador; largo del marcador + 9 con él). Cambia de lado sólo si el habitual cae sobre la caja de
 // su cosa y el otro no: el enlace ordinario se pinta bajo la entidad. `en` es la línea base, 4 px abajo.
-// Un texto ancho como «2..*» (DEC35) se aparta lo que pide su medio ancho; ?, *, + y una cifra no cambian.
-const multiplicidad = (objeto: Punto, otro: Punto, marcador?: Marcador, caja?: Rect, texto = '+'): Punto => {
-    const l = Math.hypot(otro.x - objeto.x, otro.y - objeto.y) || 1;
-    const dx = (otro.x - objeto.x) / l, dy = (otro.y - objeto.y) / l, medio = anchoTexto(texto, 12, false) / 2;
+// Un texto ancho como «2..*» (DEC35) se aparta lo que pide su medio ancho. Si un puerto de
+// estado está dentro del objeto, se despeja la caja íntegra del texto por el tramo o su
+// normal, escogiendo el desplazamiento más cercano; no se mueve el puerto ni la ruta.
+const multiplicidad = (objeto: Punto, otro: Punto, marcador?: Marcador, caja?: Rect, texto = '+', ocupadas: readonly Rect[] = []): Punto => {
+    const l = Math.hypot(otro.x - objeto.x, otro.y - objeto.y);
+    const dx = l ? (otro.x - objeto.x) / l : 1, dy = l ? (otro.y - objeto.y) / l : 0, medio = anchoTexto(texto, 12, false) / 2;
     const largo = marcador ? LARGO_MARCADOR[marcador] + Math.max(9, medio * Math.abs(dx) + 4.5 * Math.abs(dy) + 3) : Math.max(14, medio * Math.abs(dx) + 4.5 * Math.abs(dy) + 4);
     const lateral = Math.max(11, medio * Math.abs(dy) + 4.5 * Math.abs(dx) + 4);
     const lado = (s: number): Punto => ({ x: objeto.x + largo * dx + lateral * dy * s, y: objeto.y + largo * dy - lateral * dx * s });
     const sobre = (p: Punto) => !!caja && p.x > caja.x - 7 && p.x < caja.x + caja.ancho + 7 && p.y > caja.y - 7 && p.y < caja.y + caja.alto + 7;
-    const c = sobre(lado(1)) && !sobre(lado(-1)) ? lado(-1) : lado(1);
+    const preferido = sobre(lado(1)) && !sobre(lado(-1)) ? -1 : 1;
+    let c = lado(preferido);
+    let opciones = [{ p: c, s: preferido }];
+    let ocupa = (_p: Punto) => false;
+    if (caja) {
+        // Región prohibida para el centro: objeto + holgura + tinta completa.
+        const x0 = caja.x - 7 - medio, x1 = caja.x + caja.ancho + 7 + medio;
+        const y0 = caja.y - 7 - 7, y1 = caja.y + caja.alto + 7 + 8;
+        ocupa = (p: Punto) => p.x > x0 + 1e-9 && p.x < x1 - 1e-9 && p.y > y0 + 1e-9 && p.y < y1 - 1e-9;
+        if (ocupa(c)) {
+            const despejar = (p: Punto, vx: number, vy: number): Punto => {
+                const avance = Math.max(0, Math.min(vx > 0 ? (x1 - p.x) / vx : vx < 0 ? (x0 - p.x) / vx : Infinity,
+                    vy > 0 ? (y1 - p.y) / vy : vy < 0 ? (y0 - p.y) / vy : Infinity));
+                return { x: p.x + avance * vx, y: p.y + avance * vy };
+            };
+            opciones = [preferido, -preferido].flatMap(s => {
+                const p = lado(s);
+                return (ocupa(p) ? [despejar(p, dx, dy), despejar(p, dy * s, -dx * s)] : [p]).map(p => ({ p, s }));
+            });
+            c = opciones.map(x => x.p).reduce((mejor, p) => Math.hypot(p.x - objeto.x, p.y - objeto.y)
+                < Math.hypot(mejor.x - objeto.x, mejor.y - objeto.y) - 1e-9 ? p : mejor);
+        }
+    }
+    const toca = (p: Punto) => ocupadas.some(r => p.x + medio + 4 > r.x && p.x - medio - 4 < r.x + r.ancho
+        && p.y + 8 + 4 > r.y && p.y - 8 - 4 < r.y + r.alto);
+    if (toca(c)) {
+        // Sólo textos de cantidad del mismo objeto. Una pasada final acotada
+        // separa hermanos por la normal; ni sus enlaces ni sus hechos cambian.
+        const paso = 2 * medio * Math.abs(dy) + 16 * Math.abs(dx)
+            + Math.max(...ocupadas.map(r => r.ancho * Math.abs(dy) + r.alto * Math.abs(dx))) + 12;
+        const candidatos = opciones.flatMap(({ p, s }) => Array.from({ length: ocupadas.length + 2 }, (_, i) => ({
+            x: p.x + i * paso * dy * s, y: p.y - i * paso * dx * s,
+        }))).filter(p => !ocupa(p) && !toca(p));
+        if (candidatos.length) c = candidatos.reduce((mejor, p) => Math.hypot(p.x - objeto.x, p.y - objeto.y)
+            < Math.hypot(mejor.x - objeto.x, mejor.y - objeto.y) - 1e-9 ? p : mejor);
+    }
     return { x: c.x, y: c.y + 4 };
 };
 // Rótulo dentro de la caja persistida (DEC34): se prueba de la envoltura más ancha a la más
@@ -248,7 +285,7 @@ export function escena(m: Modelo, opd: Id): Escena {
     const contenedoresDe = (ids: readonly Id[]): readonly Id[] => ci >= 0 && ids.some(id => internos.has(id)) ? [nodos[ci]!.ref.id] : [];
     const simbolos: Simbolo[] = [], aristas: Arista[] = [], arcos: Arco[] = [];
     const grupos = new Map<string, typeof vista.enlaces[number][]>();
-    function anotaciones(e: typeof vista.enlaces[number]['enlace'], tramos: readonly Tramo[]): Pick<Arista, 'marcas' | 'etiquetas'> {
+    function anotaciones(e: typeof vista.enlaces[number]['enlace'], tramos: readonly Tramo[], reservadas?: Map<Id, Rect[]>): Pick<Arista, 'marcas' | 'etiquetas'> {
         const ex = extremos(e);
         const marcas: Arista['marcas'][number][] = [], etiquetas: Arista['etiquetas'][number][] = [];
         const t = tramos[0]!, a = t.puntos[0]!, b = t.puntos.at(-1)!, angulo = Math.atan2(b.y - a.y, b.x - a.x) * 180 / Math.PI;
@@ -266,6 +303,14 @@ export function escena(m: Modelo, opd: Id): Escena {
             return { x: a.x + (b.x - a.x) * fraccion + normal.x * separacion * signo, y: a.y + (b.y - a.y) * fraccion + normal.y * separacion * signo };
         };
         const etiqueta = (texto: string, clave: Arista['etiquetas'][number]['clave'], en: Punto, italica = false) => etiquetas.push({ texto: texto.normalize('NFC'), clave, en, italica });
+        const cantidad = (texto: string, clave: 'mult-origen' | 'mult-destino', id: Id, desde: Punto, hacia: Punto, marcador?: Marcador) => {
+            const ocupadas = reservadas?.get(id) ?? [], en = multiplicidad(desde, hacia, marcador, porId.get(id)?.caja, texto, ocupadas);
+            etiqueta(texto, clave, en);
+            if (reservadas) {
+                const ancho = anchoTexto(texto, 12, false);
+                reservadas.set(id, [...ocupadas, { x: en.x - ancho / 2, y: en.y - 12, ancho, alto: 16 }]);
+            }
+        };
         if ('etiqueta' in e && e.etiqueta)
             etiqueta(e.etiqueta, 'etiqueta', apartada(e.etiqueta, -1, e.tipo === 'etiquetadoBidireccional' ? 1 / 3 : .5), true);
         if (e.tipo === 'etiquetadoBidireccional')
@@ -276,12 +321,18 @@ export function escena(m: Modelo, opd: Id): Escena {
             let en = { x: mid.x + normal.x * -10 * signo, y: mid.y + normal.y * -10 * signo };
             etiqueta(e.ruta, 'ruta', en);
         }
-        if ('mult' in e && e.mult)
-            etiqueta(e.mult, 'mult-origen', ex.origen === ('objeto' in e ? e.objeto : undefined) ? multiplicidad(a, t.puntos[1]!, t.inicio, porId.get(ex.origen)?.caja, e.mult) : multiplicidad(b, t.puntos.at(-2)!, t.fin, porId.get(ex.destino)?.caja, e.mult));
+        if ('mult' in e && e.mult) {
+            // El primer tramo de TS3/TS4 va O→P, aunque extremos(v0) del efecto
+            // sea P→O. La cantidad califica siempre su terminal de objeto.
+            const enInicio = e.tipo === 'efecto' && !!e.entrada || ex.origen === ('objeto' in e ? e.objeto : undefined);
+            const objeto = 'objeto' in e ? e.objeto : ex.destino;
+            if (enInicio) cantidad(e.mult, 'mult-origen', objeto, a, t.puntos[1]!, t.inicio);
+            else cantidad(e.mult, 'mult-origen', objeto, b, t.puntos.at(-2)!, t.fin);
+        }
         if ('multOrigen' in e && e.multOrigen)
-            etiqueta(e.multOrigen, 'mult-origen', multiplicidad(a, b, t.inicio, porId.get(ex.origen)?.caja, e.multOrigen));
+            cantidad(e.multOrigen, 'mult-origen', ex.origen, a, b, t.inicio);
         if ('multDestino' in e && e.multDestino)
-            etiqueta(e.multDestino, 'mult-destino', multiplicidad(b, a, t.fin, porId.get(ex.destino)?.caja, e.multDestino));
+            cantidad(e.multDestino, 'mult-destino', ex.destino, b, a, t.fin);
         return { marcas, etiquetas };
     }
     for (const v of vista.enlaces) {
@@ -383,6 +434,12 @@ export function escena(m: Modelo, opd: Id): Escena {
             aristas[aristas.indexOf(a)] = { ...a, tramos, ...anotaciones(e, tramos) };
         }
         arcos.push(...geo.arcos.map(a => ({ abanico: f.abanico, centro: a.centro, radio: a.radio, desde: a.desde, hasta: a.hasta, doble: f.operador === 'OR' })));
+    }
+    const cantidadesPropias = new Map<Id, Rect[]>();
+    for (let i = 0; i < aristas.length; i++) {
+        const a = aristas[i]!, e = vista.enlaces.find(v => v.enlace.id === a.ref.id)!.enlace;
+        if (a.etiquetas.some(q => q.clave.startsWith('mult')))
+            aristas[i] = { ...a, ...anotaciones(e, a.tramos, cantidadesPropias) };
     }
     const e: Escena = { opd, nodos, simbolos, aristas, arcos, caja: cajaEscena(nodos, simbolos, aristas, arcos) };
     const porOpd = memo.get(m) ?? new Map<Id, Escena>();

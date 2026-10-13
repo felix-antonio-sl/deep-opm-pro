@@ -25,13 +25,13 @@ function fan(mixto: boolean): Modelo {
     const m = modelo([objeto('o'), objeto('o2', 'Factura'), proceso('p')], [{ id: 'a', tipo: 'consumo', objeto: 'o', proceso: 'p', control: 'c' }, { id: 'b', tipo: 'consumo', objeto: 'o2', proceso: 'p', ...(mixto ? {} : { control: 'c' as const }) }]);
     return cambiar(m, { abanicos: { f: { id: 'f', operador: 'XOR', enlaces: ['a', 'b'] } } });
 }
-const c = (id: string, p = 'p', estado?: string): Enlace => ({ id, tipo: 'consumo', objeto: 'o', proceso: p, ...(estado ? { estado } : {}) });
+const c = (id: string, p = 'p', estado?: string): Extract<Enlace, { tipo: 'consumo' }> => ({ id, tipo: 'consumo', objeto: 'o', proceso: p, ...(estado ? { estado } : {}) });
 const r = (id: string, p = 'p', estado?: string): Enlace => ({ id, tipo: 'resultado', objeto: 'o', proceso: p, ...(estado ? { estado } : {}) });
 function ex(ambiental: boolean, cota: boolean): Modelo { return modelo([proceso('p'), { ...proceso('q', 'Gestionar Error'), afiliacion: ambiental ? 'ambiental' : 'sistemica' } as Cosa].map(x => x.id === 'p' && cota ? { ...x, duracion: { max: 5 } } as Cosa : x), [{ id: 'ex', tipo: 'excepcionSobretiempo', origen: 'p', destino: 'q' }]); }
 function densidad(n: number): Modelo { return modelo([proceso('p'), ...Array.from({ length: n - 1 }, (_, i) => objeto(`o${i}`, `Pedido${i}`))]); }
 function despliegue(relaciones: boolean): Modelo { return modelo([objeto('o'), objeto('a', 'Cuenta'), objeto('b', 'Saldo')], [{ id: 'e1', tipo: 'agregacion', refinable: 'o', refinador: 'b' }, { id: 'e2', tipo: relaciones ? 'exhibicion' : 'agregacion', refinable: 'a', refinador: 'b' }], [{ id: 'h', tipo: 'despliegue', padre: 'sd', cosa: 'o', orden: 0, modo: 'agregacion', apariciones: { o: ap, b: ap } }, { id: 'h2', tipo: 'despliegue', padre: 'sd', cosa: 'a', orden: 1, modo: relaciones ? 'exhibicion' : 'agregacion', apariciones: { a: ap, b: ap } }]); }
 const metadata = [
-        ['error', 'gramatical'], ['error', 'gramatical'], ['error', 'identidad'], ['error', 'gramatical'], ['error', 'identidad'], ['error', 'gramatical'], ['error', 'gramatical'], ['error', 'contencion'], ['warning', 'contencion'], ['warning', 'metodologica'], ['warning', 'metodologica'], ['warning', 'contencion'], ['info', 'contencion'], ['warning', 'sugerencia'], ['warning', 'sugerencia'], ['warning', 'metodologica'], ['warning', 'metodologica'], ['warning', 'metodologica'], ['warning', 'metodologica'], ['warning', 'metodologica'], ['warning', 'contencion'], ['info', 'sugerencia'], ['warning', 'metodologica'], ['warning', 'metodologica'], ['warning', 'metodologica'], ['warning', 'metodologica'], ['warning', 'metodologica'], ['info', 'gramatical'], ['info', 'metodologica'], ['info', 'metodologica'], ['info', 'metodologica'], ['info', 'sugerencia'], ['warning', 'identidad'], ['warning', 'identidad'],
+        ['error', 'gramatical'], ['error', 'gramatical'], ['error', 'identidad'], ['error', 'gramatical'], ['error', 'identidad'], ['error', 'gramatical'], ['error', 'gramatical'], ['error', 'contencion'], ['warning', 'contencion'], ['warning', 'metodologica'], ['warning', 'metodologica'], ['warning', 'contencion'], ['info', 'contencion'], ['warning', 'sugerencia'], ['warning', 'sugerencia'], ['warning', 'metodologica'], ['warning', 'metodologica'], ['warning', 'metodologica'], ['warning', 'metodologica'], ['warning', 'metodologica'], ['warning', 'contencion'], ['info', 'sugerencia'], ['warning', 'metodologica'], ['warning', 'metodologica'], ['warning', 'metodologica'], ['warning', 'metodologica'], ['warning', 'metodologica'], ['info', 'gramatical'], ['info', 'metodologica'], ['info', 'metodologica'], ['info', 'metodologica'], ['info', 'sugerencia'], ['warning', 'identidad'], ['warning', 'identidad'], ['warning', 'gramatical'],
     ] as const;
 // Oráculos literales transcritos de DESIGN §4.4; nunca derivados de CATALOGO/proyectar.
 const pares: readonly [
@@ -74,6 +74,7 @@ const pares: readonly [
     ['ajuste-automatico', 'T-087', () => { const m = modelo([objeto('o'), objeto('a', 'Factura')], [{ id: 'e', tipo: 'agregacion', refinable: 'o', refinador: 'a' }]); return cambiar(m, { opds: { sd: { ...m.opds.sd!, apariciones: { o: ap } } } }); }, () => modelo([objeto('o'), objeto('a', 'Factura')], [{ id: 'e', tipo: 'agregacion', refinable: 'o', refinador: 'a' }])],
     ['cosa-sin-aparicion', 'T-262', () => cambiar(modelo(), { opds: { sd: { id: 'sd', tipo: 'raiz', apariciones: { p: ap } } } }), () => modelo()],
     ['enlace-sin-vista', 'T-262', () => cambiar(modelo(undefined, [c('e')]), { opds: { sd: { id: 'sd', tipo: 'raiz', apariciones: { p: ap } } } }), () => modelo(undefined, [c('e')])],
+    ['forma-plural-faltante', 'T-128', () => modelo(undefined, [{ ...c('e'), mult: '2' }]), () => cosa(modelo(undefined, [{ ...c('e'), mult: '2' }]), 'o', { nombrePlural: 'Pedidos' })],
 ];
 for (const [codigo, tid, positivo, negativo] of pares) {
     test(`${tid} ${codigo}: positivo literal y ausencia cercana`, () => {
@@ -353,12 +354,15 @@ for (const nombreObjeto of ['Apertura', 'Dependencia']) test(`T-266 heurística 
 test('T-288 T-283 un dato de enlace ajeno a su fila de la matriz es error visible y bloquea el export', () => {
     const efecto: Enlace = { id: 'e', tipo: 'efecto', objeto: 'o', proceso: 'p', entrada: 'o-s1', salida: 'o-s2' };
     expect(gatesExportacion(modelo(undefined, [efecto]), { opd: 'sd' })).toEqual([]);
-    for (const forzado of [{ ruta: 'r1' }, { control: 'x' }, { mult: '1' }]) {
+    for (const forzado of [{ ruta: 'r1' }, { control: 'x' }]) {
         const m = modelo(undefined, [{ ...efecto, ...forzado } as Enlace]);
         expect(diagnosticar(m).filter(d => d.codigo === 'enlace-invalido' && d.severidad === 'error').length).toBeGreaterThan(0);
         expect(gatesExportacion(m, { opd: 'sd' }).length).toBeGreaterThan(0);
         expect(gatesExportacion(m, 'modelo').length).toBeGreaterThan(0);
     }
+    const uno = modelo(undefined, [{ ...efecto, mult: '1' }]);
+    expect(diagnosticar(uno).filter(d => d.codigo === 'enlace-invalido' && d.severidad === 'error')).toEqual([]);
+    expect(gatesExportacion(uno, 'modelo')).toEqual([]);
     expect(diagnosticar(modelo(undefined, [{ ...efecto, ruta: 'r1' } as Enlace])).find(d => d.regla === 'R-OPL-RUTA-2'))
         .toMatchObject({ codigo: 'enlace-invalido', severidad: 'error', refs: [{ tipo: 'enlace', id: 'e' }] });
 });

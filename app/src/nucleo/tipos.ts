@@ -6,7 +6,7 @@ export type UnidadTiempo = 'ms' | 'sec' | 'min' | 'hour' | 'day' | 'week' | 'mon
 export type ModoDespliegue = 'agregacion' | 'exhibicion' | 'generalizacion' | 'clasificacion';
 export type RelacionIncompleta = Exclude<ModoDespliegue, 'clasificacion'>; // nunca clasificación (T-034)
 export type Control = 'e' | 'c'; // escalar: c+e irrepresentable (T-052)
-export type Multiplicidad = string; // matriz valida símbolos, entero ≥2, muchos o parámetro simple; ausente = 1..1
+export type Multiplicidad = string; // matriz valida cantidades, rangos, aritmética y restricciones declarativas; ausente = 1..1
 export type Operador = 'XOR' | 'OR'; // AND = ausencia de abanico (T-028)
 export type Designacion = 'inicial' | 'final' | 'porDefecto' | 'current';
 // ---------- Cosas y estados ----------
@@ -28,6 +28,7 @@ interface CosaBase {
 }
 export interface Objeto extends CosaBase {
     readonly tipo: 'objeto';
+    readonly nombrePlural?: string; // forma explícita del autor; no identifica otra cosa (DEC56)
     readonly estados: readonly Estado[]; // el orden del arreglo es el orden del modelo (T-015)
     readonly porDefecto?: Id; // ∈ estados: ≤1 por construcción (T-016)
     readonly current?: Id; // ∈ estados: ≤1 por construcción; declarado, jamás runtime (T-017)

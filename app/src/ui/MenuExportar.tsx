@@ -1,6 +1,6 @@
 import {useEffect,useState} from 'preact/hooks';
 import type {Modelo,Ref} from '../nucleo/tipos';
-import {gatesExportacion} from '../nucleo/diagnostico';
+import {gatesExportacion,gatesDocumento} from '../nucleo/diagnostico';
 import {opdsEnPreorden} from '../nucleo/proyeccion';
 import {exportarV0} from '../codec/exportar';
 import {generarDocumentoOpl} from '../opl/documento';
@@ -13,7 +13,7 @@ import type {DatosRanura} from './Editor';
 import {Dialogo} from './Dialogo';
 import {descargarTexto} from './Biblioteca';
 import {irRefs} from './ArbolOpd';
-export function prepararExportaciones(m:Modelo,opd:string){return {json:exportarV0(m),opl:generarDocumentoOpl(m),estadosOmitidos:estadosOmitidos(m),gatesSvg:gatesExportacion(m,{opd}),gatesHtml:gatesExportacion(m,'modelo'),svg:exportarDiagrama(m,opd,{version:VERSION_BUNDLE}),html:exportarDocumento(m,new Map(opdsEnPreorden(m).map(id=>[id,generarBloque(m,id)])),{version:VERSION_BUNDLE})};}
+export function prepararExportaciones(m:Modelo,opd:string){return {json:exportarV0(m),opl:generarDocumentoOpl(m),estadosOmitidos:estadosOmitidos(m),gatesSvg:gatesExportacion(m,{opd}),gatesHtml:gatesDocumento(m),svg:exportarDiagrama(m,opd,{version:VERSION_BUNDLE}),html:exportarDocumento(m,new Map(opdsEnPreorden(m).map(id=>[id,generarBloque(m,id)])),{version:VERSION_BUNDLE})};}
 export function expresarEstadosOmitidos(editor:Editor,modeloId:string){
  const m=editor.obtener().modelo;if(!m||m.id!==modeloId)return null;
  const acciones=accionesExpresarEstados(m);return acciones.length?editor.ejecutarVarias(acciones,'Expresar estados omitidos'):null;

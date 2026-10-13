@@ -6,7 +6,7 @@ import type { EnlaceVisto } from '../nucleo/proyeccion';
 import { noOfrecido, violacionesForma, violacionesAbanico, normalizarEtiquetas } from '../nucleo/matriz';
 import type { OpcionesOpl, LineaOpl, TokenOpl } from './linea';
 import { textoDeTokens, refsDeTokens } from './linea';
-import { cosa, estadoHueco, hueco, datosEnlace, tokensPlantilla, datosContexto, PLANTILLAS, claveAnd, datosAnd, claveInstrumentoAnd, datosInstrumentoAnd, claveAgenteAnd, datosAgenteAnd, claveEtiquetadosLista, datosEtiquetadosLista } from './plantillas';
+import { cosa, estadoHueco, hueco, datosEnlace, datosRamasCuantificadas, tokensPlantilla, datosContexto, PLANTILLAS, claveAnd, datosAnd, datosFanEstados, claveInstrumentoAnd, datosInstrumentoAnd, claveAgenteAnd, datosAgenteAnd, claveEtiquetadosLista, datosEtiquetadosLista } from './plantillas';
 import type { Huecos, HechoGenerable } from './plantillas';
 const colacionNombre = new Intl.Collator('es',{sensitivity:'base'});
 // Ramas hacia estados del mismo objeto: orden del modelo, no del id (T-101), para que OPL→modelo→OPL sea idéntico.
@@ -79,6 +79,7 @@ function construirBloque(m: Modelo, opd: Id, o?: OpcionesOpl): readonly LineaOpl
         if (c.afiliacion === 'ambiental')
             cosas.push(emit('D3', { C: ch }, c.id));
         if (c.tipo === 'objeto') {
+            if (c.nombrePlural !== undefined) cosas.push(emit('PLURAL', { O: ch, plural: hueco(c.nombrePlural) }, c.id));
             if (v.estadosVisibles.length)
                 cosas.push(emit(v.ocultos ? 'D6' : 'D5', { O: ch, s: v.estadosVisibles.map(s => estadoHueco(m, s)) }, c.id));
             for (const id of v.estadosVisibles) {
@@ -128,6 +129,13 @@ function construirBloque(m: Modelo, opd: Id, o?: OpcionesOpl): readonly LineaOpl
         const porP = esProcedimental(first) && ls.every(v => esProcedimental(v.enlace) && v.enlace.proceso === first.proceso);
         const invComunDestino = first.tipo === 'invocacion' && ls.every(v => v.enlace.tipo === 'invocacion' && v.enlace.destino === first.destino);
         const items = [...ls].sort((a, b) => { const endpoint = (e: Enlace) => esProcedimental(e) ? (porP ? e.objeto : e.proceso) : invComunDestino ? extremos(e).origen : extremos(e).destino; return cmp(m.cosas[endpoint(a.enlace)]!, m.cosas[endpoint(b.enlace)]!) || posicionEstado(m, a.enlace) - posicionEstado(m, b.enlace) || a.enlace.id.localeCompare(b.enlace.id); });
+        const completo = esProcedimental(first) && !porP && items.some(v => 'mult' in v.enlace && v.enlace.mult !== undefined)
+            && (first.tipo === 'agente' || first.tipo === 'efecto' || items.some(v => !('mult' in v.enlace) || v.enlace.mult !== first.mult));
+        if (completo) {
+            const datos = datosRamasCuantificadas(m, items.map(v => v.enlace), fan.operador);
+            const l = emit(datos.plantilla, datos.huecos, `FAN:${fan.id}`, items.flatMap(v => v.hechos));
+            fanLineas.set(fan.id, l); for (const id of fan.enlaces) fanPorHecho.set(id, fan.id); continue;
+        }
         const h: Record<string, import('./plantillas').ValorHueco> = { operador: hueco(fan.operador) };
         let pid: string;
         if (esProcedimental(first)) {
@@ -169,6 +177,8 @@ function construirBloque(m: Modelo, opd: Id, o?: OpcionesOpl): readonly LineaOpl
                     continue;
                 } // Sin literal completo: falla cerrado; el import preserva los enlaces sueltos.
                 (h.s as import('./plantillas').Hueco[]).sort((a, b) => a.texto.localeCompare(b.texto, 'es', { sensitivity: 'base' }) || (a.ref!.id.localeCompare(b.ref!.id)));
+                const cuantificado = datosFanEstados(m, ef, pid, h);
+                pid = cuantificado.plantilla; Object.assign(h, cuantificado.huecos);
             }
             else {
                 const convergente = first.tipo === 'resultado' ? !porP : porP;

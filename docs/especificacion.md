@@ -119,6 +119,7 @@ Regla de no sobrebloqueo (R-AP-0C, R-APP-5, R-OPD-VAL-4, R-ZNC-1/2): solo se **b
 | Duración (proceso) | `{min?, esperada?, max?, unidad?}`; unidad del sistema = default del modelo; duración > 0. EX1 exige `max`, EX2 exige `min`. | DEBE / inf. | R-EXC-2/3/4/5, R-PROC-3, R-OPD-INV-6 |
 | Unidades de tiempo | `ms, sec, min, hour, day, week, month, year` | inf. DEBE | R-OPD-INV-6 |
 | Género gramatical | Masculino por defecto, ajustable (para `un/una`). | inf. DEBE (default) | R-OPL-1 (DR-12) |
+| Forma plural del objeto | `nombrePlural?: string`, elegida por el autor, validada con el léxico de cosa y referida por el ID canónico. Operación `fijarNombrePlural` para fijar/retirar, un paso reversible; rename conserva la forma. Inspector y v0 preservan también la forma sin uso actual. | extensión de producto | DEC56, §4.4.11b |
 | Enlace | origen, destino, tipo (familia derivada), extremos de estado opcionales, control (`e`/`c`, a lo sumo uno), etiqueta opcional, ruta opcional, multiplicidad por extremo. Solo binario. | DEBE | R-META-13, R-VIS-CONSTRUCT-1, R-COMB-3, R-§21-OPL-MOD, método A5.23 |
 | Familias | Seis, cerradas; todo enlace pertenece a exactamente una. | inf. DEBE | reglas §5.1, spec-OPD §4.1 |
 | Modificador | Atributo del enlace base; NO agrega cosa ni enlace. | inf. DEBE / NO DEBE | R-ECA-4, R-MOD-NAT-1, R-OPD-CTL-1 |
@@ -631,7 +632,7 @@ Ejemplo normativo (R-ENT-ATR-2): `Correcto: **Limpieza** de **Conjunto de Platos
 | TS3 | Efecto entrada-salida | *Proceso* cambia **Objeto** de `estado-entrada` a `estado-salida`. | C ★ |
 | TS4 | Efecto solo entrada | *Proceso* cambia **Objeto** de `estado-entrada`. | C ★ |
 | TS5 | Efecto solo salida | *Proceso* cambia **Objeto** a `estado-salida`. | C ★ |
-| plural | — | `*Proceso* consumen **Objetos**.` · `*Procesos* generan **Objeto**.` · `*Procesos* afectan **Objeto**.` | C·S → X (DR-12) |
+| plural no identificado / proceso cuantificado | — | `*Proceso* consumen **Objetos**.` · `*Procesos* generan **Objeto**.` · `*Procesos* afectan **Objeto**.` | C·S → X (DR-12); DEC56 ofrece sólo plural explícito de objeto con referencia canónica (§4.4.11b). |
 | pasivas legacy | — | `**Objeto** es consumido por *Proceso*` · `es generado por` | P opcional (no exigido) |
 | persistente | — | proceso persistente explícito = TS3 con entrada = salida: `*P* cambia **A** de `s` a `s`.` (R-OPL-PERSIST-1/2) | C |
 
@@ -811,18 +812,17 @@ R-COMB-4 (DEBE, orden de superficie estable cuando coinciden dimensiones, textua
 R-MULT-1: la frase, el entero o el parámetro precede al objeto; `opcional/opcionales` va
 tras el objeto completo, incluido su estado. Los prefijos históricos de `?` y `*` siguen
 leyéndose si son unívocos; G emite la localización canónica pospuesta. DR12 conserva el nombre
-literal sin inflexión plural automática (B-09). `muchos` no equivale a ningún rango: en OPD se
+literal sin inflexión plural automática: DEC56 ofrece forma plural explícita y referencia
+canónica según §4.4.11b, conservando la recuperación sin forma con diagnóstico. `muchos` no equivale a ningún rango: en OPD se
 anota literalmente `muchos` como realización de producto, sin afirmar un glifo ISO específico.
 
-Los parámetros son strings validados por matriz: una letra del repertorio español seguida
-por letras o dígitos. Su escritura exacta identifica un único símbolo global reutilizable,
-independiente de nombres/IDs de cosas y OPDs; `n` y `N` son distintos. No son cosas ni
-bindings, no hay valores locales, evaluación o tabla persistente nueva. `un`, `una`,
-`muchos`, `muchas`, `Infinity` y `NaN` (sin distinguir mayúsculas) son palabras reservadas en este
-subconjunto de producto, no prohibiciones ISO de nombres. Rangos, expresiones aritméticas,
-restricciones y nombres de parámetro con operadores/espacios siguen no ofrecidos (B-10).
-`b-i` no se acepta ni como nombre recortado ni como expresión parcialmente reconstruida.
-Los campos y el formato v0 conservan strings; cifras ≥2 y DEC43 permanecen byteexactas.
+Los parámetros y anotaciones son strings validados por matriz. Su escritura exacta
+identifica un símbolo global reutilizable, independiente de nombres/IDs de cosas y OPDs;
+`n` y `N` son distintos. No son cosas ni bindings, no hay valores locales, ejecución o
+una tabla persistente nueva. DEC55 amplía los caracteres, números y matemática conforme
+a §4.4.11a: `b-i` es diferencia; `"b-i"` es nombre completo citado. Palabras de cantidad
+y nombres compuestos se distinguen por sus delimitadores, sin reservas ISO inventadas.
+Los campos v0 conservan strings y enteros grandes sin redondeo.
 
 Frontera de parámetro/prosa (B-56, extensión de producto): G delimita todos los parámetros
 simples entre `«»`, por ejemplo `*Procesar* consume **Alfa** y «genera» **Beta**.`. El
@@ -839,12 +839,167 @@ lista AND de una sola oración, sin split, nombres prohibidos adicionales ni pé
 Sólo los objetos admiten cantidad (R-MULT-1A), incluso en agregación y etiquetados. La matriz
 impide crear/agregar cantidad en un extremo proceso; un v0 recuperado conserva el campo
 con diagnóstico y gates. U permite quitar ese campo, sin ofrecer una cantidad nueva. Huecos:
-objeto de consumo/resultado/instrumento, sujeto de agente, efecto sin estado y evento,
-partes objeto de agregación y ambos extremos objeto de etiquetados sin estado. B-04/DR44
+objeto de consumo/resultado/instrumento, sujeto de agente, efecto y evento con estados,
+partes objeto de agregación y ambos extremos objeto de etiquetados, también con estado (DEC55/A.4.6.2). B-04/DR44
 conserva las otras combinaciones y la condición `c`; no añade huecos. T-057/T-128/T-194
 contrastan dato, token, prosa, inversa de hechos y punto fijo. Estado parcial del alcance ISO;
 no acredita todas las multiplicidades posibles del Anexo A o §11.2.
 
+
+#### 4.4.11a Cantidades matemáticas y restricciones (DEC55)
+
+La multiplicidad estática admite enteros no negativos, rangos cerrados numéricos o
+simbólicos, uniones de cantidades/rangos, aritmética `+ - * /` y paréntesis. Las
+restricciones relacionales y de pertenencia se anotan después de `;` en el OPD y después
+del objeto completo (incluido su estado) con `, donde` en OPL. Varias restricciones
+conservan `;`; cada objeto de una lista conserva las suyas. Son condiciones declarativas,
+sin valores asignados, ejecución, bindings ni solver. La verificación de constantes
+impide conteos negativos/fraccionarios, división por cero y rangos numéricos invertidos;
+las expresiones simbólicas no se ejecutan. Conteos enteros: reglas §6.7/ISO §11.3 prevalecen
+sobre la producción sobregeneradora de reales positivos del Anexo A. Cada coma de unión
+OPD se lee `o` en OPL, por R-MULT-4, incluso con más de dos alternativas.
+Los operandos decimales de expresiones/restricciones son racionales exactos: `0.5*n`
+y `n<1.5` son declarativos; `0.5*2` denota una instancia, pero `0.5` sola no es un
+conteo entero. La frase OPL de restricción se expresa en negrita (§11.2), sin convertirla
+en una cosa; el rótulo OPD conserva la anotación literal después de `;`.
+Los límites constantes incluidos de un rango deben denotar cuentas enteras no negativas
+(§11.1/§11.3): `1.0..2.0` y `0.5*2..3` conservan sus lexemas; `1.5..2.5`, `3..2`
+y `-1..2` se rechazan íntegros. No se intersecta tácitamente con enteros, no se ordenan
+los límites ni se elimina un miembro inválido de una unión (`0.5,2`). La EBNF A.3.2
+admite límites reales y es más amplia que esa semántica de cuentas; se conserva esta
+tensión expresamente. Los límites simbólicos no se resuelven ni se les supone un orden.
+
+La aplicación de §11 a cambios con estados ofrece `P cambia Q O de ei a es, donde R`,
+también con sólo entrada o salida. En ETS, Q aparece sólo en el primer O y R al final
+del cambio; O/ei repetidos deben coincidir, sin crear otro hecho. En AND cada miembro
+conserva Q/R y su par propio; R sigue al complemento de estados. Es realización derivada
+de §11, no un hueco literal atribuido a A.4.5. Cantidad no habilita c, control de la mitad
+de entrada escindida ni multiplicidad de procesos.
+
+FAN5s/FAN5e/FAN5A ofrecidos conservan P único y común en borde de cosa. Si todas las
+anotaciones son literalmente iguales (incluidas restricciones), Q precede al O de la
+compacta y R sigue a la lista completa de estados; P reconstruye Q/R en cada enlace.
+Si difieren, la selección de frases de cambio de A.4.5.2.5 repite O/estados con Q/R
+propios por miembro: `P cambia exactamente uno de Q1 O de ei a s1, donde R1 o Q2 O de
+ei a s2, donde R2`. OR usa `al menos uno de`. En FAN5A la entrada común se conserva
+explícita en todos los miembros. No se infiere equivalencia algebraica ni se elige una
+cantidad para las demás ramas. Firmas no ofrecidas B06/DEC29 y DR44 siguen intactas.
+Los IDs de realización `FAN5s-cantidades`, `FAN5e-cantidades` y `FAN5A-cantidades`
+registran esa variante; no crean otra geometría ni una sintaxis de procesos repetidos.
+
+Realización de producto: el hueco matemático se delimita `«cantidad»`, con `a` por `..`
+y `o` por la coma de unión. Un nombre de parámetro que contiene espacios/operadores o
+coincide con una palabra de cantidad se cita con comillas dobles dentro de la anotación:
+`"b-i"` es un parámetro; `b-i` es una diferencia. Los nombres usan el léxico de cadenas
+del canon, más `_` ya declarado en B47; conservan mayúsculas y alcance global. Se admiten
+`Infinity`/`NaN` como nombres, nunca como valores no finitos. No se inflexionan nombres
+ni se modifica el canon por esta delimitación. `≠ ≤ ≥ ∈` se normalizan explícitamente
+a `!= <= >= en` en la anotación; la normalización y el espacio sintáctico se trazan.
+
+El dato continúa en los campos string de v0, como `2,3*n; n<=4`. Ejemplo OPL:
+`*Operar* consume «2 o 3*n» **Máquina**, donde n <= 4.` La inversa reconstruye la
+cantidad y las restricciones de ese objeto, sin confundir la `o` aritmética con ramas
+OR ni `donde` con metadatos de listas B54. El AST de lectura es efímero y comparte
+sintaxis entre núcleo/G/P; la validez de enlaces permanece en matriz.
+
+La ruta DIRECTO byteexacta de §3.4.2-7 conserva nuevas anotaciones explícitas `1` y
+`1..1` sólo con candidato válido, cero pérdidas/rechazos/diff y exportación íntegra igual
+a la entrada. Reformateado/sobre siguen la ruta legacy y su normalización informada.
+`0..N`, `1..N` y `2..N` conservan sus significados legacy; un límite simbólico N nuevo
+se escribe citado, p.ej. `2.."N"`. No basta la igualdad de bytes para reinterpretar esos
+aliases. DEC56 realiza el plural identificado de B09/DR12 y las ramas cuantificadas de
+común O. C/todo y B05/B06/B08 conservan los límites declarados en B04/DR44.
+
+#### 4.4.11b Plural explícito y ramas cuantificadas — DEC56
+
+Esta realización sustituye la conservación exclusiva del singular de DR12/DEC35 en el
+alcance autorizado expresamente en DEC56. No modifica canon, identidad, firma o geometría OPM.
+
+**Plural reversible.** Cada objeto puede portar `nombrePlural?: string`, declarado por
+el autor, validado con el léxico de nombre y ligado a su ID actual. `nombre` permanece
+canónico y no se modifica según la cantidad de un enlace. No se usa un inflector o
+singularizador para decidir identidad. Se permite una forma invariante (Análisis) o
+coincidente con el nombre de otra cosa (Pieza/Piezas); no es una clave del namespace.
+Operación nativa por ID para fijar/retirar la forma, una transacción y deshacer; UI en
+propiedades del objeto. Cambiar el nombre canónico conserva la forma explícita sin
+reinterpretar otro objeto. El autor puede actualizar ambos datos mediante edición.
+
+v0 conserva `nombrePlural` como propiedad opcional de la entidad objeto, sin versión,
+entidad de dominio, ID o capa de almacenamiento nuevos. G emite para un objeto visible
+que la tenga el metadato de presentación `Forma plural de **Pieza**: «Piezas».`, incluso
+cuando no participa hoy con cantidad plural. P lo aplica al objeto canónico por ID y
+conserva la propiedad desde vacío. Es una extensión de producto, no oración ISO.
+
+En toda ocurrencia que use la forma plural: `2 **Piezas** [nombre: «Pieza»]`.
+Después van el estado y la restricción de esa ocurrencia. El token de nombre conserva
+ref/hecho/ID del objeto original; si presenta la forma plural, su edición puntual
+usa `fijarNombrePlural` sobre ese ID, nunca renombra el nombre canónico. Confirmar
+un término intacto no muta el modelo; retirar la forma es explícito y reversible.
+P lee la referencia explícita y la forma, nunca una
+entidad plausible a partir del plural. Declaración incompatible o referencia ambigua
+se diagnostica sin acciones de esa línea; no se inventa una forma faltante ni se borra
+el modelo. La declaración preserva formas sin uso actual; el marcador distingue cada
+ocurrencia aun cuando coexistan los dos nombres o coincidan varias formas de presentación.
+
+La elección de singular/plural es estática. Ausente, `1`, `?` y la frase singular
+específica `+` de Tabla16 conservan singular; `*`, muchos, `2..*`, cero, enteros desde2,
+uniones/rangos que requieren plural y expresiones simbólicas usan la forma declarada.
+Las expresiones puramente constantes cuyo resultado es el entero 1, así como rangos
+o uniones cuyo único valor posible es 1, conservan singular. La presencia de operadores
+no determina plural; el análisis estático no ejecuta restricciones ni bindings.
+No se ejecutan restricciones para elegirla. La tensión de `+` con la regla general de
+§11.1 queda declarada: no se produce `al menos una Ollas`. El proceso sujeto conserva
+consume/genera/afecta/requiere; el agente sujeto plural concuerda (manejan/inician).
+Las listas AND conservan su concordancia y sus nombres/estados por miembro. El default
+UNI concuerda con su sujeto (se relaciona/se relacionan con), preservando la distinción
+B38 de etiqueta ausente/expresa. No se conjuga ni modifica arbitrariamente una etiqueta
+libre del autor; la responsabilidad lingüística de su dato se mantiene.
+
+Una forma necesaria ausente conserva N/JSON/guardado y la recuperación legacy sin
+fabricación. G mantiene expresión de recuperación con diagnóstico de incompletitud;
+el export canónico de documento exige completarla. El OPD, que conserva el nombre
+canónico y su anotación de cantidad, no se renombra para resolver una deuda de OPL.
+La validación lingüística final de una forma elegida corresponde al autor. Esta
+condición no permite borrar semillas, rebajar aserciones ni declarar ISO a los marcadores.
+
+**Excepción de producto a DEC53: default UNI plural.** El default efectivo B38 es
+la etiqueta ausente o el literal reservado singular `se relaciona con`; los campos
+originales siguen intactos en N/JSON/v0. En todas las formas UNI ofrecidas —unitarias
+y listas cerradas, con estados propios de origen, destino o ambos—, sólo cuando el
+sujeto tiene forma plural explícita, referencia canónica y cantidad que requiere plural,
+G emite el literal default sin delimitadores: `2 **Piezas** [nombre: «Pieza»] se relacionan con **Destino**.`
+La etiqueta libre `se relacionan con` sigue siendo otro hecho y se emite citada:
+`2 **Piezas** [nombre: «Pieza»] «se relacionan con» **Destino**.` P no la convierte en ausencia.
+Los otros casos de default conservan `«se relaciona con»`; la elección no depende del
+orden de miembros ausentes/reservados. No cambia bidireccionales, recíprocos, el léxico,
+la interpretación legacy sin referencia plural, los campos guardados, tokens/ref/hecho/ID
+ni el OPD. Se preserva exclusivamente la equivalencia singular ya declarada en B38.
+Aceptación: textos y hechos distintos default/libre plural; unidad/lista, estados en
+ambos extremos, cantidades y restricciones, orden permutado, inversa desde vacío,
+auto-no-op, edición por ID y códec íntegro. Es una excepción textual de producto, no ISO.
+
+**Cantidad de cada rama de común objeto.** Sólo para un abanico válido cuyo dato no cabe
+en su plantilla homogénea, se admite una oración de producto con ramas completas:
+`Exactamente uno de *Ensamblar* [*Ensamblar* consume «n» **Piezas** [nombre: «Pieza»]] o *Reparar* [*Reparar* consume «m» **Piezas** [nombre: «Pieza»]].`
+OR usa `Al menos uno de`. Cada interior es una sola producción de enlace sin punto final,
+con proceso igual al miembro exterior, mismo objeto común, firma y operador; conserva
+su cantidad, restricciones y referencias. No genera dos enlaces por repetir el proceso.
+Se usa la producción correspondiente de consumo/resultado/efecto/agente/instrumento;
+no se inventa verbo inverso. Las variantes homogéneas existentes siguen si son exactas.
+
+Es extensión textual; se levanta sólo la faceta de B04 relativa a la cantidad del común
+objeto que carecía de hueco, incluida la desigualdad entre ramas. DEC29 sigue íntegra:
+común en borde de cosa, nunca estado, mismo operador/membresía/IDs, arcos/recortes actuales.
+No FANLOCAL, vértices, empaquetado, radios adaptativos ni nueva representación gráfica.
+`c`, el todo de agregación y las firmas independientes de B05/B06/B08 conservan sus
+límites DR44. Cantidad heterogénea no crea un estado, proceso cuantificado ni operador AND.
+
+Aceptación: núcleo/UI, declaración sin uso, Pieza/Piezas coexistentes, invariantes y
+compuestos, edición/rename/undo, ambas direcciones, qty/estado/restricción por miembro;
+XOR/OR de2/3/4 ramas y permutaciones, controles homogéneos, negativos DEC29/DR44,
+roundtrip desde vacío, auto-no-op/IDs/v0 fijo, check íntegro, e2e, SVG/HTML genuinos,
+inspección visual individual y revisión independiente global del candidato exacto.
+No se declara B42 enforzada por adoptar el documento; requiere implementar y aceptar.
 
 ### 4.4.12 Frontera entre etiqueta libre y cantidad (extensión de producto)
 
@@ -855,8 +1010,9 @@ origen y `conoce` con cantidad origen `*`. No se prohíben ni se recortan estas 
 
 G delimita uniformemente cada etiqueta de los estructurales etiquetados: UNI, listas UNI
 cerradas, las dos direcciones del bidireccional, recíproco con etiqueta y formas con estado.
-Incluye el literal efectivo `se relaciona con` de UNI sin etiqueta; el recíproco sin etiqueta
-conserva el literal fijo `se relacionan`. La ausencia y el valor explícito de la etiqueta por
+Incluye el literal efectivo `se relaciona con` de UNI sin etiqueta, salvo la excepción
+plural precisa de §4.4.11b; toda etiqueta libre conserva delimitadores. El recíproco sin
+etiqueta conserva el literal fijo `se relacionan`. La ausencia y el valor explícito de la etiqueta por
 defecto conservan su equivalencia vigente B-38, sin normalizar campos JSON. Ejemplos:
 `**Origen** «conoce 3» **Destino**.` / `**Origen** «conoce» 3 **Destino**.` /
 `**Origen** opcionales «conoce» **Destino** opcionales.` Los delimitadores no forman parte
@@ -1430,6 +1586,12 @@ Brechas de bisimetría declaradas por el producto (R-§19-ROT-1): (1) procedenci
 
 Método de parseo recomendado (el más simple conforme, DR-1): (1) normalizar; (2) tokenizar la línea en spans tipográficos (**objeto**, *proceso*, `estado`) y texto; (3) sustituir spans por huecos tipados y buscar el **esqueleto** en la tabla de plantillas de §4.4 (lista blanca); listas por patrón `{X}(, {X})* (y|e|o|u) {X}`; (4) enlazar huecos a entidades por nombre (crear según R-IMPORT-2/3); (5) validar con la matriz §2 (el mismo validador que el canvas); (6) producir patches. Una línea `**A** <frase en minúscula> **B**.` (u homóloga con *procesos*) que no calza con ningún esqueleto reservado es SE1 con esa etiqueta (DR-36).
 
+La importación sobre una base privada fresca consume el resultado nativo del ensayo final
+de esa misma llamada, sin repetir las operaciones ni retener respuestas. Modelo, acciones,
+patches, creados y trazas se reinician juntos al excluir una línea; equivalen al replay
+público en orden y contenido. El preview del editor sigue siendo puro y `aplicarPlan`
+conserva su ejecución separada y guarda de identidad (T-173); DS20 no se omite.
+
 ### 4.11 Estructura de la línea OPL (panel e interacción)
 
 ```ts
@@ -1706,7 +1868,7 @@ Más (producto, DR-35): `crear-refinamiento` / `fijar-orden` para `se descompone
 |---|---|---|
 | R-OPL-EDIT-4, R-OPL-FALLO-8 | Una línea ausente NO borra un hecho (`no-delete-by-absence`, info). | NO DEBE |
 | R-OPL-EDIT-6 | Creación de enlace idempotente: si existe la tripla (tipo, origen, destino) se reusa. | DEBE |
-| R-OPL-EDIT-7 | Inline limitado a: `renombrar-entidad`, `renombrar-estado`, `fijar-etiqueta-enlace`, `abrir-inspector-enlace` (no muta); validar que el id exista; lo más rico va al editor libre o al inspector. | DEBE / NO DEBE |
+| R-OPL-EDIT-7 | Inline limitado a: `renombrar-entidad`, `renombrar-estado`, `fijar-etiqueta-enlace`, `abrir-inspector-enlace` (no muta) y `fijar-forma-plural` de DEC56 (setter escalar por ID del objeto y metadato del token, §4.4.11b). Validar que el id exista; lo más rico va al editor libre o al inspector. | DEBE / NO DEBE |
 | R-OPL-EDIT-8 | Etiqueta, control y tiempos solo por las operaciones validadas del kernel (una sola API de mutación para OPD y OPL). | DEBE / NO DEBE |
 | R-OPL-EDIT-9 | Editar una oración compuesta (listas) = mutación por hecho: solo mutan los hechos cuyos sub-spans cambiaron. | DEBE |
 
@@ -1931,7 +2093,7 @@ Los ★ con obligación PUEDE o inferida son soportes necesarios de un DEBE ★ 
 | T-054 | Abanico: n ≥ 2, mismo tipo, extremo común; solo en consumo, resultado, efecto, agente, instrumento e invocación (convergente o divergente). | inf. DEBE | imp | spec-OPL §8.1, reglas §7.2, R-FAN-HAB-1, DR-9 | ★ |
 | T-055 | Abanicos de resultado e invocación sin `e`/`c`. | DEBE bloquearse | imp | AP-03, R-OPD-CTL-8, R-FAN-4 | ★ |
 | T-056 | Abanico con control mixto: rechazar como `non-canonical`. Abanico×control listado como válido pero sin plantilla literal (C-19b, C-18 instrumento, agente): no ofrecer; parser `unsupported-canonical`. | DEBE / NO DEBE | imp | R-ZNC-COMB-1, R-COMB-1, R-FAN-3, R-IMPORT-5, spec-OPL §8.3/§8.4 | |
-| T-057 | Multiplicidad solo en etiquetados (ambos extremos), agregación (extremo parte) y procedimentales (extremo objeto); nunca en extremo proceso; valores `?`, `*`, `+`, `2..*`, entero n ≥ 2, `muchos` y parámetro simple global (§4.4.11; ausente = 1..1); no se ofrece junto con `c` (sin hueco en A.6, DR-44). | DEBE / NO DEBE / NUNCA | imp | R-MULT-1/1A, R-OPD-MUL-1, R-COMB-6, EBNF A.5/A.6/A.8/A.9, DR-21, DR-44 | |
+| T-057 | Multiplicidad solo en etiquetados (ambos extremos), agregación (extremo parte) y procedimentales (extremo objeto); nunca en extremo proceso; valores `?`, `*`, `+`, `2..*`, `muchos`, enteros no negativos, parámetros, rangos/uniones/expresiones y restricciones (§4.4.11a; ausente = 1..1); no se ofrece junto con `c` (sin hueco en A.6, DR-44). | DEBE / NO DEBE / NUNCA | imp | R-MULT-1/1A, R-OPD-MUL-1, R-COMB-6, EBNF A.5/A.6/A.8/A.9, DR-21, DR-44 | |
 | T-058 | Ruta solo en consumo y resultado (restricción de producto declarada); etiqueta definida por el modelador, nunca autogenerada. | DEBE / NO DEBE | imp | R-OPL-RUTA-2/3, DR-19 | |
 | T-059 | Nada dentro de un estado; ningún estado dentro de un proceso. | inf. DEBE | imp | reglas §3.11, R-OPD-COSA-7, AP-12 | ★ |
 | T-060 | Consumo y resultado no quedan en un contorno con subprocesos. Ningún evento sistémico exterior al contorno inicia directamente un subproceso a ningún nivel; puede iniciar el proceso completo. El ambiental PUEDE cruzar el contorno (B-44, DEC48). | NO DEBE / PUEDE | imp | R-DIST-1, R-CX-DIST-1/2, AP-06, AP-21 | ★ |
@@ -2004,7 +2166,7 @@ Los ★ con obligación PUEDE o inferida son soportes necesarios de un DEBE ★ 
 | T-125 | Descomposición en el OPD hijo: CX1 (secuencial), CX2 (una banda paralela) o mixta; sin rayos de invocación implícita. | DEBE | gen | reglas §4.11, R-OPL-CX-5, R-IV-2, DR-24 | ★ |
 | T-126 | Despliegue en el OPD hijo: CX3 `**Cosa** se despliega en SDx en …`; nunca `en esa secuencia` ni `paralelo`. | DEBE / NO DEBE | gen | reglas §4.11, R-OPL-CX-2, R-CX-DESP-2, R-CX-SYNC-2, DR-24 | ★ |
 | T-127 | Sin oración de refinamiento sin refinadores ni para OPD semidescompuesto; con uno se emite. | NO DEBE | gen | R-CX-0, R-OPD-OP-3 | ★ |
-| T-128 | Cantidad como sub-span propio: frase/entero/parámetro antepuesto y `opcional/opcionales` pospuesto al objeto con estado; `muchos/muchas` sin cota, género y símbolo global exactos; delimitación de parámetro sólo en superficie de producto (DEC54); nunca glifos de opcionalidad crudos. | DEBE | gen | R-MULT-1, spec-OPL §10.1/§10.3 | |
+| T-128 | Cantidad como sub-span propio: frase/entero/parámetro antepuesto y `opcional/opcionales` pospuesto al objeto con estado; `muchos/muchas` sin cota, género y símbolo global exactos; parámetro delimitado (DEC54), matemática/restricción (DEC55), plural explícito por ID y ramas cuantificadas de común O (DEC56); nunca glifos de opcionalidad crudos. | DEBE | gen | R-MULT-1, spec-OPL §10.1/§10.3 | |
 | T-129 | Ruta como prefijo fijo `Por ruta L, ` antepuesto a la oración completa (también a su variante E\*/C\*), con orden estable; listas AND sólo con ruta común; las ramas de abanico con ruta se emiten separadas (DS10). | DEBE / NO DEBE | gen | R-OPL-RUTA-1, R-COMB-4, R-COMB-5, spec-OPL §11, C-24 | |
 | T-130 | Listas con coma y `y`/`o` final sin coma de Oxford; alternancia `e`/`u` por fonética. | DEBE | gen | R-OPL-LISTA-1, R-OPL-KW-2, R-§18-LISTA-1, DR-26 | ★ |
 | T-131 | En cada OPD, coordinar miembros estructurales del mismo vértice y relación con sus referencias individuales. | DEBE | gen | R-COMP-EJE-3, R-COMP-ELEG-3 | ★ |
@@ -2054,7 +2216,7 @@ Los ★ con obligación PUEDE o inferida son soportes necesarios de un DEBE ★ 
 | T-180 | Aplicación fail-fast y atómica (todo o nada sobre copia del modelo). | DEBE | par | R-OPL-FALLO-2, DR-39 | ★ |
 | T-181 | Patches aplicados en tres fases: no-enlace, enlace, abanicos. | DEBE | par | R-OPL-EDIT-5 | ★ |
 | T-182 | Creación de enlace idempotente sobre (tipo, origen, destino). | DEBE | par | R-OPL-EDIT-6 | ★ |
-| T-183 | Edición inline limitada a renombrar entidad, renombrar estado, fijar etiqueta de enlace y abrir inspector; valida el id antes de mutar. | DEBE / NO DEBE | int | R-OPL-EDIT-7 | |
+| T-183 | Edición inline limitada a renombrar entidad/estado, fijar etiqueta, abrir inspector y fijar/retirar forma plural explícita (DEC56, dato indicado por el token, nunca nombre canónico); valida el id antes de mutar y confirmar sin cambio es no-op. | DEBE / NO DEBE | int | R-OPL-EDIT-7 | |
 | T-184 | Editar una oración de lista muta solo los hechos cuyos sub-spans cambiaron. | DEBE | par | R-OPL-EDIT-9 | ★ |
 | T-185 | Líneas solo-display (rótulos de bloque, numeración) no generan patches; frontera display/parseable explícita. | NO DEBE / DEBE | par | R-§19-DISP-1/2, R-§21-OPL-DISP | ★ |
 
@@ -2064,7 +2226,7 @@ Los ★ con obligación PUEDE o inferida son soportes necesarios de un DEBE ★ 
 |---|---|---|---|---|---|
 | T-190 | Toda afirmación gráfica reproducible como OPL y toda oración OPL aceptada representable como constructo OPD. | DEBE | ver | R-BI-DUAL-1, R-OPD-BIM-1 | ★ |
 | T-191 | `parsear(generar(m))` sin diagnósticos `error` para todo modelo válido. | DEBE | ver | R-§19-SIM-1 | ★ |
-| T-192 | Roundtrip estricto desde modelo vacío: `generar(m) == generar(aplicar(parsear(generar(m))))` línea a línea, para todas las filas de la tabla 9.2 y lo soportado. | EXIGE | ver | R-§19-SIM-3, R-BI-TAB-1 | ★ |
+| T-192 | Roundtrip estricto desde modelo vacío: `generar(m) == generar(aplicar(parsear(generar(m))))` línea a línea, para todas las filas de la tabla 9.2 y lo soportado. La corrección conserva todos los casos/aserciones; el presupuesto separado de rendimiento es mediana de cinco identidades frescas tras calentar otra, sin respuesta cacheada, límite 3000 ms (decisiones: política de rendimiento/T-192). | EXIGE | ver | R-§19-SIM-3, R-BI-TAB-1 | ★ |
 | T-193 | Bisimetrías parciales declaradas (escisión, borrado, layout) y marcadas no estrictas. | DEBE | ver | R-§19-ROT-1 | ★ |
 | T-194 | `parsear(componer(F)) = F` para toda oración de lista. | DEBE | ver | R-§19-COMP-1, R-COMP-REV-1/2 | ★ |
 | T-195 | Roundtrip preserva el hecho, no la superficie literal. | DEBE | ver | R-BI-4 | ★ |
@@ -2201,7 +2363,7 @@ Criterio de resolución: (1) precedencia del canon (§0.3); (2) si el canon no d
 | DR-9 | Abanicos de habilitadores: spec-OPD «agente e instrumento solo admiten divergente» vs reglas R-FAN-HAB-1 (convergentes canónicos, AND por defecto) y §7.2/§7.3; «extremo convergente» indefinido en divergentes. | R-OPD-CTL-7 vs R-FAN-HAB-1, R-FAN-GEO-1/2 | Reglas manda: XOR/OR en ambas direcciones para agente/instrumento; AND = enlaces planos. Arco en el **extremo común** (definición del glosario de spec-OPD). |
 | DR-10 | Especialización XOR: plantillas RX1/RX2 ponen al especial como sujeto y a generales exclusivos; los ejemplos «Correcto» ponen al general como sujeto con especializaciones. | reglas §4.10 RX1/RX2 vs spec-OPL R-VERB-EST-2, R-EST-GEN-1, §6.3 | Semántica irresuelta: **diferir** (no se ofrece; parser `unsupported-canonical`; registro). Pedir decisión al dueño. |
 | DR-11 | Placeholders: R-ENT-2 prohíbe emitir OPL para nombres placeholder; solo se enumeran los de proceso; GAP-PLACEHOLDER-OBJETO. | R-ENT-2, GAP-A15 | La cosa/estado nace con nombre (edición inline al crear; si se cancela, no se crea). Placeholder = «marcador de span pendiente … sin nombre» (spec-OPL Definiciones): sin cosas sin nombre no hay placeholders; los nombres que escribe el usuario no se filtran por patrón (la lista `Objeto`/`Proceso N` es heurística de v0). R-ENT-2 queda vacío por construcción; R-ENT-2-APUNTE solo aplica si hay régimen Apunte (no ofrecido). |
-| DR-12 | Plural «por multiplicidad» (`*Proceso* consumen **Objetos**`, `*Procesos* generan …`) incoherente y contrario a R-MULT-1A; la EBNF mantiene verbos en singular. Género sin campo. | spec-OPL §3/§4, R-MULT-COMB-1 vs R-MULT-1A, EBNF A.5 | Nunca verbos en plural; la multiplicidad es frase antepuesta al objeto (EBNF). Formas plurales ⇒ `unsupported-canonical`. Género: campo opcional `genero: 'f'` (default masculino, R-OPL-1). |
+| DR-12 | La cantidad no cuantifica procesos; inferir un nombre canónico desde un plural pierde identidad. | spec-OPL §3/§4, R-MULT-COMB-1 y R-MULT-1A, EBNF A.5; DEC56 | Cantidad antepuesta al objeto. DEC56 ofrece forma plural explícita por ID, metadato y referencia canónica (§4.4.11b); proceso sujeto mantiene singular, agente plural concuerda. Sin forma necesaria conserva recuperación/diagnóstico y exige completarla para documento canónico. Género: `genero: 'f'` opcional (default masculino, B38). |
 | DR-13 | Enlaces del padre tras descomponer: lectura distributiva del contorno e identidad del hecho a través de la migración; vista del padre. | reglas §8.5, R-OPD-REF-6/11, R-VIS-HIJO-1, R-OPD-OP-4, R-OPL-DISP-3 | Un solo hecho por enlace: agente, instrumento y efecto sin estado quedan en **contorno** con lectura distributiva (sin copias); consumo, resultado y TS3 migran (mismo id) o se escinden. El evento inicia el proceso completo, sin propagar `e`; si una migración crearía un cruce exterior, se rechaza (§3.2). La vista padre se **deriva** abstrayendo extremos internos (§3.5). |
 | DR-14 | La tabla de distribución no cubre invocación ni excepción del proceso descompuesto (R-HIJO-2 «cuando la regla de copia lo exija»). | GAP-29 reglas-b | Permanecen en el contorno; sin migración. |
 | DR-15 | LF-03 (punto 6) escribe la visibilidad como «`Estado.suprimido` global **∧** local (global domina, local refina)», ambiguo; R-OPD-EST-8 la escribe bien: «visibilidad efectiva = ¬suprimido-global ∧ ¬suprimido-local» (≡ oculto ⇔ global ∨ local). R-VIS-SUPR-1 / R-OPD-EST-10 dicen «estados no referenciados NO se suprimen» (probable errata frente a LF-03/A3.6); supresión computada «solo en descomposición»; estatus del chip `⋯N` condicional. | LF-03, R-VIS-SUPR-1, R-OPD-EST-8/9/10, C-09 | Oculto ⇔ global ∨ local. Un estado enlazado en un OPD no se suprime ahí (LF-03). Sin supresión computada automática: la decide el modelador por OPD. El chip `⋯N` persiste en `canon-diagrama` (indicador normativo de reglas §3.10) y el OPL usa D6. |
@@ -2210,7 +2372,7 @@ Criterio de resolución: (1) precedencia del canon (§0.3); (2) si el canon no d
 | DR-18 | Unidades de duración en inglés (`ms, sec, min…`) en canon es-CL; R-OPD-INV-6 dice que ese enum «fija solo la superficie visual» y delega la textual a spec-OPL §5.3, cuyos ejemplos normativos usan palabras es-CL (`excede 5 minutos`, `es menor que 30 segundos`) sin tabla de mapeo; EBNF fija el literal `unidades-tiempo` mientras §5.3 lo declara metavariable. | R-OPD-INV-6, spec-OPL §5.3, EBNF A.5, C-11 | OPD: token del enum (`[min]`). OPL: `<valor> <palabra es-CL>` con mapeo fijo mínimo `ms`→milisegundos, `sec`→segundos, `min`→minutos, `hour`→horas, `day`→días, `week`→semanas, `month`→meses, `year`→años (singular si el valor es 1). `unidades-tiempo` = metavariable; la EBNF se corrige así. Sin cota: frase de respaldo (R-EXC-DUR-1). El mapeo exacto es decisión pendiente menor del dueño (§10.3). |
 | DR-19 | Ruta: canónica sobre toda oración procedimental (A.5) pero «restricción de producto» a consumo/resultado; ¿qué hace el parser con ruta sobre habilitadores? | R-OPL-RUTA-3, C-25, GAP-08 | Se mantiene la restricción declarada: ruta solo en consumo/resultado; otras ⇒ `unsupported-canonical`. |
 | DR-20 | Valores de atributo: plantilla propia `**Atributo** de **Objeto** puede estar …` y D5 genérico. | reglas §4.13 vs D5 | Generador usa D5 (el atributo es un objeto); parser acepta ambas (la forma «de **Objeto**» crea la exhibición si falta). |
-| DR-21 | La superficie de cardinalidad anterior usaba prefijos opcionales y no ofrecía parámetros. | canon §6.7/spec-OPL §10; DEC35/43/53/54 | B-42 emite opcional pospuesto, opcionales, muchos y parámetro simple global delimitado (§4.4.11); P conserva legacy unívoco. B-10 conserva rangos/aritmética/restricciones y nombres adicionales; exhibición no tiene cantidad. No inflexión de nombres (DR12) ni bindings. |
+| DR-21 | La superficie de cardinalidad anterior usaba prefijos opcionales y no ofrecía parámetros. | canon §6.7/spec-OPL §10; DEC35/43/53/54 | B-42 emite opcional pospuesto, opcionales, muchos y parámetro simple global delimitado (§4.4.11); P conserva legacy unívoco. DEC55 completa rangos, aritmética, restricciones y nombres citados (§4.4.11a); exhibición no tiene cantidad. DEC56 realiza plural/identificación explícitos (§4.4.11b); no se crean bindings. |
 | DR-22 | Unicidad nominal vs `referencia-ambigua` («más de una entidad con ese nombre») y «homónimos → cosas separadas». | método A5.15, R-OPL-FALLO-4, R-OPD-ROT-5 | Nombre único en todo el modelo (objetos y procesos); la ambigüedad es imposible; un cambio de tipo por OPL cae en R-IMPORT-7. |
 | DR-23 | Descomposición de objeto: DEBE (R-OPL-CX-4) pero la EBNF le exige `, en esa secuencia`, contra «la posición NO es tiempo». | EBNF A.10 vs R-OPD-REF-2, R-CX-DESP-2, método A3.3 | Escalonable: se declara en el registro (las partes se modelan por despliegue de agregación). Si se implementa, sin marca temporal (corrige la EBNF). |
 | DR-24 | CX1 (sin OPDs) es plantilla-gate, pero R-OPL-CX-2/3 exigen declarar OPD padre/hijo en refinamiento en OPD nuevo; CX3 lleva etiqueta; spec-OPL distingue el despliegue en el diagrama original del despliegue en un hijo nuevo. | reglas §4.11, 9.2, R-OPL-CX-2/3, spec-OPL §7.2, ISO §14.2.1.2/A.4.7.1 | Refinamiento siempre en OPD nuevo. Descomposición: CX1/CX2/mixta dentro del bloque del hijo. Despliegue: CX3 con etiqueta y las relaciones fundamentales agrupadas elegibles, conservando el modo y las referencias por miembro (B-41). El parser acepta además las formas `desde SDp … en SDh en …` y `se despliega en` sin etiqueta. |

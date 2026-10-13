@@ -86,8 +86,8 @@ test('T-152 análisis puro memoizado conserva líneas y hechos ante intercalaci�
 });
 
  test('T-150 sólo fuera de spans normaliza comillas curvas y operadores Unicode',()=>{
-  const l=caso('**Nombre “≤”** “conoce” **Otro** ∈.');expect(l.texto).toBe('**Nombre “≤”** "conoce" **Otro** in.');
-  expect(caso('*Validar* ≤ ≥ ≠ ∈ **Pedido**.').texto).toBe('*Validar* <= >= != in **Pedido**.');
+  const l=caso('**Nombre “≤”** “conoce” **Otro** ∈.');expect(l.texto).toBe('**Nombre “≤”** "conoce" **Otro** en.');
+  expect(caso('*Validar* ≤ ≥ ≠ ∈ **Pedido**.').texto).toBe('*Validar* <= >= != en **Pedido**.');
  });
  test('T-151 residual SE1 exige extremos del mismo tipo tipográfico',()=>{
   for(const s of ['**Pedido** guarda *Validar*.','*Validar* guarda **Pedido**.']){expect(caso(s).hechos).toEqual([]);expect(caso(s).diagnosticos[0]?.codigo).toBe('syntax-error');}

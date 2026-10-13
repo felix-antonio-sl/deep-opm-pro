@@ -81,6 +81,10 @@ Estas leyes se prueban sobre todos los fixtures y 200 modelos de `pruebas/azar.t
    - **El nombre se conserva tal cual**, salvo la forma NFC (`normalizado` si cambió). No se
      recorta, no se capitaliza ni se desambigua (DS-7): duplicados y nombres fuera del léxico se
      diagnostican (§4.4) y llevan su reparación sugerida.
+   - `nombrePlural` opcional de objeto se conserva en NFC, con normalización informada
+     si cambia (DEC56). Se valida con el léxico de cosa después de NFC; no se infiere ni
+     se recorta. Tipo no textual, forma inválida o propiedad en proceso rechazan el
+     documento, conservando íntegra la entrada; no se descarta la forma para importarlo.
    - `descripcion` y `genero` (`"f"`) se conservan.
    - `valorSlot.valor` pasa a `valor` (texto). `valorSlot` sin valor va a `ignorado`, y su `tipo`
      distinto de `string` a `descartado`. Un `valor` de un objeto que, tras la etapa 7, no es rasgo
@@ -302,7 +306,8 @@ Estas leyes se prueban sobre todos los fixtures y 200 modelos de `pruebas/azar.t
 #### 3.4.3 Forma exacta emitida por `exportarV0`
 
 - Mismas claves y valores del núcleo v0 donde el concepto existe. Hay campos nuevos solo donde v0
-  no tiene concepto (DR-41): `unidadTiempo`, `genero`, `duracion` y `coleccionIncompleta`.
+  no tiene concepto (DR-41): `unidadTiempo`, `genero`, `duracion`, `coleccionIncompleta`
+  y `nombrePlural` opcional de entidad objeto (DEC56).
 - **Cotas de excepción también en el enlace** (CC-13): v0 guarda la cota en el enlace
   (`tiempoMaximo`/`unidadTiempoMaximo` en sobretiempo, `tiempoMinimo`/`unidadTiempoMinimo` en
   subtiempo) y así la leen los consumidores externos y el stack viejo en un rollback. El export las
@@ -321,7 +326,7 @@ Estas leyes se prueban sobre todos los fixtures y 200 modelos de `pruebas/azar.t
     "id": "m-3f9a1c0d2b7e", "nombre": "Despacho", "descripcion": "…", "unidadTiempo": "sec",
     "opdRaizId": "opd-1", "nextSeq": 42,
     "entidades": {
-      "o-3": { "id": "o-3", "tipo": "objeto", "nombre": "Pedido", "esencia": "informacional",
+      "o-3": { "id": "o-3", "tipo": "objeto", "nombre": "Pedido", "nombrePlural": "Pedidos", "esencia": "informacional",
                "afiliacion": "sistemica", "descripcion": "…", "genero": "f",
                "valorSlot": { "tipo": "string", "placeholder": "value", "valor": "12" },
                "coleccionIncompleta": ["agregacion"] },

@@ -48,8 +48,22 @@ caso('T-011 DS-20 rechaza error nuevo; tolera viejo y compara refs', () => {
     expect(transaccion(ordenados, tx => tx.modelo({ nombre: 'error:o-2,o-1' })).ok).toBe(true);
     expect(transaccion(entrada, tx => tx.modelo({ nombre: 'error:o-1' }), { permiteErroresNuevos: true }).ok).toBe(true);
 });
+caso('T-011 DS-20 admite reparar el error previo con salida válida y conserva trazas e identidad', () => {
+    const viejo = congelar({ ...entrada, nombre: 'error:o-1' }), antes = JSON.stringify(viejo);
+    const traza = { regla: 'producto', mensaje: 'Reparado', refs: [] };
+    const r = transaccion(viejo, tx => { tx.modelo({ nombre: 'Reparado' }); tx.traza(traza); });
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    expect(r.valor.modelo.nombre).toBe('Reparado');
+    expect(r.valor.modelo.id).toBe(viejo.id);
+    expect(r.valor.modelo.cosas).toBe(viejo.cosas);
+    expect(r.valor.modelo.opds).toBe(viejo.opds);
+    expect(r.valor.creados).toEqual([]);
+    expect(r.trazas).toEqual([traza]);
+    expect(JSON.stringify(viejo)).toBe(antes);
+});
 caso('T-011 operaciones aplican secuencia atómica y preservan entrada', () => {
-    expect(Object.keys(OPERACIONES).length).toBe(47);
+    expect(Object.keys(OPERACIONES).length).toBe(48);
     expect(aplicarAcciones(entrada, [])).toEqual({ ok: true, valor: { modelo: entrada, creados: [] }, trazas: [] });
     const r = aplicarAcciones(entrada, [{ op: 'renombrarModelo', args: { nombre: 'Nuevo' } }, { op: 'fijarUnidadTiempo', args: { unidad: 'hour' } }]);
     expect(r.ok).toBe(true);

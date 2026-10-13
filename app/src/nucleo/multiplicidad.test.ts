@@ -57,17 +57,36 @@ for (const parametro of ['e', 'o', 'u', 'y'])
     });
 
 for (const valor of ['0', '1', '2..5', 'n..m', 'n + 1', 'n; n>=1', 'n/', 'un', 'una', 'Muchos', 'muchas', 'Infinity', 'NaN'])
-    test(`T-057 B-10 B-42 límite de realización declarado: ${valor}`, () => {
-        expect(esMultiplicidad(valor)).toBe(false);
+    test(`T-057 B-10 B-42 DEC55 conserva el caso histórico y su nueva oferta: ${valor}`, () => {
+        const ofrecido = valor !== 'n/';
+        expect(esMultiplicidad(valor)).toBe(ofrecido);
         const b = modeloCon({ objetos: [['Pedido', []]], procesos: ['Preparar'], enlaces: [['consumo', 'Pedido', 'Preparar']] });
         const antes = exportarV0(b), r = fijarMultiplicidad(b, { enlace: Object.keys(b.enlaces)[0]!, extremo: 'objeto', valor: valor as Multiplicidad });
-        expect(r.ok).toBe(false); expect(exportarV0(b)).toBe(antes);
+        expect(r.ok).toBe(ofrecido); expect(exportarV0(b)).toBe(antes);
+        if (r.ok) {
+            const esperado = valor === 'n + 1' ? 'n+1' : valor;
+            expect(Object.values(r.valor.modelo.enlaces).map(e => 'mult' in e ? e.mult : undefined)).toEqual([esperado]);
+            const texto = generarDocumentoOpl(r.valor.modelo), reconstruido = must(importarOpl(b.nombre, texto));
+            expect(Object.values(reconstruido.modelo.enlaces).map(e => 'mult' in e ? e.mult : undefined)).toEqual([esperado]);
+            expect(planificar(r.valor.modelo, 'modelo', texto).acciones).toEqual([]);
+            const json = exportarV0(r.valor.modelo), fijo = importarV0(json);
+            expect(fijo.ok).toBe(true); if (fijo.ok) expect(exportarV0(fijo.modelo)).toBe(json);
+        }
     });
 
 for (const palabra of ['Infinity', 'NaN', 'un', 'una'])
-    test(`T-150 T-173 B-42 no descarta un prefijo de cantidad no ofrecido: ${palabra}`, () => {
+    test(`T-150 T-173 B-42 DEC55 prefijo completo sin confundir no finito y uno explícito: ${palabra}`, () => {
         const texto = '*Preparar* consume ' + palabra + ' **Pedido**.', l = analizar(texto)[0]!;
-        expect(l.texto).toBe(texto); expect(l.hechos).toEqual([]); expect(l.diagnosticos.length).toBeGreaterThan(0);
+        expect(l.texto).toBe(texto);
         const b = modeloCon({ objetos: [['Pedido', []]], procesos: ['Preparar'] }), antes = exportarV0(b);
-        expect(planificar(b,b.raiz,texto).acciones).toEqual([]); expect(exportarV0(b)).toBe(antes);
+        if (palabra === 'un' || palabra === 'una') {
+            expect(l.diagnosticos).toEqual([]); expect(l.hechos).toHaveLength(1);
+            const r = must(importarOpl(b.nombre, '# Prueba\n\n## SD\n' + texto));
+            expect(Object.values(r.modelo.enlaces).map(e => 'mult' in e ? e.mult : undefined)).toEqual(['1']);
+            expect(planificar(b,b.raiz,texto).acciones.length).toBeGreaterThan(0);
+        } else {
+            expect(l.hechos).toEqual([]); expect(l.diagnosticos.length).toBeGreaterThan(0);
+            expect(planificar(b,b.raiz,texto).acciones).toEqual([]);
+        }
+        expect(exportarV0(b)).toBe(antes);
     });

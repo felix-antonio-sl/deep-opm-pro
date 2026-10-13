@@ -170,10 +170,12 @@ test('T-056 tres controles con plantilla y alternativas sin plantilla', () => {
         expect(noOfrecido(n, n.enlaces['e-101']!, n.abanicos['f-110']!)?.registro).toBe('B-08');
     }
 });
-test('T-057 multiplicidad con c, TS y SSE no ofrecida; mult ordinaria legal', () => {
+test('T-057 c conserva B-04; TS y SSE con cantidad conservan sus huecos', () => {
     const m = base(), a = ids(m)[0]!, p = ids(m)[3]!;
-    for (const e of [{ tipo: 'consumo', objeto: a, proceso: p, mult: '+', control: 'c' }, { tipo: 'efecto', objeto: a, proceso: p, mult: '+', entrada: s(m) }, { tipo: 'etiquetado', origen: a, destino: ids(m)[1]!, multDestino: '+', estadoOrigen: s(m) }] as const)
+    for (const e of [{ tipo: 'consumo', objeto: a, proceso: p, mult: '+', control: 'c' }] as const)
         expect(noOfrecido(m, e)?.registro).toBe('B-04');
+    expect(noOfrecido(m, { tipo: 'efecto', objeto: a, proceso: p, mult: '+', entrada: s(m) })).toBeNull();
+    expect(noOfrecido(m, { tipo: 'etiquetado', origen: a, destino: ids(m)[1]!, multDestino: '+', estadoOrigen: s(m) })).toBeNull();
     expect(noOfrecido(m, { tipo: 'consumo', objeto: a, proceso: p, mult: '+', control: 'e' })).toBeNull();
 });
 test('T-058 ruta solo consumo/resultado y no vacía', () => { const m = base(); expect(violacionesForma(m, { tipo: 'consumo', objeto: ids(m)[0]!, proceso: ids(m)[3]!, ruta: 'L' })).toEqual([]); expect(violacionesForma(m, { tipo: 'consumo', objeto: ids(m)[0]!, proceso: ids(m)[3]!, ruta: '' }).length).toBeGreaterThan(0); expect(violacionesForma(m, { ...enlace(m, 'instrumento'), ruta: 'L' } as unknown as Enlace).length).toBeGreaterThan(0); });
@@ -253,8 +255,8 @@ test('T-041 import con campos de estado ajenos a la fila se rechaza', () => {
 });
 test('T-057 DEC35 B-42 multiplicidad etiquetada ofrece cantidades, muchos y parámetro simple; rechaza fuera del subconjunto', () => {
     const m = base(), con = (multOrigen: string) => violacionesForma(m, { tipo: 'etiquetado', origen: ids(m)[0]!, destino: ids(m)[1]!, multOrigen } as unknown as EnlaceNuevo);
-    for (const v of ['?', '*', '+', '2..*', '2', '9', '12', '999999', '1000000', '9007199254740993', '123456789012345678901234567890', 'x', 'muchos', 'k', 'n2']) expect(con(v)).toEqual([]);
-    for (const v of ['1', '0', '02', '2..5', '3..*', '1000000..*', ' 2', '2 ', '-2', '2.5', '1e6', 'Infinity', 'NaN', '２']) expect(con(v).map(x => x.regla)).toContain('R-MULT-1');
+    for (const v of ['?', '*', '+', '2..*', '2', '9', '12', '999999', '1000000', '9007199254740993', '123456789012345678901234567890', 'x', 'muchos', 'k', 'n2', '1', '0', '2..5', 'Infinity', 'NaN']) expect(con(v)).toEqual([]);
+    for (const v of ['02', '3..*', '1000000..*', ' 2', '2 ', '-2', '2.5', '1e6', '２']) expect(con(v).map(x => x.regla)).toContain('R-MULT-1');
 });
 test('T-054 FAN5 estados entrada común, salida común y prohibición ambas variables', () => { const m = base(), a = ids(m)[0]!, p = ids(m)[3]!, f: Abanico = { id: 'f-110', operador: 'XOR', enlaces: ['e-101', 'e-102'] }, e: Enlace = { tipo: 'efecto', id: 'e-101', objeto: a, proceso: p, entrada: s(m), salida: s(m, 0, 1) }; let n = poner(m, e, { ...e, id: 'e-102', entrada: s(m, 0, 1) }); expect(noOfrecido(n, e, f)?.registro).toBe('B-06'); n = poner(m, e, { ...e, id: 'e-102', entrada: s(m, 0, 1), salida: s(m) }); expect(noOfrecido(n, e, f)?.registro).toBe('B-06'); });
 test('T-044 herencia múltiple con ciclos termina y conserva estados propios', () => { const m = base(), [a, b, c, p] = ids(m), n = sano(poner(m, { tipo: 'generalizacion', id: 'e-101', refinable: a!, refinador: c! }, { tipo: 'generalizacion', id: 'e-102', refinable: b!, refinador: c! }, { tipo: 'generalizacion', id: 'e-103', refinable: c!, refinador: b! })); expect(reglas(n, { tipo: 'efecto', id: 'e-104', objeto: c!, proceso: p! })).not.toContain('R-EFE-1'); expect(objeto(n, 2).estados).toEqual([]); });
@@ -455,7 +457,7 @@ for (const operador of ['XOR', 'OR'] as const) for (const estadoRama of [0, 1, 2
     });
 }
 for (const operador of ['XOR', 'OR'] as const) for (const mult of ['distinta', 'parcial'] as const) for (const invertir of [false, true]) {
-    test(`T-057 abanico objeto común ${operador} multiplicidad ${mult} orden ${invertir} no ofrecido completo`, () => {
+    test(`T-057 abanico objeto común ${operador} multiplicidad ${mult} orden ${invertir} DEC56 ofrecido completo`, () => {
         const original = base(), [a, , , p, q] = ids(original);
         const ramas: Enlace[] = [
             { id: 'e-101', tipo: 'consumo', objeto: a!, proceso: p!, mult: '+' },
@@ -464,13 +466,13 @@ for (const operador of ['XOR', 'OR'] as const) for (const mult of ['distinta', '
         const f: Abanico = { id: 'f-103', operador, enlaces: (invertir ? [...ramas].reverse() : ramas).map(e => e.id) };
         const modelo = congelar({ ...poner(original, ...ramas), abanicos: { [f.id]: f } });
         expect(validarForma({ ...modelo, abanicos: {} })).toEqual([]);
-        expect(validarForma(modelo)).toEqual([expect.objectContaining({ codigo: 'F-5', regla: 'F-5', refs: [{ tipo: 'abanico', id: f.id }] }), expect.objectContaining({ codigo: 'F-5', regla: 'F-5', refs: [{ tipo: 'abanico', id: f.id }] })]); expect(violacionesAbanico(modelo, f)).toEqual([]);
+        expect(validarForma(modelo)).toEqual([]); expect(violacionesAbanico(modelo, f)).toEqual([]);
         const antes = JSON.stringify(modelo);
-        for (const e of ramas) expect(noOfrecido(modelo, e, f)?.registro).toBe('B-04');
+        for (const e of ramas) expect(noOfrecido(modelo, e, f)).toBeNull();
         const r = importarV0(exportarV0(modelo));
         expect(r.ok).toBe(true); if (!r.ok) throw new Error(JSON.stringify(r.informe));
-        expect(r.modelo.enlaces).toEqual(modelo.enlaces); expect(r.modelo.abanicos).toEqual({});
-        expect(r.informe.descartado).toEqual([expect.objectContaining({ regla: 'DR-44' })]);
+        expect(r.modelo.enlaces).toEqual(modelo.enlaces); expect(r.modelo.abanicos).toEqual(modelo.abanicos);
+        expect(r.informe.descartado).toEqual([]);
         expect(JSON.stringify(modelo)).toBe(antes);
     });
 }
@@ -558,10 +560,10 @@ for(const tipo of ['consumo','resultado','instrumento','agente'] as const)for(co
  const b=base(),[a,,,p,q]=ids(b),rs:Enlace[]=[{id:'e-101',tipo,objeto:a!,proceso:p!,mult:'+'},{id:'e-102',tipo,objeto:a!,proceso:q!,mult:'+'}],f:Abanico={id:'f-103',operador,enlaces:rs.map(e=>e.id)},m=congelar<Modelo>({...poner(b,...rs),cosas:{...b.cosas,[a!]:{...b.cosas[a!]!,esencia:'fisica'} as Objeto},abanicos:{[f.id]:f}});
  const antes=JSON.stringify(m);expect(violacionesAbanico(m,f)).toEqual([]);
  for(const orden of [f.enlaces,[...f.enlaces].reverse()]){
-  const fan={...f,enlaces:orden};for(const e of rs)expect(noOfrecido(m,e,fan)?.registro).toBe(tipo==='agente'?'B-04':undefined);
+  const fan={...f,enlaces:orden};for(const e of rs)expect(noOfrecido(m,e,fan)).toBeNull();
  }
  const r=importarV0(exportarV0(m));expect(r.ok).toBe(true);if(!r.ok)throw Error(JSON.stringify(r.informe));expect(r.modelo.enlaces).toEqual(m.enlaces);
- if(tipo==='agente'){expect(r.modelo.abanicos).toEqual({});expect(r.informe.descartado).toEqual([expect.objectContaining({regla:'DR-44'})]);}else{expect(validarForma(m)).toEqual([]);expect(r.modelo.abanicos).toEqual(m.abanicos);expect(r.informe.descartado).toEqual([]);}
+ expect(validarForma(m)).toEqual([]);expect(r.modelo.abanicos).toEqual(m.abanicos);expect(r.informe.descartado).toEqual([]);
  expect(JSON.stringify(m)).toBe(antes);
 });
 

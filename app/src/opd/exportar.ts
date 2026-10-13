@@ -4,7 +4,7 @@ import type { Escena, NodoCosa, Punto, Rect } from './escena';
 import { escena } from './escena';
 import { aTexto, dibujar } from './dibujo';
 import type { NodoSvg } from './dibujo';
-import { gatesExportacion } from '../nucleo/diagnostico';
+import { gatesExportacion, gatesDocumento } from '../nucleo/diagnostico';
 import { etiquetaOpd, opdsEnPreorden } from '../nucleo/proyeccion';
 import { intersectanSegmentos, intersectaCaja, intersectaCapsula } from './geometria';
 import { INRIA_REGULAR_WOFF2, INRIA_ITALICA_WOFF2 } from './fuente';
@@ -15,6 +15,7 @@ export interface LineaDocumento {
     readonly tokens: readonly {
         readonly texto: string;
         readonly marca?: 'objeto' | 'proceso' | 'estado';
+        readonly negrita?: true;
     }[];
 }
 // LineaOpl la satisface estructuralmente: opd/ no importa opl/
@@ -203,7 +204,7 @@ export function exportarDocumento(m: Modelo, opl: ReadonlyMap<Id, readonly Linea
     readonly html: string;
     readonly archivo: string;
 }> {
-    const gates = gatesExportacion(m, 'modelo');
+    const gates = gatesDocumento(m);
     if (gates[0])
         return { ok: false, rechazo: gates[0] };
     const ids = opdsEnPreorden(m), ordinal = new Map(ids.map((id, i) => [id, i])), hijos = new Map<Id, Id[]>();
@@ -217,6 +218,6 @@ export function exportarDocumento(m: Modelo, opl: ReadonlyMap<Id, readonly Linea
     }
     const rama = (id: Id): string => `<li><a href="#opd-${ordinal.get(id)!}">${escapar(etiquetaOpd(m, id))}</a>${hijos.has(id) ? '<ol>' + hijos.get(id)!.map(rama).join('') + '</ol>' : ''}</li>`;
     const arbol = rama(m.raiz);
-    const secciones = ids.map((id, i) => `<section id="opd-${i}"><h2>${escapar(etiquetaOpd(m, id))}</h2>${svg(m, id, o.version, false, i)}<p class="opl">${(opl.get(id) ?? []).map(l => l.tokens.map(t => { const s = escapar(t.texto), tag = t.marca === 'objeto' ? 'strong' : t.marca === 'proceso' ? 'em' : t.marca === 'estado' ? 'code' : undefined; return tag ? `<${tag}>${s}</${tag}>` : s; }).join('')).join('\n')}</p></section>`).join('');
+    const secciones = ids.map((id, i) => `<section id="opd-${i}"><h2>${escapar(etiquetaOpd(m, id))}</h2>${svg(m, id, o.version, false, i)}<p class="opl">${(opl.get(id) ?? []).map(l => l.tokens.map(t => { const s = escapar(t.texto), tag = t.marca === 'objeto' || t.negrita ? 'strong' : t.marca === 'proceso' ? 'em' : t.marca === 'estado' ? 'code' : undefined; return tag ? `<${tag}>${s}</${tag}>` : s; }).join('')).join('\n')}</p></section>`).join('');
     return { ok: true, valor: { html: `<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="perfil" content="canon-documento"><title>${escapar(m.nombre)}</title><style>${fuente}body{font-family:'Inria Serif';background:${COLORES.paper};color:#000}svg{max-width:100%;height:auto}.opl{white-space:pre-wrap}code{font-family:inherit;font-style:italic}</style></head><body><h1>${escapar(m.nombre)}</h1><nav aria-label="Árbol de OPDs"><ol>${arbol}</ol></nav>${secciones}</body></html>`, archivo: `${m.id}.html` }, trazas: [] };
 }

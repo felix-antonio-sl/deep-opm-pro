@@ -5,7 +5,7 @@ import { transaccion } from './resultado';
 import { indice, claveNombre } from './indice';
 import { validarNombreCosa } from './lexico';
 import { violacionesForma } from './matriz';
-import { validarForma } from './forma';
+import { validarForma, violacionCaja } from './forma';
 import { colocarDescomposicion } from './colocacion';
 import { distribuirContornoTx } from './refinamiento';
 
@@ -56,8 +56,13 @@ function aparicion(tx: Tx, o: Opd, id: Id): Aparicion {
     return o.apariciones[id]!;
 }
 function formaCajas(tx: Tx, id: Id) {
-    const v = validarForma(tx.m).find(v => v.regla === 'F-12' && v.refs.some(r => r.tipo === 'opd' && r.id === id));
-    if (v) negar(tx, 'forma', v.regla, v.mensaje, v.refs);
+    // Sólo este filtro de F-12 decide la caja; conserva el orden de OPD/aparición
+    // incluso si el modelo recuperable tiene IDs distintos de sus claves.
+    for (const o of Object.values(tx.m.opds)) if (o.id === id)
+        for (const [cosa, a] of Object.entries(o.apariciones)) {
+            const v = violacionCaja(o.id, cosa, a);
+            if (v) negar(tx, 'forma', v.regla, v.mensaje, v.refs);
+        }
 }
 export const crearCosa: Operacion<{
     opd: Id;
@@ -110,6 +115,7 @@ export const cambiarTipoCosa: Operacion<{
     if (c.tipo === 'objeto') {
         if (c.estados.length) { impedimentos.push(`estados: ${c.estados.map(s => s.nombre).join(', ')}`); refs.push(...c.estados.map(s => ({ tipo: 'estado' as const, id: s.id }))); }
         if (c.valor !== undefined) impedimentos.push(`valor puntual: ${c.valor}`);
+        if (c.nombrePlural !== undefined) impedimentos.push('forma plural explícita');
     } else if (c.duracion !== undefined) impedimentos.push('duración');
     if (impedimentos.length) negar(tx, 'tipo-incompatible', 'T-063', `**${c.nombre}** conserva ${impedimentos.join('; ')}. Retíralos explícitamente antes de cambiar el tipo.`, refs);
     if (c.tipo === 'objeto') {
@@ -150,6 +156,12 @@ export const fijarGenero: Operacion<{
     cosa: Id;
     genero: 'm' | 'f';
 }> = (m, a) => transaccion(m, tx => { const c = cosa(tx, a.cosa); tx.poner('cosas', a.genero === 'f' ? { ...c, genero: 'f' } : sinCampo(c, 'genero')); });
+export const fijarNombrePlural: Operacion<{ cosa: Id; nombre: string | null }> = (m, a) => transaccion(m, tx => {
+    const c = cosa(tx, a.cosa);
+    if (c.tipo !== 'objeto') negar(tx, 'tipo-incompatible', 'DEC56/DR-12', 'Sólo un objeto declara una forma plural.', [ref(c.id)]);
+    if (a.nombre !== null) { const r = validarNombreCosa(a.nombre); if (r) tx.rechazar({ ...r, refs: [ref(c.id)] }); }
+    tx.poner('cosas', a.nombre === null ? sinCampo(c, 'nombrePlural') : { ...c, nombrePlural: a.nombre });
+});
 export const fijarDescripcion: Operacion<{
     cosa: Id;
     texto: string | null;

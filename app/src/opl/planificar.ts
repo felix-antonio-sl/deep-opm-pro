@@ -1,10 +1,10 @@
 import type { Id, Ref, TipoCosa, Multiplicidad, Control, Esencia, Afiliacion, Designacion, UnidadTiempo, Operador, RelacionIncompleta, Modelo } from '../nucleo/tipos';
 import type { Accion } from '../nucleo/operaciones';
 import type { Severidad } from '../nucleo/diagnostico';
-import type { Respuesta, Hecho } from '../nucleo/resultado';
+import type { Respuesta, Hecho, Traza } from '../nucleo/resultado';
 import type { DiagOpl } from './analizar';
 // ---------- Planificación y aplicación ----------
-export type TipoPatch = 'crear-entidad' | 'traer-entidad' | 'cambiar-esencia' | 'cambiar-afiliacion' | 'sincronizar-estados' | 'aplicar-designacion-estado' | 'fijar-valor' | 'fijar-cota' | 'crear-refinamiento' | 'fijar-orden' | 'fijar-incompleta' | 'crear-enlace' | 'ajustar-enlace' | 'fijar-etiqueta-enlace' | 'crear-abanico' | 'renombrar-entidad' | 'renombrar-estado';
+export type TipoPatch = 'crear-entidad' | 'fijar-plural' | 'traer-entidad' | 'cambiar-esencia' | 'cambiar-afiliacion' | 'sincronizar-estados' | 'aplicar-designacion-estado' | 'fijar-valor' | 'fijar-cota' | 'crear-refinamiento' | 'fijar-orden' | 'fijar-incompleta' | 'crear-enlace' | 'ajustar-enlace' | 'fijar-etiqueta-enlace' | 'crear-abanico' | 'renombrar-entidad' | 'renombrar-estado';
 export interface Patch {
     readonly p: TipoPatch;
     readonly fase: 1 | 2 | 3; // 1 no-enlace · 2 enlace y cota · 3 abanico (R-OPL-EDIT-5, T-181)
@@ -44,6 +44,7 @@ import { ETIQUETA_POR_DEFECTO } from './plantillas';
 import { analizar } from './analizar';
 import type { LineaAnalizada, HechoTexto, EnlaceTexto, ExtremoTexto, NombreTipado } from './analizar';
 import { aplicarAccion } from '../nucleo/operaciones';
+import { crearModelo } from '../nucleo/modelo';
 import { indice, claveNombre } from '../nucleo/indice';
 import { proyectar } from '../nucleo/proyeccion';
 import { extremos, esProcedimental } from '../nucleo/tipos';
@@ -78,6 +79,7 @@ function claveHecho(h: HechoTexto): string | null {
     switch (h.k) {
         case 'esencia': case 'afiliacion': return `${h.k}:${n(h.cosa.nombre)}`;
         case 'valor': return `valor:${n(h.atributo)}`;
+        case 'plural': return `plural:${n(h.objeto)}`;
         case 'cota': return `cota:${n(h.proceso)}:${h.campo}`;
         case 'descomposicion': return `descomposicion:${n(h.proceso)}`;
         case 'enlace': {
@@ -93,6 +95,7 @@ function claveHecho(h: HechoTexto): string | null {
 function entidades(h: HechoTexto): NombreTipado[] {
     switch (h.k) {
         case 'mencion': case 'esencia': case 'afiliacion': case 'incompleta': return [h.cosa];
+        case 'plural': return [{ nombre: h.objeto, tipo: 'objeto', nombrePlural: h.nombre }];
         case 'estados': case 'designacion': return [{ nombre: h.objeto, tipo: 'objeto' }];
         case 'valor': return [h.atributo, h.exhibidor].map(nombre => ({ nombre, tipo: 'objeto' as const }));
         case 'cota': return [{ nombre: h.proceso, tipo: 'proceso' }];
@@ -111,14 +114,29 @@ interface Trabajo { l: LineaAnalizada; hechos: readonly HechoTexto[]; etiqueta: 
 // SD es la raíz; SD1 y SD2 son hijos; SD1.1 es nieto.
 const profundidad = (etiqueta: string): number => etiqueta === 'SD' ? 0 : etiqueta.split('.').length;
 export function planificar(m: Modelo, alcance: Id | 'modelo', texto: string): Plan {
+    return ensayar(m, alcance, texto).plan;
+}
+// Sólo la importación sobre una base privada fresca consume el resultado nativo
+// de su propio ensayo. El preview público y aplicarPlan siguen separados.
+export function planificarImportacion(nombre: string, texto: string) {
+    return ensayar(crearModelo({ id: 'modelo-opl', nombre }), 'modelo', texto, true);
+}
+function ensayar(m: Modelo, alcance: Id | 'modelo', texto: string, basePrivadaVacia = false): {
+    plan: Plan; hecho: Hecho; trazas: readonly Traza[];
+} {
     const ls = analizar(texto), trabajos: Trabajo[] = []; let etiqueta = alcance === 'modelo' ? 'SD' : indice(m).etiqueta.get(alcance) ?? alcance;
-    const canonico=textoCanonico(alcance === 'modelo' ? generarModelo(m) : generarBloque(m,alcance));
-    let previo:readonly LineaAnalizada[]|undefined;const anterior=()=>previo??(previo=analizar(canonico));
+    // Sólo crearModelo dentro de planificarImportacion acredita esta base sin hechos.
+    const omitirIdentidad = basePrivadaVacia && ls.some(l=>l.hechos.length > 0);
+    const generarCanonico=()=>textoCanonico(alcance === 'modelo' ? generarModelo(m) : generarBloque(m,alcance));
+    // El modelo aportado conserva la evaluación original; sólo el privado difiere el trabajo.
+    let textoBase:string|undefined = basePrivadaVacia ? undefined : generarCanonico();
+    const canonico=()=>textoBase??(textoBase=generarCanonico());
+    let previo:readonly LineaAnalizada[]|undefined;const anterior=()=>previo??(previo=analizar(canonico()));
     const superficies = (lineas: readonly LineaAnalizada[]) => lineas.filter(l=>!l.vacia&&!/^# /.test(l.texto)).map(l=>l.texto).join('\n');
     // Identidad textual canónica acreditada: no hay ensayo ni ID que asignar.
-    if (ls.every(l=>!l.diagnosticos.length) && (superficies(ls)===canonico||superficies(ls)===superficies(anterior()))) {
+    if (!omitirIdentidad && ls.every(l=>!l.diagnosticos.length) && (superficies(ls)===canonico()||superficies(ls)===superficies(anterior()))) {
         const lineas:LineaPlan[]=ls.map(l=>({numero:l.numero,texto:l.texto,estado:l.vacia?'ignorada-vacia':'sin-cambio',patches:[],diagnosticos:[],...(l.vacia?{}:{razon:'cambio-ya-presente' as const}),detalle:l.vacia?'':TEXTO_RAZON['cambio-ya-presente']}));
-        return {base:m,alcance,lineas,acciones:[],notas:[],resumen:{total:ls.length,aplicables:0,noAplicables:0,ignoradas:ls.filter(l=>l.vacia).length,sinCambio:ls.filter(l=>!l.vacia).length}};
+        return {plan:{base:m,alcance,lineas,acciones:[],notas:[],resumen:{total:ls.length,aplicables:0,noAplicables:0,ignoradas:ls.filter(l=>l.vacia).length,sinCambio:ls.filter(l=>!l.vacia).length}},hecho:{modelo:m,creados:[]},trazas:[]};
     }
     const pares = new Map<number, number>();
     const diags = new Map<number, DiagOpl[]>(), prohibidas = new Set<number>();
@@ -129,9 +147,9 @@ export function planificar(m: Modelo, alcance: Id | 'modelo', texto: string): Pl
     }
     // Registro independiente del ensayo: un conflicto excluye AMBAS líneas y todas sus acciones.
     const registros = new Map<string, { numero: number; contenido: string }[]>();
-    const registrar = (k: string, contenido: string, numero: number) => {
+    const registrar = (k: string, contenido: string, numero: number, miembrosDeLista = false) => {
         const previos = registros.get(k) ?? [];
-        for (const p of previos) if (p.contenido !== contenido) for (const n of [p.numero, numero]) if (!prohibidas.has(n)) diagnosticar(n, { codigo: 'patch-conflict', severidad: 'error', linea: n, mensaje: 'Cambios incompatibles sobre el mismo hecho.' });
+        for (const p of previos) if (p.contenido !== contenido && !(miembrosDeLista && p.numero === numero)) for (const n of [p.numero, numero]) if (!prohibidas.has(n)) diagnosticar(n, { codigo: 'patch-conflict', severidad: 'error', linea: n, mensaje: 'Cambios incompatibles sobre el mismo hecho.' });
         registros.set(k, [...previos, { numero, contenido }]);
     };
     for (const t of trabajos) for (const h of t.hechos) {
@@ -143,8 +161,22 @@ export function planificar(m: Modelo, alcance: Id | 'modelo', texto: string): Pl
         }
         let k = claveHecho(h); if (!k) continue;
         if (h.k === 'cota') { const ex=t.hechos.find((x):x is Extract<HechoTexto,{k:'enlace'}>=>x.k==='enlace'&&(x.enlace.tipo==='excepcionSobretiempo'||x.enlace.tipo==='excepcionSubtiempo')); if(ex)k+=`:${estable(ex.enlace)}`; }
-        registrar(k, estable(h), t.l.numero);
+        // Una lista UNI cerrada puede enumerar hechos de cantidad distintos del
+        // mismo par. Otra línea que ajuste ese par conserva la guarda de conflicto.
+        registrar(k, estable(h), t.l.numero, h.k === 'enlace' && h.enlace.tipo === 'etiquetado' && (t.l.plantilla === 'SE1L' || t.l.plantilla === 'SE2L'));
     }
+    const declaradas = new Map<string,string>();
+    const formas = new Map<string,Map<string,Set<number>>>();
+    for (const t of trabajos) for (const h of t.hechos) {
+        if (h.k === 'plural') declaradas.set(claveNombre(h.objeto), h.nombre);
+        for (const n of entidades(h)) if (n.nombrePlural !== undefined) {
+            const clave = claveNombre(n.nombre), grupo = formas.get(clave) ?? new Map<string,Set<number>>();
+            const numeros = grupo.get(n.nombrePlural) ?? new Set<number>(); numeros.add(t.l.numero);
+            grupo.set(n.nombrePlural,numeros); formas.set(clave,grupo);
+        }
+    }
+    for (const grupo of formas.values()) if (grupo.size > 1) for (const numeros of grupo.values()) for (const numero of numeros)
+        diagnosticar(numero, { codigo:'patch-conflict',severidad:'error',linea:numero,mensaje:'Declaraciones o referencias de forma plural incompatibles.',regla:'DEC56/DR-12' });
     // Dos oraciones dirigidas opuestas del mismo bloque son UN hecho bidireccional.
     for (let i = 0; i < trabajos.length; i++) {
         const a = trabajos[i]!, ea = a.hechos.length === 1 && a.hechos[0]?.k === 'enlace' ? a.hechos[0].enlace : null;
@@ -161,25 +193,39 @@ export function planificar(m: Modelo, alcance: Id | 'modelo', texto: string): Pl
         }
     }
     let patches = new Map<number, Patch[]>(), acciones: Accion[] = [];
+    let actual = m, creados: Id[] = [], trazas: Traza[] = [];
     const proyeccionBase = new Map<Id, ReturnType<typeof proyectar>['enlaces']>();
     const abstraidosBase = (o: Id) => { let v = proyeccionBase.get(o); if (!v) proyeccionBase.set(o, v = m.opds[o] ? proyectar(m, o).enlaces.filter(x => x.abstraido) : []); return v; };
     // Cada fallo quita la línea ENTERA y vuelve a ensayar desde la misma base; no reserva IDs.
     for (;;) {
-        let actual = m, falla: { numero: number; error: Fallo } | null = null;
-        patches = new Map(); acciones = [];
+        let falla: { numero: number; error: Fallo } | null = null;
+        actual = m; patches = new Map(); acciones = []; creados = []; trazas = [];
         const labels = new Map([...indice(m).etiqueta].map(([id, e]) => [e, id]));
         const agregar = (t: Trabajo, a: Accion, p: TipoPatch, fase: 1 | 2 | 3, clave: string) => {
             const r = aplicarAccion(actual, a);
             if (!r.ok) throw new Fallo(r.rechazo.codigo === 'no-ofrecido' ? 'unsupported-canonical' : r.rechazo.codigo === 'referencia-ambigua' || r.rechazo.codigo === 'unicidad-nominal' ? 'ambiguous-symbol' : 'type-mismatch', r.rechazo.mensaje, r.rechazo.regla);
             actual = r.valor.modelo; acciones.push(a);
+            creados.push(...r.valor.creados); trazas.push(...r.trazas);
             patches.set(t.l.numero, [...(patches.get(t.l.numero) ?? []), { p, fase, clave, acciones: [a], descripcion: `${p}: ${clave}` }]);
             return r.valor.creados;
         };
         const oid = (t: Trabajo): string => {
             const o = labels.get(t.etiqueta); if (!o) throw new Fallo('unknown-symbol', `OPD ${t.etiqueta} no existe.`); return o;
         };
+        // Namespace derivado sólo de este intento; cambiar cosas invalida la lectura.
+        // No retiene respuestas y un reensayo empieza desde la misma base con otro mapa.
+        let cosasNominales: Modelo['cosas'] | undefined, nombresNominales = new Map<string, Id[]>();
         const buscar = (n: NombreTipado): Cosa | undefined => {
-            const cs = (indice(actual).porClaveNombre.get(claveNombre(n.nombre)) ?? []).map(id => actual.cosas[id]!);
+            if (cosasNominales !== actual.cosas) {
+                nombresNominales = new Map();
+                for (const c of Object.values(actual.cosas)) {
+                    const clave = claveNombre(c.nombre), ids = nombresNominales.get(clave) ?? [];
+                    if (!ids.includes(c.id)) ids.push(c.id);
+                    nombresNominales.set(clave, ids);
+                }
+                cosasNominales = actual.cosas;
+            }
+            const cs = (nombresNominales.get(claveNombre(n.nombre)) ?? []).map(id => actual.cosas[id]!);
             if (cs.length > 1) throw new Fallo('ambiguous-symbol', `Más de una entidad con el nombre ${n.nombre}.`);
             if (cs[0] && cs[0].tipo !== n.tipo) throw new Fallo('type-mismatch', `La tipografía de ${n.nombre} contradice su tipo.`, 'R-IMPORT-7');
             return cs[0];
@@ -191,6 +237,15 @@ export function planificar(m: Modelo, alcance: Id | 'modelo', texto: string): Pl
                 c = actual.cosas[ids[0]!]!;
             }
             if (!actual.opds[o]!.apariciones[c.id] && !proyectar(actual, o).cosas.some(v => v.cosa === c!.id)) agregar(t, { op: 'traerCosa', args: { opd: o, cosa: c.id, x: 0, y: 0 } }, 'traer-entidad', 1, c.id);
+            if (n.nombrePlural !== undefined) {
+                if (c.tipo !== 'objeto') throw new Fallo('type-mismatch', 'Sólo un objeto declara plural.', 'DEC56/DR-12');
+                if (c.nombrePlural !== undefined && c.nombrePlural !== n.nombrePlural && declaradas.get(claveNombre(n.nombre)) !== n.nombrePlural)
+                    throw new Fallo('ambiguous-symbol', 'La referencia plural contradice la forma declarada del objeto.', 'DEC56/DR-12');
+                if (c.nombrePlural !== n.nombrePlural) {
+                    agregar(t, { op:'fijarNombrePlural',args:{cosa:c.id,nombre:n.nombrePlural} }, 'fijar-plural', 1, c.id + ':plural');
+                    c = actual.cosas[c.id]!;
+                }
+            }
             if ('genero' in n && n.genero === 'f' && c.genero !== 'f') agregar(t, { op: 'fijarGenero', args: { cosa: c.id, genero: 'f' } }, 'crear-entidad', 1, `${c.id}:genero`);
             return c.id;
         };
@@ -221,22 +276,42 @@ export function planificar(m: Modelo, alcance: Id | 'modelo', texto: string): Pl
             if (e.tipo === 'etiquetadoBidireccional') return { ...b, tipo: e.tipo, etiqueta: e.etiqueta!, inversa: e.inversa!, ...(so ? { estadoOrigen: so } : {}), ...(sd ? { estadoDestino: sd } : {}) };
             return { ...b, tipo: 'etiquetado', ...(so ? { estadoOrigen: so } : {}), ...(sd ? { estadoDestino: sd } : {}) };
         };
-        const identidadEnlace = (e: Enlace | EnlaceNuevo) => {
-            const {id,control,ruta,mult,multOrigen,multDestino,escision,...identidad}=e as Enlace & {control?:Control;ruta?:string;mult?:Multiplicidad;multOrigen?:Multiplicidad;multDestino?:Multiplicidad;escision?:unknown};
-            void id;void control;void ruta;void mult;void multOrigen;void multDestino;void escision;return estable(identidad);
+        // Derivados de enlaces que las operaciones reemplazan, privados de este
+        // intento. Un reensayo crea otros mapas; nunca guardan respuestas.
+        const identidades = new WeakMap<Enlace | EnlaceNuevo, string>();
+        const firmas = new WeakMap<Enlace | EnlaceNuevo, string>();
+        const etiquetaEfectiva = (e: Enlace | EnlaceNuevo) => {
+            // B38 sólo equipara la ausencia y el literal reservado de UNI.
+            // Esta copia derivada no cambia el campo nuclear ni el JSON.
+            if (e.tipo === 'etiquetado' && e.etiqueta === ETIQUETA_POR_DEFECTO) {
+                const { etiqueta, ...resto } = e; void etiqueta; return resto;
+            }
+            return e;
         };
-        const mismaPareja = (a: Enlace | EnlaceNuevo, b: EnlaceNuevo): boolean => identidadEnlace(a) === identidadEnlace(b);
-        const comparable = (e: Enlace | EnlaceNuevo) => { const { id, escision, ...n } = e as Enlace & { escision?: unknown }; void id; void escision; return estable(n); };
-        const enlace = (t: Trabajo, c: EnlaceNuevo, abanicoCon?: {enlace:Id;operador:Operador}): string => {
+        const identidadEnlace = (e: Enlace | EnlaceNuevo) => {
+            const previa = identidades.get(e); if (previa !== undefined) return previa;
+            const {id,control,ruta,mult,multOrigen,multDestino,escision,...identidad}=etiquetaEfectiva(e) as Enlace & {control?:Control;ruta?:string;mult?:Multiplicidad;multOrigen?:Multiplicidad;multDestino?:Multiplicidad;escision?:unknown};
+            void id;void control;void ruta;void mult;void multOrigen;void multDestino;void escision;
+            const clave = estable(identidad); identidades.set(e, clave); return clave;
+        };
+        const comparable = (e: Enlace | EnlaceNuevo) => {
+            const previa = firmas.get(e); if (previa !== undefined) return previa;
+            const { id, escision, ...n } = etiquetaEfectiva(e) as Enlace & { escision?: unknown }; void id; void escision;
+            const clave = estable(n); firmas.set(e, clave); return clave;
+        };
+        const enlace = (t: Trabajo, c: EnlaceNuevo, abanicoCon?: {enlace:Id;operador:Operador}, correspondencia?: Id | false): string => {
             const o = oid(t), vistos = proyectar(actual, o).enlaces;
-            const completo = vistos.find(v => comparable(v.enlace) === comparable(c));
+            // Firmas del candidato inmutable, sólo dentro de esta búsqueda.
+            let firmaC: string | undefined, identidadC: string | undefined;
+            const completo = vistos.find(v => comparable(v.enlace) === (firmaC ??= comparable(c)));
             if (completo) return completo.enlace.id;
             // Repetir la proyección abstraída de la base no edita: manda el hecho del hijo, ya ensayado.
-            const proyectado = abstraidosBase(o).find(v => comparable(v.enlace) === comparable(c));
+            const proyectado = abstraidosBase(o).find(v => comparable(v.enlace) === (firmaC ??= comparable(c)));
             if (proyectado) return proyectado.enlace.id;
-            const originales = Object.values(actual.enlaces).filter(e => mismaPareja(e, c));
-            const exacto = originales.find(e => comparable(e) === comparable(c));
+            const originales = correspondencia === false ? [] : correspondencia !== undefined ? [actual.enlaces[correspondencia]!] : Object.values(actual.enlaces).filter(e => identidadEnlace(e) === (identidadC ??= identidadEnlace(c)));
+            const exacto = originales.find(e => comparable(e) === (firmaC ??= comparable(c)));
             if (exacto) return exacto.id;
+            if (c.tipo === 'etiquetado' && originales.length > 1) throw new Fallo('ambiguous-symbol', 'Más de un enlace UNI corresponde al hecho editado.');
             const viejo = originales.length === 1 ? originales[0] : undefined;
             if (viejo) {
                 const st = 'objeto' in c ? c.tipo === 'efecto' ? { entrada: c.entrada ?? null, salida: c.salida ?? null } : { estado: c.estado ?? null } : c.tipo === 'generalizacion' ? { generalizacion: c.estados ?? null } : c.tipo === 'etiquetado' ? { origen: c.estadoOrigen ?? null, destino: c.estadoDestino ?? null } : c.tipo === 'etiquetadoBidireccional' ? { origen: c.estadoOrigen ?? null, destino: c.estadoDestino ?? null } : c.tipo === 'reciproco' ? { origen: c.estados?.origen ?? null, destino: c.estados?.destino ?? null } : null;
@@ -247,7 +322,10 @@ export function planificar(m: Modelo, alcance: Id | 'modelo', texto: string): Pl
                 if (c.tipo === 'agregacion' && (viejo as typeof c).mult !== c.mult) agregar(t, { op: 'fijarMultiplicidad', args: { enlace: viejo.id, extremo: 'refinador', valor: c.mult ?? null } }, 'ajustar-enlace', 2, viejo.id);
                 if (['etiquetado', 'etiquetadoBidireccional', 'reciproco'].includes(c.tipo)) {
                     const x = c as Extract<EnlaceNuevo, { origen: string }> & { etiqueta?: string; inversa?: string; multOrigen?: Multiplicidad; multDestino?: Multiplicidad };
-                    if ((viejo as typeof x).etiqueta !== x.etiqueta || (viejo as typeof x).inversa !== x.inversa) agregar(t, { op: 'fijarEtiqueta', args: { enlace: viejo.id, etiqueta: x.etiqueta ?? null, ...(x.inversa ? { inversa: x.inversa } : {}) } }, 'fijar-etiqueta-enlace', 2, viejo.id);
+                    const mismaEtiqueta = viejo.tipo === 'etiquetado' && c.tipo === 'etiquetado'
+                        ? (viejo.etiqueta ?? ETIQUETA_POR_DEFECTO) === (c.etiqueta ?? ETIQUETA_POR_DEFECTO)
+                        : (viejo as typeof x).etiqueta === x.etiqueta;
+                    if (!mismaEtiqueta || (viejo as typeof x).inversa !== x.inversa) agregar(t, { op: 'fijarEtiqueta', args: { enlace: viejo.id, etiqueta: x.etiqueta ?? null, ...(x.inversa ? { inversa: x.inversa } : {}) } }, 'fijar-etiqueta-enlace', 2, viejo.id);
                     for (const extremo of ['origen', 'destino'] as const) { const campo = extremo === 'origen' ? 'multOrigen' : 'multDestino'; if ((viejo as typeof x)[campo] !== x[campo]) agregar(t, { op: 'fijarMultiplicidad', args: { enlace: viejo.id, extremo, valor: x[campo] ?? null } }, 'ajustar-enlace', 2, viejo.id); }
                 }
                 return viejo.id;
@@ -326,8 +404,30 @@ export function planificar(m: Modelo, alcance: Id | 'modelo', texto: string): Pl
         }});
         // Hijos primero: el padre puede reutilizar sus hechos proyectados.
         for (const t of [...activos].sort((a, b) => profundidad(b.etiqueta) - profundidad(a.etiqueta) || a.l.numero - b.l.numero)) intentar(t, () => {
+            const candidatos = new Map<HechoTexto, EnlaceNuevo>(), correspondencias = new Map<EnlaceNuevo, Id | false>();
+            if (t.l.plantilla === 'SE1L' || t.l.plantilla === 'SE2L') {
+                const grupos = new Map<string, EnlaceNuevo[]>();
+                for (const h of t.hechos) if (h.k === 'enlace') {
+                    const c = candidato(t, h.enlace), k = identidadEnlace(c);
+                    candidatos.set(h, c); grupos.set(k, [...(grupos.get(k) ?? []), c]);
+                }
+                for (const [k, cs] of grupos) if (cs.length > 1) {
+                    const originales = Object.values(actual.enlaces).filter(e => identidadEnlace(e) === k), usados = new Set<Id>();
+                    // Primero todas las coincidencias completas, antes de editar
+                    // cualquier miembro. El orden de la lista no elige IDs.
+                    for (const c of cs) {
+                        const exactos = originales.filter(e => !usados.has(e.id) && comparable(e) === comparable(c));
+                        if (exactos.length > 1) throw new Fallo('ambiguous-symbol', 'Más de un ID UNI expresa el mismo hecho completo.');
+                        if (exactos.length === 1) { usados.add(exactos[0]!.id); correspondencias.set(c, exactos[0]!.id); }
+                    }
+                    const pendientes = cs.filter(c => !correspondencias.has(c)), libres = originales.filter(e => !usados.has(e.id));
+                    if (pendientes.length === 1 && libres.length === 1) correspondencias.set(pendientes[0]!, libres[0]!.id);
+                    else if (libres.length === 0) for (const c of pendientes) correspondencias.set(c, false);
+                    else if (pendientes.length > 0) throw new Fallo('ambiguous-symbol', 'La lista no identifica qué enlace UNI corresponde a cada cantidad nueva.');
+                }
+            }
             for (const h of t.hechos) {
-                if (h.k === 'enlace') enlace(t, candidato(t, h.enlace));
+                if (h.k === 'enlace') { const c = candidatos.get(h) ?? candidato(t, h.enlace); enlace(t, c, undefined, correspondencias.get(c)); }
                 if (h.k === 'abanico') {
                     let primero:Id|undefined;
                     const cs=h.ramas.map(e=>candidato(t,e));
@@ -373,7 +473,7 @@ export function planificar(m: Modelo, alcance: Id | 'modelo', texto: string): Pl
     const resumen = { total: lineas.length, aplicables: 0, noAplicables: 0, ignoradas: 0, sinCambio: 0 };
     for (const l of lineas) resumen[l.estado === 'aplicable' ? 'aplicables' : l.estado === 'no-aplicable' ? 'noAplicables' : l.estado === 'ignorada-vacia' ? 'ignoradas' : 'sinCambio']++;
     const presentes = new Set(ls.flatMap(l=>l.hechos).map(estable));
-    const previos = anterior().flatMap(l=>l.hechos);
+    const previos = basePrivadaVacia ? [] : anterior().flatMap(l=>l.hechos);
     const ausencia = previos.some(h=>!presentes.has(estable(h)));
-    return { base: m, alcance, lineas, resumen, acciones, notas: ausencia ? [{ codigo: 'no-delete-by-absence', severidad: 'info', linea: 0, mensaje: 'Las líneas ausentes no borran hechos.', regla: 'R-§19-LENS-1' }] : [] };
+    return {plan:{ base: m, alcance, lineas, resumen, acciones, notas: ausencia ? [{ codigo: 'no-delete-by-absence', severidad: 'info', linea: 0, mensaje: 'Las líneas ausentes no borran hechos.', regla: 'R-§19-LENS-1' }] : [] },hecho:{modelo:actual,creados},trazas};
 }

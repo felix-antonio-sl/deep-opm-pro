@@ -60,6 +60,36 @@ test('T-120 SE3 con la etiqueta por defecto vuelve desde vacío al mismo bidirec
 import {analizar} from './analizar';
 import type {DatosModelo} from '../pruebas/constructores';
 import {fijarMultiplicidad} from '../nucleo/enlaces';
+import {planificar,planificarImportacion} from './planificar';
+import {aplicarPlan} from './aplicar';
+for (const [nombre, texto] of [
+ ['vacío', ''],
+ ['cabecera sin hechos', '# Ensayo\n\n## SD'],
+ ['normalización', '*Fabricar* consume « n + 1 » **Pieza**.'],
+ ['dos reintentos', '**Equipo** es informacional.\n**Operador** es informacional.\n**Equipo** maneja *Usar*.\n**Operador** maneja *Operar*.\n*Fabricar* genera **Pieza**.'],
+ ['conflicto excluye ambas', '**Pieza** es físico.\n**Pieza** es informacional.\n*Fabricar* genera **Otra**.'],
+ ['bidireccional', '**Pieza** «pertenece a» **Lote**.\n**Lote** «posee» **Pieza**.'],
+ ['línea inválida independiente', '**Pieza** es informacional.\nEsta oración no es OPL.\n*Fabricar* genera **Pieza**.'],
+ ['abanico de estados', '**Pieza** puede estar `lista`, `nueva` o `activa`.\n*Fabricar* genera exactamente uno de **Pieza** en `lista`, **Pieza** en `nueva` o **Pieza** en `activa`.'],
+] as const) test(`T-173 T-287 importación privada ${nombre}: identidad fresca, reensayo íntegro y equivalencia pública`, () => {
+ const fresco=planificarImportacion('Ensayo',texto),antes=exportarV0(fresco.plan.base),p=planificar(fresco.plan.base,'modelo',texto),r=aplicarPlan(fresco.plan.base,p);
+ expect(p).toEqual(fresco.plan);expect(r.ok).toBe(true);if(!r.ok)throw Error(r.rechazo.mensaje);
+ expect(fresco.hecho).toEqual(r.valor);expect(fresco.trazas).toEqual(r.trazas);expect(exportarV0(fresco.hecho.modelo)).toBe(exportarV0(r.valor.modelo));
+ const imp=must(importarOpl('Ensayo',texto));expect(imp.modelo).toEqual(fresco.hecho.modelo);expect(imp.plan).toEqual(fresco.plan);
+ expect(imp.modelo).not.toBe(fresco.hecho.modelo);expect(exportarV0(fresco.plan.base)).toBe(antes);
+ expect(aplicarPlan(imp.plan.base,p).ok).toBe(false);
+ if(nombre==='dos reintentos'){
+  expect(p.resumen.noAplicables).toBe(2);expect(Object.values(fresco.hecho.modelo.cosas).map(c=>c.nombre)).not.toContain('Usar');
+  expect(Object.values(fresco.hecho.modelo.cosas).map(c=>c.nombre)).not.toContain('Operar');
+ }
+});
+test('T-173 T-287 importaciones A/B/A no retienen respuesta ni alteran el historial de otra identidad',()=>{
+ const a='*Fabricar* consume «n» **Pieza**, **donde n >= 1**.',b='**Equipo** es físico.\n**Equipo** maneja *Operar*.';
+ const primero=importarOpl('A',a),antes=JSON.stringify(primero);expect(primero.ok).toBe(true);
+ expect(importarOpl('B',b).ok).toBe(true);const ultimo=importarOpl('A',a);expect(ultimo).toEqual(primero);
+ if(primero.ok&&ultimo.ok){expect(ultimo.valor.modelo).not.toBe(primero.valor.modelo);expect(ultimo.valor.plan.base).not.toBe(primero.valor.plan.base);}
+ expect(JSON.stringify(primero)).toBe(antes);
+});
 test('T-057 DEC35 enteros de más de seis cifras conservan cada dígito al editar y reconstruir todas las familias',()=>{
  for(const valor of ['1000000','9007199254740993','123456789012345678901234567890'] as const)
   for(const [datos,extremo,campo] of [
@@ -109,9 +139,15 @@ test('T-057 DEC35 «dos o más» se lee como 2..* y se regenera «al menos dos»
   expect(generarDocumentoOpl(r.valor.modelo)).toContain(salida);
  }
 });
-test('T-057 DEC35 B-10 conserva fuera 0, 1, «exactamente un» y los rangos: se informan sin crear hechos',()=>{
+test('T-057 DEC55 B-10 conserva las entradas históricas de 0/1/rangos y rechazo de exactamente un',()=>{
  for(const linea of ['*Ensamblar* consume 1 **Pieza**.','*Ensamblar* consume 0 **Pieza**.','*Ensamblar* consume exactamente una **Pieza**.','*Ensamblar* consume 2 a 5 **Pieza**.','**Fábrica** comprende 1 **Planta**.']){
-  const [l]=analizar(linea);expect(l!.hechos).toEqual([]);expect(l!.diagnosticos.map(d=>[d.codigo,d.regla])).toEqual([['unsupported-canonical','R-§18-PART-1']]);
-  const r=importarOpl('Prueba',`## SD\n${linea}`);expect(r.ok).toBe(true);if(r.ok)expect(r.valor.modelo.enlaces).toEqual({});
+  const [l]=analizar(linea), exacto=linea.includes('exactamente una'), ambigua=linea.startsWith('**Fábrica**');
+  if(exacto){expect(l!.hechos).toEqual([]);expect(l!.diagnosticos.map(d=>[d.codigo,d.regla])).toEqual([['unsupported-canonical','R-§18-PART-1']]);}
+  else if(ambigua){expect(l!.hechos).toEqual([]);expect(l!.diagnosticos.map(d=>d.codigo)).toEqual(['ambiguous-symbol']);}
+  else {expect(l!.diagnosticos).toEqual([]);expect(l!.hechos).toHaveLength(1);}
+  const r=importarOpl('Prueba',`## SD\n${linea}`);expect(r.ok).toBe(true);if(r.ok){
+   if(exacto||ambigua)expect(r.valor.modelo.enlaces).toEqual({});
+   else {const esperado=linea.includes(' 0 ')?'0':linea.includes(' 2 a 5 ')?'2..5':'1';expect(Object.values(r.valor.modelo.enlaces).map(e=>'mult'in e?e.mult:'multDestino'in e?e.multDestino:undefined)).toEqual([esperado]);}
+  }
  }
 });

@@ -2,7 +2,9 @@ import { test, expect } from 'bun:test';
 import type { Modelo } from '../nucleo/tipos';
 import { modeloCon } from '../pruebas/constructores';
 import { generarDocumentoOpl, importarOpl } from './documento';
-import { planificar } from './planificar';
+import { planificar, planificarImportacion } from './planificar';
+import { aplicarPlan } from './aplicar';
+import { exportarV0 } from '../codec/exportar';
 import { PLANTILLAS } from './plantillas';
 import { generarModelo } from './generar';
 import { casosRoundtrip } from '../pruebas/corpus-roundtrip';
@@ -65,14 +67,29 @@ test('T-192 retención A/B/A conserva respuesta exacta hasta último uso y liber
 test('T-192 corpus completo conserva todos los modelos y argumentos estrictos',()=>{
  // B-39 (DEC50): el bidireccional con estado en destino o en ambos extremos suma 16 modelos admitidos.
  // B-42: se conservan las 6042 propuestas y se prueban expresamente los 864
- // negativos nuevos R-MULT-1A; no se eliminan de la enumeración.
+ // negativos R-MULT-1A. §11 añade 1512 modelos legales con cantidades/estados;
+ // se conservan todas las propuestas, sin modificar el generador.
  const cantidadesProcesoRechazadas = libro.filter(c => Array.isArray(c.contexto) && c.contexto.includes('R-MULT-1A'));
  expect(cantidadesProcesoRechazadas).toHaveLength(864);
- expect(modelosVerificados).toBe(2148);
- expect(modelosVerificados + cantidadesProcesoRechazadas.length).toBe(3012);
- expect(importsStrictExactos.size).toBe(1926);
- expect(pendientesStrict).toHaveLength(2144);
- expect(documentos.size).toBe(1928);
+ expect(modelosVerificados).toBe(3714);
+ expect(modelosVerificados + cantidadesProcesoRechazadas.length).toBe(4578);
+ expect(importsStrictExactos.size).toBe(3410);
+ expect(pendientesStrict).toHaveLength(3710);
+ expect(documentos.size).toBe(3412);
  expect(libro).toHaveLength(6042);
  console.log('WP9 corpus completo',{modelosVerificados,entradasStrictExactas:importsStrictExactos.size,documentos:documentos.size});
 });
+
+test('T-173 T-192 cada importación fresca equivale al Plan público y su replay nativo, con creados y trazas', () => {
+    for (const { nombre, id, doc } of pendientesStrict) {
+        const fresco = planificarImportacion(nombre, doc), antes = exportarV0(fresco.plan.base);
+        const publico = planificar(fresco.plan.base, 'modelo', doc), replay = aplicarPlan(fresco.plan.base, publico);
+        expect({ id, plan: fresco.plan }).toEqual({ id, plan: publico });
+        expect(replay.ok).toBe(true); if (!replay.ok) throw Error(id + ': ' + replay.rechazo.mensaje);
+        expect({ id, hecho: fresco.hecho }).toEqual({ id, hecho: replay.valor });
+        expect(fresco.trazas).toEqual(replay.trazas);
+        expect(exportarV0(fresco.hecho.modelo)).toBe(exportarV0(replay.valor.modelo));
+        expect(exportarV0(fresco.plan.base)).toBe(antes);
+        if (publico.acciones.length) expect(fresco.hecho.modelo).not.toBe(replay.valor.modelo);
+    }
+}, 30000);

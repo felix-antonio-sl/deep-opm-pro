@@ -33,7 +33,8 @@
 - **Columna izquierda**: el árbol de OPDs. Por defecto es un riel de 32 px bajo 1600 px de ancho y
   está abierto (220 px) desde 1600. `Ctrl+\` lo alterna.
 - **Columna derecha** (400 px, redimensionable, se recuerda en `localStorage`):
-  - **Propiedades** arriba, con alto automático y a lo sumo el 50 %. Se abre con la selección.
+  - **Propiedades** arriba ocupa el 50 %, con desplazamiento propio. Su alto permanece
+    estable al seleccionar para conservar el blanco de doble clic del OPL inferior.
   - Debajo, las pestañas **OPL | Diagnóstico**.
   - `Ctrl+.` pliega la columna (con `Ctrl+\` también plegado queda solo el lienzo; no hay un tercer
     conmutador «solo lienzo», CC-05). El panel OPL minimizado no se

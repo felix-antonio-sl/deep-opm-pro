@@ -52,6 +52,28 @@ test('T-287 T-012 etapa 4: tipo inválido rechaza; default y nombre NFC sin reco
   const d = basico(); d.modelo.entidades['o-1'].nombre = ' a\u0301  '; delete d.modelo.entidades['o-1'].esencia; d.modelo.entidades['o-1'].afiliacion = 'incorrecta';
   const r = ok(d); expect(r.modelo.cosas['o-1']!.nombre).toBe(' á  '); expect(r.modelo.cosas['o-1']!.esencia).toBe('informacional'); expect(r.informe.descartado.some(e => e.ruta.endsWith('afiliacion') && e.mensaje.includes('incorrecta'))).toBe(true);
 });
+test('T-287 T-182 DEC56 el plural NFD se conserva en NFC con informe y punto fijo', () => {
+  const d = basico(); d.modelo.entidades['o-1'].nombrePlural = 'Ana\u0301lisis';
+  const original = JSON.stringify(d), r = importarV0(original);
+  expect(r.ok).toBe(true); if (!r.ok) throw Error(JSON.stringify(r.informe));
+  expect(r.modelo.cosas['o-1']).toMatchObject({ id: 'o-1', tipo: 'objeto', nombrePlural: 'Análisis' });
+  expect(r.informe.normalizado).toContainEqual({ ruta: 'entidades.o-1.nombrePlural', mensaje: 'Nombre convertido a NFC.', regla: 'T-025' });
+  expect(r.informe.descartado).toEqual([]); expect(r.informe.rechazos).toEqual([]); expect(r.informe.visibilidad).toEqual([]);
+  expect(JSON.stringify(d)).toBe(original);
+  const canonico = exportarV0(r.modelo), vuelta = importarV0(canonico);
+  expect(vuelta.ok).toBe(true); if (!vuelta.ok) throw Error(JSON.stringify(vuelta.informe));
+  expect(informeVacio(vuelta.informe)).toBe(true); expect(exportarV0(vuelta.modelo)).toBe(canonico);
+});
+test('T-287 T-182 DEC56 normalizar NFC no admite plurales inválidos ni los recorta', () => {
+  for (const [id, valor] of [['o-1', ' Ana\u0301lisis'], ['o-1', 'Ana\u0301lisis '], ['o-1', 'Dos  Ana\u0301lisis'],
+    ['o-1', 2], ['o-1', null], ['p-2', 'Ana\u0301lisis']] as const) {
+    const d = basico(); d.modelo.entidades[id].nombrePlural = valor;
+    const original = JSON.stringify(d), r = importarV0(original);
+    expect(r.ok).toBe(false);
+    expect(r.informe.rechazos.some(e => e.ruta === `entidades.${id}.nombrePlural`)).toBe(true);
+    expect(JSON.stringify(d)).toBe(original);
+  }
+});
 test('T-020 etapa 4: valorSlot sin exhibidor se declara perdido, rasgo conserva texto', () => {
   const d = basico(); d.modelo.entidades['o-1'].valorSlot = { tipo: 'number', valor: 12 };
   const r = ok(d); expect('valor' in r.modelo.cosas['o-1']!).toBe(false); expect(r.informe.descartado.some(e => e.ruta.endsWith('valorSlot.tipo'))).toBe(true);
@@ -118,7 +140,7 @@ test('T-050 R-STRE-1 legado se informa y solo documento canónico exacto evita r
   expect(ok({json:a}).informe.normalizado.some(e=>e.regla==='R-STRE-1')).toBe(true);
 });
 test('T-057 etapa 7: multiplicidad equivalentes y campos ilegales con pérdida declarada', () => {
-  for (const [legacy, mult] of [['?', '?'], ['0..1', '?'], ['*', '*'], ['0..N', '*'], ['+', '+'], ['1..N', '+'], ['1', undefined], ['1..1', undefined], ['2', '2'], ['12', '12'], ['3..3', '3'], ['2..*', '2..*'], ['2..N', '2..*'], ['0', undefined], ['2..5', undefined]]) { const d = basico(); d.modelo.enlaces.e = enlace('e', 'consumo', 'o-1', 'p-2', { multiplicidadOrigen: legacy }); expect(ok(d).modelo.enlaces.e).toMatchObject(mult ? { mult } : { tipo: 'consumo' }); if (!mult) expect('mult' in ok(d).modelo.enlaces.e!).toBe(false); }
+  for (const [legacy, mult] of [['?', '?'], ['0..1', '?'], ['*', '*'], ['0..N', '*'], ['+', '+'], ['1..N', '+'], ['1', undefined], ['1..1', undefined], ['2', '2'], ['12', '12'], ['3..3', '3'], ['2..*', '2..*'], ['2..N', '2..*'], ['0', '0'], ['2..5', '2..5']]) { const d = basico(); d.modelo.enlaces.e = enlace('e', 'consumo', 'o-1', 'p-2', { multiplicidadOrigen: legacy }); expect(ok(d).modelo.enlaces.e).toMatchObject(mult ? { mult } : { tipo: 'consumo' }); if (!mult) expect('mult' in ok(d).modelo.enlaces.e!).toBe(false); }
   const d = basico(); d.modelo.enlaces.e = enlace('e', 'consumo', 'o-1', 'p-2', { multiplicidadOrigen: '+', modificador: 'condicion' }); expect('mult' in ok(d).modelo.enlaces.e!).toBe(false);
 });
 test('T-057 T-286 DEC35 enteros largos y su intervalo exacto se importan sin pérdida y quedan en punto fijo', () => {
@@ -168,7 +190,7 @@ test('T-057 T-287 un decimal JSON no inventa una multiplicidad entera por redond
       }
     }
 });
-test('T-057 T-287 notaciones numéricas JSON exactamente enteras conservan su equivalencia sin admitirlas como cadenas', () => {
+test('T-057 T-287 JSON entero exacto y literal decimal B-42 conservan sus distintas grafías; cadena científica sigue excluida', () => {
   for (const [valor, mult] of [['2.0', '2'], ['2.0000000000000000', '2'], ['2e0', '2'], ['2E+0', '2'], ['0.2e1', '2'], ['20e-1', '2'], ['3e2', '300'], ['30.00e1', '300'], ['9007199254740991.0', '9007199254740991'], ['9.007199254740991e15', '9007199254740991']] as const) {
     const d = documento([entidad('o-1'), entidad('p-2', 'proceso')], [enlace('e', 'consumo', 'o-1', 'p-2', { multiplicidadOrigen: valor })]);
     const texto = JSON.stringify(d).replace(`"multiplicidadOrigen":"${valor}"`, `"multiplicidadOrigen":${valor}`);
@@ -176,7 +198,15 @@ test('T-057 T-287 notaciones numéricas JSON exactamente enteras conservan su eq
     expect(r.modelo.enlaces.e).toEqual({ id: 'e', tipo: 'consumo', objeto: 'o-1', proceso: 'p-2', mult });
     expect(r.informe.descartado).toEqual([]); expect(r.informe.rechazos).toEqual([]); expect(r.informe.visibilidad).toEqual([]);
     const canonico = exportarV0(r.modelo); expect(leerCanonico(canonico).ok).toBe(true);
-    const cadena = ok(d); expect('mult' in cadena.modelo.enlaces.e!).toBe(false); expect(cadena.informe.descartado).toHaveLength(1);
+    const cadena = ok(d), decimal = !/[eE]/.test(valor);
+    if (decimal) {
+      expect(cadena.modelo.enlaces.e).toEqual({ id: 'e', tipo: 'consumo', objeto: 'o-1', proceso: 'p-2', mult: valor });
+      expect(cadena.informe.descartado).toEqual([]);
+      const literal = exportarV0(cadena.modelo), vuelta = importarV0(literal); expect(vuelta.ok).toBe(true);
+      if (vuelta.ok) expect(exportarV0(vuelta.modelo)).toBe(literal);
+    } else {
+      expect('mult' in cadena.modelo.enlaces.e!).toBe(false); expect(cadena.informe.descartado).toHaveLength(1);
+    }
   }
 });
 test('T-021 etapa 7: cotas fijas convierten exactamente; calendario pierde representación sin equivalencia inventada', () => {

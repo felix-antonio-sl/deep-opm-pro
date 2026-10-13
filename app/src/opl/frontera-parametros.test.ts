@@ -82,9 +82,20 @@ for (const parametro of ['opcional', 'opcionales', 'unopcional', 'Opcionalidad',
     });
 
 for (const cantidad of ['«n', 'n»', '««n»', '«n»»', '«n»«N»', '«n + 1»', '«2..5»', '«n>=1»', '«NaN»', '«Infinity»', '«un»', '«muchos»', '«»'])
-    test(`T-150 T-173 B-56 cantidad no ofrecida o delimitador inválido no se recorta: ${cantidad}`, () => {
+    test(`T-150 T-173 B-56 DEC55 cantidad histórica completa o delimitador inválido: ${cantidad}`, () => {
         const base = modeloCon({ objetos: [['Alfa', []]], procesos: ['Procesar'] }), json = exportarV0(base);
         const texto = '*Procesar* consume ' + cantidad + ' **Alfa**.', l = analizar(texto)[0]!;
-        expect(l.texto).toBe(texto); expect(l.hechos).toEqual([]); expect(l.diagnosticos.length).toBeGreaterThan(0);
-        expect(planificar(base, base.raiz, texto).acciones).toEqual([]); expect(exportarV0(base)).toBe(json);
+        expect(l.texto).toBe(texto);
+        const nuevas: Record<string, string> = { '«n + 1»': 'n+1', '«2..5»': '2..5', '«NaN»': 'NaN', '«Infinity»': 'Infinity', '«un»': 'un' };
+        if (Object.hasOwn(nuevas, cantidad)) {
+            expect(l.diagnosticos).toEqual([]); expect(l.hechos).toHaveLength(1);
+            const r = must(importarOpl(base.nombre, '# Prueba\n\n## SD\n' + texto));
+            expect(Object.values(r.modelo.enlaces).map(e => 'mult' in e ? e.mult : undefined)).toEqual([nuevas[cantidad]]);
+            expect(planificar(base, base.raiz, texto).acciones.length).toBeGreaterThan(0);
+            const emitido = generarDocumentoOpl(r.modelo); expect(planificar(r.modelo, 'modelo', emitido).acciones).toEqual([]);
+        } else {
+            expect(l.hechos).toEqual([]); expect(l.diagnosticos.length).toBeGreaterThan(0);
+            expect(planificar(base, base.raiz, texto).acciones).toEqual([]);
+        }
+        expect(exportarV0(base)).toBe(json);
     });

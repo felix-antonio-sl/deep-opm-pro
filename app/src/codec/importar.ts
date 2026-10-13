@@ -5,6 +5,7 @@ import { esProcedimental, extremos, reciprocoConEstados } from '../nucleo/tipos'
 import { validarForma } from '../nucleo/forma';
 import { MATRIZ, noOfrecido, esMultiplicidad, violacionesContexto } from '../nucleo/matriz';
 import { indice, describirEnlace } from '../nucleo/indice';
+import { validarNombreCosa } from '../nucleo/lexico';
 import { proyectar } from '../nucleo/proyeccion';
 import { colocar } from '../nucleo/colocacion';
 import { sufijoId } from '../nucleo/ids';
@@ -157,14 +158,14 @@ export function importarV0(texto:string):ResultadoImport {
   try { directo=registro(JSON.parse(texto)).formato==='deep-opm-pro.modelo.v0'; } catch { /* La ruta ordinaria devuelve el rechazo con su ruta. */ }
   if(directo) {
     // §3.4.2-7: construir y cerrar antes de decidir la fusión. No hay marcador wire.
-    const candidato=importarDocumento(texto);
+    const candidato=importarDocumento(texto,undefined,true);
     if(candidato.ok&&candidato.informe.descartado.length===0&&candidato.informe.rechazos.length===0&&candidato.informe.visibilidad.length===0&&validarForma(candidato.modelo).length===0&&exportarV0(candidato.modelo)===texto)return candidato;
   }
   // Legado y sobres conservan las reglas ordinarias, con un Informe propio completo.
   return importarDocumento(texto,fusionarPares);
 }
 
-function importarDocumento(texto:string,fusionar?:FusionarPares):ResultadoImport {
+function importarDocumento(texto:string,fusionar?:FusionarPares,preferirLiteralesCantidad=false):ResultadoImport {
   const l=new Lectura(), raw=sobre(texto,l);
   const fallo=():ResultadoImport=>({ok:false,informe:l.informe});
   if (!raw) return fallo();
@@ -232,6 +233,10 @@ function importarDocumento(texto:string,fusionar?:FusionarPares):ResultadoImport
       base[key]=values.includes(e[key] as never)?e[key]:def;
       if(e[key]===undefined) l.norm(`entidades.${id}.${key}`,`Default ${def}.`); else if(!values.includes(e[key] as never)) l.perder(`entidades.${id}.${key}`,e[key]);
     }
+    if (e.nombrePlural !== undefined) {
+      if (e.tipo !== 'objeto' || typeof e.nombrePlural !== 'string' || validarNombreCosa(e.nombrePlural.normalize('NFC'))) l.rechazar(`entidades.${id}.nombrePlural`, 'Forma plural inválida para el objeto.');
+      else base.nombrePlural = nfc(e.nombrePlural, `entidades.${id}.nombrePlural`);
+    }
     if(typeof e.descripcion==='string') base.descripcion=e.descripcion;
     if(e.genero==='f') base.genero='f'; else if(e.genero!==undefined) l.perder(`entidades.${id}.genero`,e.genero);
     if(Array.isArray(e.coleccionIncompleta)) { const valid=e.coleccionIncompleta.filter(v=>['agregacion','exhibicion','generalizacion'].includes(str(v))); if(valid.length) base.incompleta=[...new Set(valid)]; if(valid.length!==e.coleccionIncompleta.length) l.perder(`entidades.${id}.coleccionIncompleta`,e.coleccionIncompleta); }
@@ -247,7 +252,7 @@ function importarDocumento(texto:string,fusionar?:FusionarPares):ResultadoImport
     if(e.duracion!==undefined) { const d=duracion(e.duracion); if(e.tipo==='proceso'&&d) base.duracion=d; else l.perder(`entidades.${id}.duracion`,e.duracion,'T-021'); l.desconocidos(e.duracion,`entidades.${id}.duracion`,['min','esperada','max','unidad']); }
     for(const k of ['alias','unidad','imagen','urls','simulacion','estereotipoId','anclaje','requisito','lineal','orderedFundamentalTypes']) if(e[k]!==undefined) l.perder(`entidades.${id}.${k}`,e[k]);
     for(const k of ['esAtributo','layoutEstados']) l.ignorar(`entidades.${id}.${k}`,e[k]);
-    l.desconocidos(e,`entidades.${id}`,['id','tipo','nombre','esencia','afiliacion','descripcion','genero','valorSlot','coleccionIncompleta','duracion','refinamientos','refinamiento','alias','unidad','imagen','urls','simulacion','estereotipoId','anclaje','requisito','lineal','orderedFundamentalTypes','esAtributo','layoutEstados']);
+    l.desconocidos(e,`entidades.${id}`,['id','tipo','nombre','nombrePlural','esencia','afiliacion','descripcion','genero','valorSlot','coleccionIncompleta','duracion','refinamientos','refinamiento','alias','unidad','imagen','urls','simulacion','estereotipoId','anclaje','requisito','lineal','orderedFundamentalTypes','esAtributo','layoutEstados']);
     cosas[id]=base as unknown as Cosa;
   }
   if(l.rechazos.length) return fallo();
@@ -276,7 +281,7 @@ function importarDocumento(texto:string,fusionar?:FusionarPares):ResultadoImport
   // Las siguientes etapas mantienen hechos propios; nunca ejecutan distribución del núcleo.
   construirOpds(data,apps,slots,raiz,cosas,opds,l,modelo);
   const alias=new Map<string,string>(), remap=(id:string):string=> { const vistos=new Set<string>(); while(alias.has(id)&&!vistos.has(id)){vistos.add(id);id=alias.get(id)!;} return id; };
-  construirEnlaces(data,cosas,enlaces,estadosRetirados,l,nuevo,modelo,alias,fusionar);
+  construirEnlaces(data,cosas,enlaces,estadosRetirados,l,nuevo,modelo,alias,fusionar,preferirLiteralesCantidad);
   mapearDerivados(data,enlaces,opds,alias,remap,l,nuevo,modelo);
   fusionarDuplicados(data,enlaces,alias,remap,l);
   construirAbanicos(data,abanicos,enlaces,remap,l,modelo);
@@ -416,7 +421,7 @@ function construirOpds(data:Record<Col,Record<string,Registro>>, apps:Map<string
   }
 }
 
-function construirEnlaces(data:Record<Col,Record<string,Registro>>, cosas:Record<string,Cosa>, enlaces:Record<string,Enlace>, retirados:Set<string>, l:Lectura, nuevo:(p:string)=>string, modelo:()=>Modelo, alias:Map<string,string>, fusionar:FusionarPares|undefined):void {
+function construirEnlaces(data:Record<Col,Record<string,Registro>>, cosas:Record<string,Cosa>, enlaces:Record<string,Enlace>, retirados:Set<string>, l:Lectura, nuevo:(p:string)=>string, modelo:()=>Modelo, alias:Map<string,string>, fusionar:FusionarPares|undefined,preferirLiteralesCantidad:boolean):void {
   const estadoPropio=(s:unknown,obj:string,r:string):string|undefined=> {
     if(s===undefined) return undefined;
     if(retirados.has(str(s))||cosas[obj]?.tipo!=='objeto'||!(cosas[obj] as Extract<Cosa,{tipo:'objeto'}>).estados.some(e=>e.id===s)) { l.perder(r,s,'F-3','Anclaje descartado: no es estado propio de objeto');return undefined; }
@@ -433,8 +438,11 @@ function construirEnlaces(data:Record<Col,Record<string,Registro>>, cosas:Record
     if(typeof v==='number'&&!Number.isSafeInteger(v)) {l.perder(r,v,'DR-21','Multiplicidad numérica sin entero exacto recuperable');return undefined;}
     // DEC35: el entero exacto n ≥ 2 y 2..* son del producto; n..n es el mismo entero.
     const s=typeof v==='string'?v:String(v), alias:Record<string,Multiplicidad|undefined>={'0..1':'?','0..*':'*','0..N':'*','1..*':'+','1..N':'+','2..N':'2..*','1':undefined,'1..1':undefined};
+    // Sólo el candidato DIRECTO que después demuestra igualdad íntegra conserva
+    // el literal nuevo. Los tres aliases N no cambian su sentido heredado.
+    if(preferirLiteralesCantidad&&!/^[012]\.\.N$/.test(s)&&esMultiplicidad(s))return s;
     const exacto=/^([1-9]\d*)\.\.\1$/.exec(s)?.[1];
-    const m=Object.hasOwn(alias,s)?alias[s]:esMultiplicidad(s)?s:exacto!==undefined&&esMultiplicidad(exacto)?exacto:null;
+    const m=Object.hasOwn(alias,s)?alias[s]:exacto!==undefined&&esMultiplicidad(exacto)?exacto:esMultiplicidad(s)?s:null;
     if(m===null) { l.perder(r,v,'DR-21','Multiplicidad fuera del producto'); return undefined; }
     if(m&&m!==s)l.norm(r,`Multiplicidad equivalente ${s} → ${m}.`,'T-057'); return m;
   };

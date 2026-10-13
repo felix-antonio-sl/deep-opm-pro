@@ -1,3 +1,4 @@
+import { requierePlural } from './multiplicidad';
 import type { Modelo, Id, Ref, Enlace } from './tipos';
 import { esProcedimental } from './tipos';
 import type { Accion } from './operaciones';
@@ -68,6 +69,7 @@ export const CATALOGO = Object.freeze([
     fila('ajuste-automatico', 'R-OPD-OP-5, R-OPD-EDIT-6', 'info', 'sugerencia', 'Revisa la colección y el contorno derivados en esta vista'),
     fila('cosa-sin-aparicion', 'T-262, A8.2', 'warning', 'identidad', 'Buscar › Traer esta cosa a un OPD'),
     fila('enlace-sin-vista', 'A8.2', 'warning', 'identidad', 'Trae a un OPD el extremo faltante del enlace'),
+    fila('forma-plural-faltante', 'DEC56/DR-12', 'warning', 'gramatical', 'Declara la forma plural del objeto en Propiedades'),
 ] as const);
 export type CodigoDiagnostico = (typeof CATALOGO)[number]['codigo'];
 const porCodigo = new Map<CodigoDiagnostico, FilaCatalogo>(CATALOGO.map(f => [f.codigo, f]));
@@ -103,6 +105,12 @@ export function diagnosticar(m: Modelo): readonly Diagnostico[] {
         }
     // Un dato que ninguna operación habría aceptado (ruta en un efecto, control o multiplicidad ajenos a su
     // fila) hace que el generador omita el enlace en silencio: es error visible y bloquea el export (T-288).
+    for (const e of enlaces) {
+        const cantidades = 'objeto' in e ? [[e.objeto,e.mult] as const] : e.tipo === 'agregacion' ? [[e.refinador,e.mult] as const]
+            : 'multOrigen' in e || 'multDestino' in e ? [[e.origen,e.multOrigen] as const,[e.destino,e.multDestino] as const] : [];
+        for (const [id,mult] of cantidades) { const c = m.cosas[id]; if (c?.tipo === 'objeto' && requierePlural(mult) && !c.nombrePlural)
+            añadir('forma-plural-faltante', [ref('cosa',id),ref('enlace',e.id)], `La cantidad requiere una forma plural explícita de «${c.nombre}».`); }
+    }
     for (const e of enlaces)
         for (const v of violacionesForma(m, e))
             añadir('enlace-invalido', v.refs, v.mensaje, { regla: v.regla });
@@ -309,3 +317,8 @@ export function gatesExportacion(m: Modelo, alcance: {
     return ds.filter(d => d.opd !== undefined && d.opd !== alcance.opd ? false : ['opd-sobrecargado', 'refinamiento-trivial'].includes(d.codigo) ? d.opd === alcance.opd : d.severidad === 'error' && d.refs.some(visible)).map(aRechazo);
 }
 function aRechazo(d: Diagnostico): Rechazo { return { codigo: 'contexto', regla: d.regla, mensaje: d.mensaje, accion: d.accion, refs: d.refs }; }
+
+/** Completitud lingüística del documento; no invalida edición, JSON ni OPD (DEC56). */
+export function gatesDocumento(m: Modelo): readonly Rechazo[] {
+    return [...gatesExportacion(m, 'modelo'), ...diagnosticar(m).filter(d => d.codigo === 'forma-plural-faltante').map(aRechazo)];
+}

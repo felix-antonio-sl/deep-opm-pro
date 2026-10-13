@@ -7,6 +7,8 @@ export interface TokenOpl {
     readonly texto: string; // sin marcas Markdown
     readonly rol: 'texto' | 'nombre' | 'verbo' | 'estado' | 'multiplicidad';
     readonly marca?: 'objeto' | 'proceso' | 'estado'; // **…**, *…*, `…`
+    readonly negrita?: true; // restricción matemática; estilo, nunca una entidad
+    readonly formaPlural?: true; // dato presentado del objeto: editar su forma, no el nombre canónico
     readonly ref?: Ref; // cosa/estado/opd del hueco (T-135)
     readonly hecho?: Id; // enlace del sub-span (R-OPL-INT-6, T-245)
 }
@@ -28,7 +30,7 @@ export interface OpcionesOpl {
 }
 
 export function textoDeTokens(tokens: readonly TokenOpl[]): string {
-    return tokens.map(t => t.marca === 'objeto' ? `**${t.texto}**` : t.marca === 'proceso' ? `*${t.texto}*` : t.marca === 'estado' ? `\`${t.texto}\`` : t.texto).join('');
+    return tokens.map(t => t.marca === 'objeto' || t.negrita ? `**${t.texto}**` : t.marca === 'proceso' ? `*${t.texto}*` : t.marca === 'estado' ? `\`${t.texto}\`` : t.texto).join('');
 }
 export function refsDeTokens(tokens: readonly TokenOpl[]): readonly Ref[] {
     const vistas = new Set<string>(), refs: Ref[] = [];

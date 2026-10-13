@@ -4,8 +4,9 @@ import { esProcedimental, extremos, reciprocoConEstados } from './tipos';
 import { indice } from './indice';
 import { generales } from './herencia';
 import { validarEtiqueta } from './lexico';
+import { analizarMultiplicidad, esParametroSimple } from './multiplicidad';
 import type { Familia, TipoCosa, TipoEnlace, Modelo, Enlace, EnlaceNuevo, EnlaceProcedimental, Id, Abanico, Multiplicidad } from './tipos';
-import type { Violacion, Respuesta, Rechazo } from './resultado';
+import type { Violacion, Respuesta, Rechazo, Traza } from './resultado';
 import type { Indice } from './indice';
 import type { Accion, EstadosEnlace, ExtremoRef } from './operaciones';
 // Una firma de gesto puede estar incompleta; nunca se anuncia como EnlaceNuevo persistible.
@@ -44,13 +45,12 @@ export interface FilaMatriz {
 // La tabla es la única autoridad de firma para todos los consumidores.
 const fila = (f: FilaMatriz): FilaMatriz => Object.freeze({ ...f, roles: Object.freeze(f.roles), clases: Object.freeze(f.clases), plantillas: Object.freeze(f.plantillas) });
 /** Los símbolos globales se identifican por su escritura exacta, sin bindings ni scopes locales.
- * El subconjunto de identificadores evita operadores/espacios; las palabras de cantidad se reservan. */
+ * Los nombres compuestos se citan dentro de la anotación matemática (DEC55). */
 export const PATRON_PARAMETRO_MULTIPLICIDAD = '[A-Za-zÁÉÍÓÚÜÑáéíóúüñ][A-Za-zÁÉÍÓÚÜÑáéíóúüñ\\d]*';
-const parametroMultiplicidad = new RegExp('^' + PATRON_PARAMETRO_MULTIPLICIDAD + '$');
-export const esParametroMultiplicidad = (v: string): boolean => parametroMultiplicidad.test(v)
-    && !['un', 'una', 'muchos', 'muchas', 'infinity', 'nan'].includes(v.toLocaleLowerCase('es'));
-export const esMultiplicidad = (v: unknown): v is Multiplicidad => typeof v === 'string'
-    && (/^(?:[?*+]|2\.\.\*|[2-9]|[1-9]\d+|muchos)$/.test(v) || esParametroMultiplicidad(v));
+export const esParametroMultiplicidad = esParametroSimple;
+const multiplicidadLiteral = (v: string): boolean => /^(?:[?*+]|2\.\.\*|0|[1-9]\d*|muchos)$/.test(v) || esParametroMultiplicidad(v);
+export const esMultiplicidad = (v: unknown): v is Multiplicidad => typeof v === 'string' && v.trim() === v
+    && (multiplicidadLiteral(v) || analizarMultiplicidad(v) !== null);
 export const multiplicidadEnExtremo = (clase: TipoCosa, valor?: Multiplicidad): boolean => valor === undefined || clase === 'objeto';
 export const MATRIZ: Readonly<Record<TipoEnlace, FilaMatriz>> = Object.freeze({
     consumo: fila({ familia: "transformadora", roles: ["objeto", "proceso"], clases: ["objeto", "proceso"], mismoTipo: false, reflexivo: false, estados: "objeto", control: true, abanico: true, ruta: true, mult: "objeto", etiquetas: "ninguna", plantillas: ["T1", "TS1", "ET1", "ETS1", "CT1", "CS1", "COND-ALT"], menu: 1 }),
@@ -138,7 +138,8 @@ function colision(m: Modelo, e: Enlace, idx: Indice): Enlace | undefined {
 // Entre niveles de una descomposición (R-ROL-1/2/3) el abstracto y su detalle pueden
 // tener enlaces propios con el mismo objeto; al abstraer prevalece el de mayor fuerza.
 function entreNiveles(m: Modelo, e: Enlace, idx: Indice): readonly { abstracto: EnlaceProcedimental; detalle: EnlaceProcedimental }[] {
-    if (!esProcedimental(e))
+    // Sin subprocesos, ningún proceso distinto puede ser ancestro del otro.
+    if (!esProcedimental(e) || idx.subprocesoDe.size === 0)
         return [];
     const pares: { abstracto: EnlaceProcedimental; detalle: EnlaceProcedimental }[] = [], as = ancestros(m, e.proceso, idx), fan = idx.abanicoDeEnlace.get(e.id);
     for (const id of idx.enlacesDeCosa.get(e.objeto) ?? []) {
@@ -313,7 +314,7 @@ export interface FilaNoOfrecido {
     readonly registro: `B-${number}`;
 }
 export const NO_OFRECIDO: readonly FilaNoOfrecido[] = Object.freeze([
-    Object.freeze({ id: 'nf-mult-sin-hueco', regla: 'DR-44', motivo: 'La plantilla no tiene hueco para multiplicidad junto a c, efecto con estados, etiquetado con estados o multiplicidades de rama distintas en un extremo común.', registro: 'B-04' as const }),
+    Object.freeze({ id: 'nf-mult-sin-hueco', regla: 'DR-44', motivo: 'La plantilla no tiene hueco para multiplicidad junto a c o las cantidades de determinados abanicos.', registro: 'B-04' as const }),
     Object.freeze({ id: 'nf-reciproco-estados-sin-etiqueta', regla: 'reglas §4.10', motivo: 'El recíproco con estados requiere etiqueta; SE5 no tiene variante con estado.', registro: 'B-05' as const }),
     Object.freeze({ id: 'nf-abanico-estado-comun', regla: 'R-FAN-EST-1', motivo: 'El extremo común del abanico debe estar en el borde de una cosa, no en un estado (DEC 29).', registro: 'B-06' as const }),
     Object.freeze({ id: 'nf-abanico-efecto-mixto', regla: 'R-FAN-5/5A', motivo: 'El abanico de efecto requiere T3 puro, FAN5s/FAN5e o TS3 con entrada común (FAN5A).', registro: 'B-06' as const }),
@@ -325,8 +326,7 @@ const no = (id: string): FilaNoOfrecido => NO_OFRECIDO.find(r => r.id === id)!;
 export function noOfrecidoDescomposicion(m: Modelo, id: Id): FilaNoOfrecido | null { return cosa(m, id)?.tipo === 'objeto' ? no('nf-descomposicion-objeto') : null; }
 export function noOfrecido(m: Modelo, e: Enlace | EnlaceNuevo, abanico?: Abanico): FilaNoOfrecido | null {
     const mult = ('mult' in e && e.mult !== undefined) || ('multOrigen' in e && e.multOrigen !== undefined) || ('multDestino' in e && e.multDestino !== undefined);
-    const estados = anclajes(e).length > 0;
-    if (mult && (control(e) === 'c' || e.tipo === 'efecto' && estados || MATRIZ[e.tipo].familia === 'etiquetada' && estados))
+    if (mult && control(e) === 'c')
         return no('nf-mult-sin-hueco');
     if (e.tipo === 'reciproco' && e.estados && !e.etiqueta?.trim())
         return no('nf-reciproco-estados-sin-etiqueta');
@@ -334,10 +334,8 @@ export function noOfrecido(m: Modelo, e: Enlace | EnlaceNuevo, abanico?: Abanico
         return null;
     const es = abanico.enlaces.map(id => m.enlaces[id]!), c = comun(es), primero = es[0]!;
     if (es.some(x => 'mult' in x && x.mult !== undefined)) {
-        const sinHueco = es.some(x => control(x) === 'c' || x.tipo === 'efecto' && anclajes(x).length > 0);
-        const comunSinHueco = c === 'objeto' && (primero.tipo === 'agente' || primero.tipo === 'efecto'
-            || es.some(x => !('mult' in x) || !('mult' in primero) || x.mult !== primero.mult));
-        if (sinHueco || comunSinHueco) return no('nf-mult-sin-hueco');
+        const sinHueco = es.some(x => control(x) === 'c');
+        if (sinHueco) return no('nf-mult-sin-hueco');
     }
     if (c === 'objeto' && es.some(x => anclajes(x).length > 0))
         return no('nf-abanico-estado-comun');
@@ -421,6 +419,12 @@ function anclajes(e: Borrador): readonly (readonly [
     }
 }
 export function violacionesForma(m: Modelo, e: Enlace | EnlaceNuevo): readonly Violacion[] { return forma(m, e); }
+// Metadatos de las filas: no se reconstruyen en cada validación de un enlace.
+const camposEstado: Readonly<Record<EstadosFila, readonly string[]>> = {
+    ninguno: [], objeto: ['estado'], entradaSalida: ['entrada', 'salida'],
+    parGeneralizacion: ['estados'], origenDestino: ['estadoOrigen', 'estadoDestino'],
+    simetrico: ['estados'],
+};
 function forma(m: Modelo, e: Borrador): readonly Violacion[] {
     const vs: Violacion[] = [], f = MATRIZ[e.tipo], [a, b] = roles(e), ca = cosa(m, a), cb = cosa(m, b), idx = indice(m);
     const fallo = (regla: string, mensaje: string) => vs.push({ codigo: 'forma', regla, mensaje, refs: 'id' in e ? [{ tipo: 'enlace' as const, id: e.id }] : [] });
@@ -433,11 +437,6 @@ function forma(m: Modelo, e: Borrador): readonly Violacion[] {
         fallo('R-OPL-RF-3', 'La generalización de estado exige el par completo entre objetos.');
     // Datos no tipables pueden llegar de un import; no se aceptan modificadores ajenos a la fila.
     const datos: Readonly<Record<string, unknown>> = { ...e };
-    const camposEstado: Readonly<Record<EstadosFila, readonly string[]>> = {
-        ninguno: [], objeto: ['estado'], entradaSalida: ['entrada', 'salida'],
-        parGeneralizacion: ['estados'], origenDestino: ['estadoOrigen', 'estadoDestino'],
-        simetrico: ['estados'],
-    };
     if (['estado', 'entrada', 'salida', 'estadoOrigen', 'estadoDestino'].some(k => datos[k] !== undefined && (typeof datos[k] !== 'string' || !datos[k])))
         fallo('R-EDIT-2', 'El anclaje debe ser un id de estado no vacío.');
     if (['estado', 'entrada', 'salida', 'estados', 'estadoOrigen', 'estadoDestino'].some(k => datos[k] !== undefined && !camposEstado[f.estados].includes(k)))
@@ -450,7 +449,7 @@ function forma(m: Modelo, e: Borrador): readonly Violacion[] {
     if (datos.ruta !== undefined && (!f.ruta || typeof datos.ruta !== 'string' || !datos.ruta.trim()))
         fallo('R-OPL-RUTA-2', 'La ruta debe tener nombre y solo se admite en consumo/resultado.');
     if (['mult', 'multOrigen', 'multDestino'].some(k => datos[k] !== undefined && !esMultiplicidad(datos[k])))
-        fallo('R-MULT-1', 'La multiplicidad debe ser ?, *, +, 2..* o un entero desde 2.');
+        fallo('R-MULT-1', 'La multiplicidad requiere un conteo, rango cerrado, expresión o restricciones válidas.');
     if (datos.mult !== undefined && !['objeto', 'refinador'].includes(f.mult) || (datos.multOrigen !== undefined || datos.multDestino !== undefined) && f.mult !== 'ambos')
         fallo('R-MULT-1', 'Multiplicidad en un rol no admitido.');
     // R-EST-SSE-1: el recíproco con un solo estado lo lleva en el origen (reciprocoConEstados).
@@ -517,6 +516,24 @@ function rechazoEtiqueta(valor: unknown, requerida: boolean): Rechazo | null {
     return validarEtiqueta(typeof valor === 'string' ? valor : '');
 }
 export function normalizarEtiquetas(e: EnlaceNuevo): Respuesta<EnlaceNuevo> {
+    let preparado = e;
+    const trazas: Traza[] = [];
+    for (const campo of ['mult', 'multOrigen', 'multDestino'] as const) {
+        const dato = (e as unknown as Record<string, unknown>)[campo];
+        if (dato === undefined) continue;
+        // Las formas literales ya canónicas no necesitan AST ni normalización.
+        if (typeof dato === 'string' && dato.trim() === dato && multiplicidadLiteral(dato)) continue;
+        const q = typeof dato === 'string' ? analizarMultiplicidad(dato) : null;
+        if (!q) return { ok: false, rechazo: { codigo: 'forma', regla: 'R-MULT-1', mensaje: 'La anotación de multiplicidad no tiene una sintaxis válida.', refs: [] } };
+        if (q.normalizada !== dato) {
+            preparado = { ...preparado, [campo]: q.normalizada };
+            trazas.push({ regla: 'R-MULT-3', mensaje: `Anotación de cantidad normalizada: ${dato} → ${q.normalizada}.`, refs: [] });
+        }
+    }
+    const r = normalizarSoloEtiquetas(preparado);
+    return r.ok && trazas.length ? { ...r, trazas: [...trazas, ...r.trazas] } : r;
+}
+function normalizarSoloEtiquetas(e: EnlaceNuevo): Respuesta<EnlaceNuevo> {
     if (MATRIZ[e.tipo].etiquetas === 'ninguna') return { ok: true, valor: e, trazas: [] };
     if (e.tipo === 'etiquetadoBidireccional') {
         const rechazo = rechazoEtiqueta(e.etiqueta, true) ?? rechazoEtiqueta(e.inversa, true);

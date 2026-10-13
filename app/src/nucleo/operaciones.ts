@@ -1,7 +1,7 @@
 import type { Modelo, Id, Ref } from './tipos';
 import type { Respuesta, Hecho } from './resultado';
 import { renombrarModelo, fijarUnidadTiempo, fijarDescripcionModelo } from './modelo';
-import { crearCosa, renombrarCosa, cambiarTipoCosa, fijarEsencia, fijarAfiliacion, fijarGenero, fijarDescripcion, fijarValor, fijarDuracion, fijarIncompleta, traerCosa, moverApariciones, redimensionar, quitarDeOpd, eliminarCosas } from './cosas';
+import { crearCosa, renombrarCosa, cambiarTipoCosa, fijarEsencia, fijarAfiliacion, fijarGenero, fijarNombrePlural, fijarDescripcion, fijarValor, fijarDuracion, fijarIncompleta, traerCosa, moverApariciones, redimensionar, quitarDeOpd, eliminarCosas } from './cosas';
 import { agregarEstado, renombrarEstado, moverEstado, eliminarEstado, designar, suprimirEstado } from './estados';
 import { crearEnlace, cambiarTipoEnlace, fijarEstados, fijarControl, fijarEtiqueta, fijarRuta, fijarMultiplicidad, reanclarExtremo, distribuirEnlace, eliminarEnlaces } from './enlaces';
 import { formarAbanico, fijarOperador, agregarRama, quitarRama, disolverAbanico, fijarControlAbanico } from './abanicos';
@@ -27,7 +27,7 @@ export type EstadosEnlace = {
     readonly destino: Id | null;
 }; // etiquetados
 export const OPERACIONES = { renombrarModelo, fijarUnidadTiempo, fijarDescripcionModelo, crearCosa, renombrarCosa,
-    cambiarTipoCosa, fijarEsencia, fijarAfiliacion, fijarGenero, fijarDescripcion, fijarValor, fijarDuracion, fijarIncompleta,
+    cambiarTipoCosa, fijarEsencia, fijarAfiliacion, fijarGenero, fijarNombrePlural, fijarDescripcion, fijarValor, fijarDuracion, fijarIncompleta,
     traerCosa, moverApariciones, redimensionar, quitarDeOpd, eliminarCosas, agregarEstado, renombrarEstado, moverEstado,
     eliminarEstado, designar, suprimirEstado, crearEnlace, cambiarTipoEnlace, fijarEstados, fijarControl, fijarEtiqueta,
     fijarRuta, fijarMultiplicidad, reanclarExtremo, distribuirEnlace, eliminarEnlaces, formarAbanico, fijarOperador,
@@ -57,6 +57,7 @@ export function aplicarAccion(m: Modelo, a: Accion): Respuesta<Hecho> {
         case 'fijarEsencia': return OPERACIONES.fijarEsencia(m, a.args);
         case 'fijarAfiliacion': return OPERACIONES.fijarAfiliacion(m, a.args);
         case 'fijarGenero': return OPERACIONES.fijarGenero(m, a.args);
+        case 'fijarNombrePlural': return OPERACIONES.fijarNombrePlural(m, a.args);
         case 'fijarDescripcion': return OPERACIONES.fijarDescripcion(m, a.args);
         case 'fijarValor': return OPERACIONES.fijarValor(m, a.args);
         case 'fijarDuracion': return OPERACIONES.fijarDuracion(m, a.args);
@@ -112,7 +113,7 @@ export function aplicarAcciones(m: Modelo, as: readonly Accion[]): Respuesta<Hec
 }
 const ETIQUETAS: Readonly<Record<NombreOperacion, string>> = {
     renombrarModelo: 'Renombrar modelo', fijarUnidadTiempo: 'Fijar unidad de tiempo', fijarDescripcionModelo: 'Fijar descripción del modelo',
-    crearCosa: 'Crear cosa', renombrarCosa: 'Renombrar cosa', cambiarTipoCosa: 'Cambiar tipo de cosa', fijarEsencia: 'Fijar esencia', fijarAfiliacion: 'Fijar afiliación', fijarGenero: 'Fijar género', fijarDescripcion: 'Fijar descripción', fijarValor: 'Fijar valor', fijarDuracion: 'Fijar duración', fijarIncompleta: 'Declarar colección incompleta', traerCosa: 'Traer cosa', moverApariciones: 'Mover apariciones', redimensionar: 'Redimensionar', quitarDeOpd: 'Quitar del OPD', eliminarCosas: 'Eliminar cosas',
+    crearCosa: 'Crear cosa', renombrarCosa: 'Renombrar cosa', cambiarTipoCosa: 'Cambiar tipo de cosa', fijarEsencia: 'Fijar esencia', fijarAfiliacion: 'Fijar afiliación', fijarGenero: 'Fijar género', fijarNombrePlural: 'Fijar forma plural', fijarDescripcion: 'Fijar descripción', fijarValor: 'Fijar valor', fijarDuracion: 'Fijar duración', fijarIncompleta: 'Declarar colección incompleta', traerCosa: 'Traer cosa', moverApariciones: 'Mover apariciones', redimensionar: 'Redimensionar', quitarDeOpd: 'Quitar del OPD', eliminarCosas: 'Eliminar cosas',
     agregarEstado: 'Agregar estado', renombrarEstado: 'Renombrar estado', moverEstado: 'Mover estado', eliminarEstado: 'Eliminar estado', designar: 'Designar estado', suprimirEstado: 'Suprimir estado',
     crearEnlace: 'Crear enlace', cambiarTipoEnlace: 'Cambiar tipo de enlace', fijarEstados: 'Fijar estados del enlace', fijarControl: 'Fijar control', fijarEtiqueta: 'Fijar etiqueta', fijarRuta: 'Fijar ruta', fijarMultiplicidad: 'Fijar multiplicidad', reanclarExtremo: 'Reanclar extremo', distribuirEnlace: 'Distribuir enlace', eliminarEnlaces: 'Eliminar enlaces',
     formarAbanico: 'Formar abanico', fijarOperador: 'Fijar operador', agregarRama: 'Agregar rama', quitarRama: 'Quitar rama', disolverAbanico: 'Disolver abanico', fijarControlAbanico: 'Fijar control del abanico',

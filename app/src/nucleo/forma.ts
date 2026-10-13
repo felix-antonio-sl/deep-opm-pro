@@ -1,8 +1,14 @@
-import type { Modelo, Id, Ref, Enlace, Opd } from './tipos';
+import type { Modelo, Id, Ref, Enlace, Opd, Aparicion } from './tipos';
 import type { Violacion } from './resultado';
 import { indice } from './indice';
 import { MATRIZ, noOfrecido } from './matriz';
 import { sufijoId } from './ids';
+/** Predicado F-12 compartido; no comprueba ni sustituye las demás reglas de forma. */
+export function violacionCaja(opd: Id, cosa: Id, a: Aparicion): Violacion | undefined {
+    if (!Number.isFinite(a.x) || !Number.isFinite(a.y) || !Number.isInteger(a.x) || !Number.isInteger(a.y) || !Number.isInteger(a.ancho) || !Number.isInteger(a.alto) || a.ancho < 20 || a.alto < 20)
+        return { codigo: 'F-12', regla: 'F-12', mensaje: 'La caja requiere enteros finitos y tamaños ≥20.', refs: [{ tipo: 'opd', id: opd }, { tipo: 'cosa', id: cosa }] };
+    return undefined;
+}
 export function validarForma(m: Modelo): readonly Violacion[] {
     const opd = (id: Id) => Object.hasOwn(m.opds, id) ? m.opds[id] : undefined;
     const aparece = (o: Opd | undefined, id: Id) => o !== undefined && Object.hasOwn(o.apariciones, id);
@@ -159,8 +165,8 @@ export function validarForma(m: Modelo): readonly Violacion[] {
                 if (idx.estadoDe.get(s)?.objeto !== c)
                     fallo('F-1', 'El estado oculto no pertenece a la aparición.', [ref('opd', o.id), ref('estado', s)]);
             }
-            if (!Number.isFinite(a.x) || !Number.isFinite(a.y) || !Number.isInteger(a.x) || !Number.isInteger(a.y) || !Number.isInteger(a.ancho) || !Number.isInteger(a.alto) || a.ancho < 20 || a.alto < 20)
-                fallo('F-12', 'La caja requiere enteros finitos y tamaños ≥20.', [ref('opd', o.id), ref('cosa', c)]);
+            const caja = violacionCaja(o.id, c, a);
+            if (caja) vs.push(caja);
         }
         if (o.tipo === 'raiz')
             continue;

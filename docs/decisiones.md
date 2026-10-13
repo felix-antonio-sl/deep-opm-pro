@@ -251,9 +251,60 @@ que tenemos» (ISO/PAS 19450:2015; no se versiona en el repositorio). Se cita la
     La aceptación requiere roundtrip de hechos, pruebas completas y revisión global favorable;
     un commit/push sólo a la rama de trabajo, sin integración en main ni despliegue.
 
+55. **Completar las capacidades pendientes de B-42.** Mandato directo role=user:
+    > resuelve todo esto: **B-42 sigue declarada como parcial:** este incremento resuelve las colisiones de superficie B-55/B-56; las expresiones matemáticas, rangos y otras capacidades no ofrecidas mantienen sus brechas.
+
+    ID/fecha originales no observables. El encargo amplía la implementación a cantidades,
+    rangos, aritmética, restricciones y parámetros pendientes, con las mismas condiciones
+    de roundtrip, pruebas completas, revisión independiente y publicación sólo a la rama.
+    La realización matemática de §4.4.11 se deriva de este mandato, no se atribuye a DEC54.
+    No autoriza reinterpretar aliases legacy, adivinar identidades por pluralización ni
+    retirar silenciosamente límites contractuales DR12/DR44. El cierre de B42 requiere
+    resolver todas sus dependencias aplicables, no sólo admitir expresiones en el núcleo.
+
+56. **B-42: plural explícito reversible y ramas cuantificadas con objeto común.**
+    Autorización directa role=user de Félix:
+    > Autorizo V2 para plurales y ramas cuantificadas con objeto común. Resuelve T-192 sin rebajar el límite y cierra B-42 con pruebas completas y revisión independiente. Commit atómico y semántico y push solo a la rama; sin main ni despliegue.
+
+    ID/fecha originales NO_OBSERVABLE. Aplica la propuesta V2 de81 líneas, SHA256
+    `be07fff3001d5bf2e87f4e057df574cd9309c4bdaeef7b6e6292c3332394694e`,
+    contrastada documentalmente con dictamen independiente favorable. Sustituye DR12/DEC35
+    sólo para las formas de §4.4.11b: dato plural opcional por ID, referencia canónica
+    explícita por ocurrencia y ramas completas de común objeto. Conserva canon, v0,
+    identidad, estados, operador, geometría DEC29 y los límites de c/todo/B05/B06/B08.
+    No autoriza inflectores, solver, respuestas cacheadas ni reducir corpus o umbrales.
+    T192 conserva mediana de cinco identidades frescas tras calentamiento y3000ms.
+    Aceptación requiere pruebas completas, roundtrip, códec fijo, visuales genuinos y
+    revisión independiente global; commit/push atómico sólo a la rama de trabajo.
+
+57. **B-42: excepción precisa de default UNI plural a DEC53.**
+    Respuesta directa role=user a la pregunta específica de `request_user_input_async`:
+    > Autorizar la excepción acotada (recomendado)
+
+    `questionItemId`: `["request_user_input_async","call_6906ddc6bbf04e7892db6c1a944b9cd7",0]`;
+    ID de mensaje y fecha originales NO_OBSERVABLE. Adopta únicamente el patch de60 líneas
+    SHA256 `6861f0483dbbfc46386cf0f27c59bf44b98948a7368575374a7c185d757715a7`,
+    revisado independientemente con dictamen documental favorable. En UNI/listas ofrecidas,
+    incluidos estados propios, el default efectivo B38 (ausencia o literal reservado singular)
+    se escribe sin comillas sólo con sujeto plural explícito identificado y cantidad plural;
+    la etiqueta libre `«se relacionan con»` sigue siendo otro hecho. Conserva singular,
+    interpretación legacy, campos guardados, identidad, tokens, v0 y OPD. No modifica canon,
+    bidireccionales o recíprocos. La aplicación requiere nuevas pruebas y revisión global;
+    no autoriza aceptación anticipada, main ni despliegue.
+
 ## Resoluciones directas posteriores — vigentes
 
 Frases role=user recibidas textualmente; ID y fecha originales no observables.
+
+**Publicación del incremento B-42 en main.** Instrucción directa posterior de Félix:
+
+> - Ejecutar commits semánticos y precisos sobre la rama principal, lo más aislados y atómicos posible.
+> - Realizar push controlado.
+
+Sustituye sólo el destino de publicación anterior de DEC55–57: permite incorporar los
+commits publicados de la rama y el incremento validado en main por avance rápido,
+con commits por intención y push normal, sin reescribir historia. Conserva pruebas
+completas, revisión independiente, contratos y límites operativos; no autoriza despliegue.
 
 > «Autorizo la propuesta V3 (SHA-256 1a9a0de9607950c56cbf5f26582649f37eab4fe9031d4c7545eeae934bb7f221): cambiarTipoEnlace recibe etiquetas?: DatosEtiquetas y las valida en la misma transacción, conservando identidad, validaciones y trazas. Aplícala en DESIGN y en el código, cierra WP-15 con check verde y publícalo. Rendimiento: no sigas optimizando el generador. Una sola medición en frío dentro de la suite mide la compilación JIT y el ruido del proceso, no el producto. Autorizo cambiar la metodología de rendimiento.test.ts: cada meta se mide como la mediana de 5 identidades frescas, después de un calentamiento con otra identidad, y nunca sobre una respuesta cacheada. Los límites (3× de DESIGN §2.4) no cambian. Deja la regla en una línea en DESIGN §2.4. Después sigue con WP-16 sin detenerte. La revisión de ola va al cerrar WP-16, como tenías previsto. No hace falta registrar recibos parciales ni archivos auxiliares de diagnóstico: la evidencia es el commit con check verde.»
 

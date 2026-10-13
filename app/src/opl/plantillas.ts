@@ -1,6 +1,7 @@
 import type { Cosa, Enlace, Modelo, Multiplicidad, Operador, Ref, UnidadTiempo } from '../nucleo/tipos';
 import { esProcedimental } from '../nucleo/tipos';
 import { esParametroMultiplicidad } from '../nucleo/matriz';
+import { analizarMultiplicidad, multiplicidadDesdeOpl, requierePlural } from '../nucleo/multiplicidad';
 import { indice } from '../nucleo/indice';
 import { conjuncionO, conjuncionY } from '../nucleo/lexico';
 import type { EnlaceTexto, ExtremoTexto, HechoTexto, NombreTipado } from './analizar';
@@ -15,6 +16,8 @@ export interface Hueco {
     readonly hecho?: string;
     readonly genero?: 'f';
     readonly mult?: Multiplicidad;
+    readonly nombrePlural?: string;
+    readonly enlaceTexto?: EnlaceTexto; // sólo la inversa de ramas completas (DEC56)
     readonly estado?: Hueco;
     readonly entrada?: Hueco;
     readonly salida?: Hueco;
@@ -38,11 +41,12 @@ export interface Plantilla {
 }
 // Expansiones finitas de la tabla: se comparten entre emisión y vocabulario.
 const cuantificadores = { XOR: 'exactamente uno de', OR: 'al menos uno de' } as const;
-const multiplicidades = { '?': ['un ', 'una '], '*': ['', ''], '+': ['al menos un ', 'al menos una '], '2..*': ['al menos dos ', 'al menos dos '], muchos: ['muchos ', 'muchas '] } as const;
-// DEC35: el entero exacto va en cifras y sin género (EBNF A.2 `limite_de_participacion`); el nombre sigue en singular (DR-12).
+const multiplicidades = { '?': ['un ', 'una '], '*': ['', ''], '+': ['al menos un ', 'al menos una '], '2..*': ['al menos dos ', 'al menos dos '], '1': ['un ', 'una '], muchos: ['muchos ', 'muchas '] } as const;
+// DEC35: entero exacto en cifras; DEC56 decide la forma de objeto explícita sin inflector.
 const fraseMultiplicidad = (m: Multiplicidad, f: boolean): string => Object.hasOwn(multiplicidades, m) ? multiplicidades[m as keyof typeof multiplicidades][f ? 1 : 0] : `${m} `;
 /** Etiqueta reservada de SE2 (T-119): la emite un etiquetado sin etiqueta y la lee el parser como ausencia de etiqueta. */
 export const ETIQUETA_POR_DEFECTO = 'se relaciona con';
+const esDefaultUni = (etiqueta: string | undefined) => etiqueta === undefined || etiqueta === ETIQUETA_POR_DEFECTO;
 const filas: readonly [
     string,
     string,
@@ -51,6 +55,7 @@ const filas: readonly [
 ][] = [
     ['D1', '{C} es físico|física.', 'cosa'], ['D2', '{C} es informacional.', 'cosa'], ['D3', '{C} es ambiental.', 'cosa'], ['D4', '{C} es sistémico|sistémica.', 'cosa', 'P'],
     ['ENT3', '{C} es un objeto|proceso {esencia}[ y {afiliacion}].', 'cosa', 'P'], ['D11', '{C} es persistente.', 'cosa', 'P'], ['D12', '{C} es transitoria.', 'cosa', 'P'],
+    ['PLURAL', 'Forma plural de {O}: «{plural}».', 'cosa'],
     ['D5', '{O} puede estar {Lo:s}.', 'cosa'], ['D6', '{O} puede estar {Lista:s}, y otros estados.', 'cosa'],
     ['D7', 'Estado {s} de {O} es inicial.', 'cosa'], ['D8', 'Estado {s} de {O} es final.', 'cosa'], ['D10', 'Estado {s} de {O} es inicial y final.', 'cosa'], ['D9', 'Estado {s} de {O} es por defecto.', 'cosa'], ['D13', 'Estado {s} de {O} es declarado `Current`.', 'cosa'],
     ['VAL', '{O1} de {O2} es {v}.', 'cosa'], ['ATR-E', '{O1} de {O2} puede estar {Lo:s}.', 'cosa', 'P'],
@@ -73,7 +78,9 @@ const filas: readonly [
     ['SE1', '{mC1} {t} {mC2}.', 'etiquetada'], ['SE2', '{mC1} se relaciona con {mC2}.', 'etiquetada'], ['SSE1', '{O1} en {a} {t} {O2}.', 'etiquetada'], ['SSE2', '{O1} {t} {O2} en {b}.', 'etiquetada'], ['SSE3', '{O1} en {a} {t} {O2} en {b}.', 'etiquetada'], ['SE3', '{mC1} {t} {mC2}.', 'etiquetada'], ['SSE4', '{O1} en {a} {t} {O2}.', 'etiquetada'], ['SSE5', '{O2} {t2} {O1} en {a}.', 'etiquetada'], ['SE4', '{mC1} y {mC2} son {t}.', 'etiquetada'], ['SE5', '{mC1} y {mC2} se relacionan.', 'etiquetada'], ['SSE6', '{O1} en {a} y {O2} en {b} son {t}.', 'etiquetada'], ['SSE7', '{O2} y {O1} en {a} son {t}.', 'etiquetada'],
     // A.4.6.2.2: listas unidireccionales cerradas, sin metadatos de colección inventados.
     ['SE1L', '{mC1e} {t} {Ly:mC2e}.', 'etiquetada'], ['SE2L', '{mC1e} se relaciona con {Ly:mC2e}.', 'etiquetada'],
-    ['FAN5s', '{P} cambia {O} a {Q} {Lo:s}.', 'abanico'], ['FAN5e', '{P} cambia {O} de {Q} {Lo:s}.', 'abanico'], ['FAN5A', '{P} cambia {O} de {e} a {Q} {Lo:s}.', 'abanico'], ['FAN4', '{O} inicia {Q} {Lo:Plista}, y es afectado por el proceso que ocurre.', 'abanico'], ['CFE', '{Q^} {Lo:Plista} ocurre si {O} existe, en cuyo caso afecta {O}, de lo contrario se omite.', 'abanico'], ['C18', '{P} ocurre si {Q} {Lo:Olista} existe, en cuyo caso {P} consume {Q} {Lo:Olista}, de lo contrario {P} se omite.', 'abanico'],
+    ['FAN5s', '{P} cambia {O} a {Q} {Lo:s}.', 'abanico'], ['FAN5e', '{P} cambia {O} de {Q} {Lo:s}.', 'abanico'], ['FAN5A', '{P} cambia {O} de {e} a {Q} {Lo:s}.', 'abanico'],
+    ['FAN5s-cantidades', '{P} cambia {Q} {Lo:salidas}.', 'abanico'], ['FAN5e-cantidades', '{P} cambia {Q} {Lo:entradas}.', 'abanico'], ['FAN5A-cantidades', '{P} cambia {Q} {Lo:cambios}.', 'abanico'],
+    ['FAN4', '{O} inicia {Q} {Lo:Plista}, y es afectado por el proceso que ocurre.', 'abanico'], ['CFE', '{Q^} {Lo:Plista} ocurre si {O} existe, en cuyo caso afecta {O}, de lo contrario se omite.', 'abanico'], ['C18', '{P} ocurre si {Q} {Lo:Olista} existe, en cuyo caso {P} consume {Q} {Lo:Olista}, de lo contrario {P} se omite.', 'abanico'],
     ['CX1', '{P} se descompone en {Ly:Plista}, en esa secuencia[, así como {Ly:O}].', 'contexto'], ['CX2', '{P} se descompone en paralelo {Ly:Plista}[, así como {Ly:O}].', 'contexto'], ['CXM', '{P} se descompone en {SEC}, en esa secuencia[, así como {Ly:O}].', 'contexto'], ['CXI', '{P} se descompone en {Ly:Plista}, así como {Ly:O}.', 'contexto', 'P'], ['CXN', '{P} desde {padre} se descompone en {opd} en {SEC}, en esa secuencia.', 'contexto', 'P'], ['CX3', '{vertice} se despliega en {opd} en {Ly:C}[, así como {Ly:otro}].', 'contexto'], ['CX3s', '{vertice} se despliega en {Ly:C}.', 'contexto', 'P']
 ];
 const fans: readonly [
@@ -91,6 +98,7 @@ const fans: readonly [
 const conRuta = new Set(['T1', 'TS1', 'T2', 'TS2', 'ET1', 'ETS1', 'CT1', 'CS1', 'AND-consumo', 'AND-resultado']);
 export const PLANTILLAS: readonly Plantilla[] = Object.freeze([
     ...filas,
+    ...['consumo', 'resultado', 'efecto', 'agente', 'instrumento'].flatMap(tipo => ['XOR', 'OR'].map(op => [`FAN-ramas-${tipo}-${op}`, '{Q^} {Lo:ramas}.', 'abanico'] as [string, string, 'abanico'])),
     ...fans.flatMap(([tipo, c, d]) => ['XOR', 'OR'].flatMap(op => [[`FAN-${tipo}-convergente-${op}`, c, 'abanico'], [`FAN-${tipo}-divergente-${op}`, d, 'abanico']] as [
         string,
         string,
@@ -100,14 +108,16 @@ export const PLANTILLAS: readonly Plantilla[] = Object.freeze([
 const tabla = new Map(PLANTILLAS.map(p => [p.id, p]));
 /** Realización superficial DEC53; la tabla primaria y los hechos conservan sus IDs. */
 export function patronProducto(p: Plantilla): string {
+    if (/^(?:TS[345]|ETS[234]|FAN5[seA])$/.test(p.id))
+        return p.patron.replace('{O}', '{mO}').replace(/\.$/, '[, donde {restriccion}].');
     return p.familia === 'etiquetada'
-        ? p.patron.replace(/\{(t2?)\}/g, '«{$1}»').replace(' se relaciona con ', ' «se relaciona con» ')
+        ? p.patron.replace(/\{(O[12])\}/g, '{m$1}').replace(/\{(t2?)\}/g, '«{$1}»').replace(' se relaciona con ', ' «se relaciona con» ')
         : p.patron;
 }
 export const hueco = (texto: string): Hueco => ({ texto });
 export function cosa(m: Modelo, id: string, hecho?: string, mult?: Multiplicidad, estado?: string): Hueco {
     const c = m.cosas[id]!;
-    return { texto: c.nombre, marca: c.tipo, ref: { tipo: 'cosa', id }, ...(c.genero ? { genero: c.genero } : {}), ...(hecho ? { hecho } : {}), ...(mult ? { mult } : {}), ...(estado ? { estado: estadoHueco(m, estado, hecho) } : {}) };
+    return { texto: c.nombre, marca: c.tipo, ref: { tipo: 'cosa', id }, ...(c.tipo === 'objeto' && c.nombrePlural ? { nombrePlural: c.nombrePlural } : {}), ...(c.genero ? { genero: c.genero } : {}), ...(hecho ? { hecho } : {}), ...(mult ? { mult } : {}), ...(estado ? { estado: estadoHueco(m, estado, hecho) } : {}) };
 }
 export function estadoHueco(m: Modelo, id: string, hecho?: string): Hueco {
     const dueño = indice(m).estadoDe.get(id), c = dueño ? m.cosas[dueño.objeto] : undefined;
@@ -180,9 +190,13 @@ function componerTokensPlantilla(id: string, h: Huecos): readonly TokenOpl[] {
     const p = tabla.get(id);
     if (!p)
         throw new Error(`Plantilla desconocida: ${id}`);
-    const porDefecto = id === 'SE2' || id === 'SE2L';
-    const patron = porDefecto ? patronProducto(p).replace('«se relaciona con»', '«{t}»') : patronProducto(p);
-    if (porDefecto) h = { ...h, t: { ...(h.t && !Array.isArray(h.t) ? h.t as Hueco : {}), texto: ETIQUETA_POR_DEFECTO } };
+    const porDefecto = id === 'SE2' || id === 'SE2L' || !!h.defaultUni;
+    const sujeto = h.O && !Array.isArray(h.O) ? h.O as Hueco : h.C1 && !Array.isArray(h.C1) ? h.C1 as Hueco : undefined;
+    const pluralSujeto = !!sujeto?.nombrePlural && requierePlural(sujeto.mult);
+    let patron = patronProducto(p);
+    if (porDefecto) patron = patron.replace(/«(?:se relaciona con|\{t\})»/, pluralSujeto ? '{t}' : '«{t}»');
+    if (pluralSujeto && /^(?:H[1]|HS1|ET[12]|ETS[1234]|EH[12]|EHS[12])$/.test(id)) patron = patron.replace(/\binicia\b/g, 'inician').replace(/\bmaneja\b/g, 'manejan');
+    if (porDefecto) h = { ...h, t: { ...(h.t && !Array.isArray(h.t) ? h.t as Hueco : {}), texto: pluralSujeto ? 'se relacionan con' : ETIQUETA_POR_DEFECTO } };
     let secciones=patronesCompilados.get(patron);if(!secciones){secciones=compilarTokens(patron);patronesCompilados.set(patron,secciones);}
     const tokens: TokenOpl[] = [];
     const literal = (texto:string,rol:TokenOpl['rol']='verbo')=>{
@@ -195,24 +209,37 @@ function componerTokensPlantilla(id: string, h: Huecos): readonly TokenOpl[] {
         tokens.push(...cerrados);
     };
     function atom(x: Hueco, mult = false, conEstado = false, articulo = false) {
+        // Las frases simples ya validadas no necesitan construir un AST efímero.
+        const simple = x.mult && (Object.hasOwn(multiplicidades, x.mult) || /^\d+$/.test(x.mult) || esParametroMultiplicidad(x.mult));
+        const q = mult && x.mult && !simple ? analizarMultiplicidad(x.mult) : null;
+        const cantidad = q?.cantidad ?? x.mult;
         if (articulo)
             literal(x.genero === 'f' ? 'una ' : 'un ');
         if (mult && x.mult) {
-            if (esParametroMultiplicidad(x.mult)) {
-                literal('«'); literal(x.mult, 'multiplicidad'); literal('» ');
-            } else literal(fraseMultiplicidad(x.mult, x.genero === 'f'), 'multiplicidad');
+            if (cantidad && (esParametroMultiplicidad(cantidad) || !Object.hasOwn(multiplicidades, cantidad) && !/^\d+$/.test(cantidad))) {
+                literal('«');
+                tokens.push({ texto: q?.frase ?? cantidad, rol: 'multiplicidad', ...(x.hecho ? { hecho: x.hecho } : {}) });
+                literal('» ');
+            } else literal(fraseMultiplicidad(q?.cantidad ?? x.mult, x.genero === 'f'), 'multiplicidad');
         }
         if (x.tokens) {
             tokens.push(...x.tokens);
             return;
         }
-        tokens.push({ texto: x.texto, rol: x.marca === 'estado' ? 'estado' : x.marca ? 'nombre' : 'texto', ...(x.marca ? { marca: x.marca } : {}), ...(x.ref ? { ref: x.ref } : {}), ...(x.hecho ? { hecho: x.hecho } : {}) });
+        const plural = mult && !!x.nombrePlural && (q?.plural ?? requierePlural(x.mult));
+        tokens.push({ texto: plural ? x.nombrePlural! : x.texto, rol: x.marca === 'estado' ? 'estado' : x.marca ? 'nombre' : 'texto', ...(x.marca ? { marca: x.marca } : {}), ...(plural ? { formaPlural: true } : {}), ...(x.ref ? { ref: x.ref } : {}), ...(x.hecho ? { hecho: x.hecho } : {}) });
+        if (plural) literal(` [nombre: «${x.texto}»]`, 'texto');
         if (conEstado && x.estado) {
             literal(' en ');
             atom(x.estado);
         }
-        if (mult && (x.mult === '?' || x.mult === '*'))
-            literal(x.mult === '?' ? ' opcional' : ' opcionales', 'multiplicidad');
+        if (mult && (cantidad === '?' || cantidad === '*'))
+            literal(cantidad === '?' ? ' opcional' : ' opcionales', 'multiplicidad');
+        if (q?.restricciones.length) restriccion(x, q.restriccionesOpl.join('; '));
+    }
+    function restriccion(x: Hueco, texto: string) {
+        literal(', ');
+        tokens.push({ texto: 'donde ' + texto, negrita: true, rol: 'multiplicidad', ...(x.hecho ? { hecho: x.hecho, ref: { tipo: 'enlace', id: x.hecho } as const } : {}) });
     }
     function superficieInicial(k: string, x: Hueco): string {
         const name = k.replace(/^(Ly|Lo|Lista):/, '');
@@ -221,6 +248,13 @@ function componerTokensPlantilla(id: string, h: Huecos): readonly TokenOpl[] {
         return x.tokens?.map(t => t.texto).join('') || x.texto;
     }
     function slot(k: string) {
+        if (k === 'restriccion') {
+            const x = uno(h, k);
+            const previo = tokens.at(-1);
+            if (previo?.texto.endsWith('donde ')) tokens[tokens.length - 1] = { ...previo, texto: previo.texto.slice(0, -6) };
+            tokens.push({ texto: 'donde ' + x.texto, negrita: true, rol: 'multiplicidad', ...(x.hecho ? { hecho: x.hecho, ref: { tipo: 'enlace', id: x.hecho } as const } : {}) });
+            return;
+        }
         if (k === 'Q' || k === 'Q^') {
             literal(cuantificadores[uno(h, 'operador').texto as Operador]);
             return;
@@ -235,9 +269,13 @@ function componerTokensPlantilla(id: string, h: Huecos): readonly TokenOpl[] {
             const ultimo = i === values.length - 1;
             const superficie = superficieInicial(k, x);
             literal(!match || match[1] === 'Lista' || !ultimo ? ', ' : ` ${match[1] === 'Lo' ? conjuncionO(superficie) : conjuncionY(superficie)} `);
-        } atom(x, mult, est, name === 'articulos');
+        }
+            const cambio = name === 'cambios' || name === 'entradas' || name === 'salidas';
+            const q = cambio && x.mult ? analizarMultiplicidad(x.mult) : null;
+            atom(q?.restricciones.length ? { ...x, mult: q.cantidad } : x, mult || cambio, est, name === 'articulos');
             if (name === 'cambios' || name === 'entradas') { literal(' de '); atom(x.entrada!); }
             if (name === 'cambios' || name === 'salidas') { literal(' a '); atom(x.salida!); }
+            if (q?.restricciones.length) restriccion(x, q.restriccionesOpl.join('; '));
         });
     }
     let tramo='';
@@ -251,10 +289,18 @@ function componerTokensPlantilla(id: string, h: Huecos): readonly TokenOpl[] {
         }
     }
     literal(tramo);
-    // Las plantillas atómicas conservan su hueco de estado separado. La marca
-    // de opcionalidad califica el objeto completo, incluido ese estado.
+    // Las plantillas atómicas conservan el estado separado. Primero se coloca
+    // la restricción después de ese estado; así opcionalidad y estado quedan
+    // adyacentes y se puede completar el complemento sin cambiar sus tokens.
+    for (let i = 1; i + 2 < tokens.length; i++) {
+        if (tokens[i]!.negrita && tokens[i]!.texto.startsWith('donde ') && tokens[i - 1]!.texto === ', '
+            && tokens[i + 1]!.texto === ' en ' && tokens[i + 2]!.marca === 'estado') {
+            tokens.splice(i - 1, 4, tokens[i + 1]!, tokens[i + 2]!, tokens[i - 1]!, tokens[i]!);
+            i += 2;
+        }
+    }
     for (let i = 0; i + 2 < tokens.length; i++) {
-        if (tokens[i]!.rol === 'multiplicidad' && /^ opcional(?:es)?$/.test(tokens[i]!.texto)
+        if (tokens[i]!.rol === 'multiplicidad' && /^(?: opcional(?:es)?|, donde .+)$/.test(tokens[i]!.texto)
             && tokens[i + 1]!.texto === ' en ' && tokens[i + 2]!.marca === 'estado') {
             const sufijo = tokens[i]!;
             tokens.splice(i, 3, tokens[i + 1]!, tokens[i + 2]!, sufijo);
@@ -263,7 +309,7 @@ function componerTokensPlantilla(id: string, h: Huecos): readonly TokenOpl[] {
     }
     // Capitalización inicial sin modificar nombres tipados ni identidades.
     const first = tokens[0];
-    if (first && !first.marca && !(first.rol === 'multiplicidad' && esParametroMultiplicidad(first.texto.trim())))
+    if (first && !first.marca)
         tokens[0] = { ...first, texto: first.texto.charAt(0).toLocaleUpperCase('es') + first.texto.slice(1) };
     return tokens;
 }
@@ -382,6 +428,7 @@ export function datosEnlace(m: Modelo, e: Enlace, inverso = false): HechoGenerab
             }
         }
         else {
+            if (esDefaultUni(e.etiqueta)) h.defaultUni = hueco(ETIQUETA_POR_DEFECTO);
             if (e.estadoOrigen)
                 h.a = s(e.estadoOrigen);
             if (e.estadoDestino)
@@ -391,6 +438,13 @@ export function datosEnlace(m: Modelo, e: Enlace, inverso = false): HechoGenerab
     }
     else
         throw new Error(`Tipo sin plantilla: ${e.tipo}`);
+    if (/^(?:TS[345]|ETS[234])$/.test(id) && h.O && !Array.isArray(h.O)) {
+        const objeto = h.O as Hueco, q = objeto.mult?.includes(';') ? analizarMultiplicidad(objeto.mult) : null;
+        if (q?.restricciones.length) {
+            h.O = { ...objeto, mult: q.cantidad }; h.mO = h.O;
+            h.restriccion = { texto: q.restriccionesOpl.join('; '), hecho: e.id };
+        }
+    }
     return { plantilla: id, huecos: h };
 }
 function tipoAnd(e: Enlace): string | null {
@@ -416,7 +470,7 @@ export function datosAnd(m: Modelo, es: readonly Enlace[]): HechoGenerable | nul
         h.P = cosa(m, primero.proceso, primero.id);
         const miembros = es.map(e => {
             if (!esProcedimental(e)) throw Error('Producción AND incompatible');
-            return { ...cosa(m, e.objeto, e.id, e.tipo === 'efecto' && tipo !== 'efecto' ? undefined : e.mult, 'estado' in e ? e.estado : undefined),
+            return { ...cosa(m, e.objeto, e.id, e.mult, 'estado' in e ? e.estado : undefined),
                 ...(e.tipo === 'efecto' && e.entrada ? { entrada: estadoHueco(m, e.entrada, e.id) } : {}),
                 ...(e.tipo === 'efecto' && e.salida ? { salida: estadoHueco(m, e.salida, e.id) } : {}) };
         });
@@ -425,6 +479,20 @@ export function datosAnd(m: Modelo, es: readonly Enlace[]): HechoGenerable | nul
             h.r = { texto: primero.ruta, hecho: primero.id, ref: { tipo: 'enlace', id: primero.id } };
     }
     return { plantilla: `AND-${tipo}`, huecos: h };
+}
+/** §11 + A.4.5.2.5: compacta exacta, o frases completas con P único. */
+export function datosFanEstados(m: Modelo, es: readonly Extract<Enlace, { tipo: 'efecto' }>[],
+    plantilla: string, h: Huecos): HechoGenerable {
+    const primero = es[0]!, q = primero.mult ? analizarMultiplicidad(primero.mult) : null;
+    if (!es.every(e => e.mult === primero.mult)) {
+        const ordenados = [...es].sort((a, b) => estadoHueco(m, a.salida ?? a.entrada!).texto.localeCompare(
+            estadoHueco(m, b.salida ?? b.entrada!).texto, 'es', { sensitivity: 'base' }));
+        const and = datosAnd(m, ordenados)!;
+        return { plantilla: plantilla + '-cantidades', huecos: { ...h, ...and.huecos } };
+    }
+    const O = cosa(m, primero.objeto, primero.id, q?.restricciones.length ? q.cantidad : primero.mult);
+    return { plantilla, huecos: { ...h, O,
+        ...(q?.restricciones.length ? { restriccion: { texto: q.restriccionesOpl.join('; '), hecho: primero.id } } : {}) } };
 }
 /** El complemento común se expresa una vez: identidad, estado y multiplicidad deben coincidir. */
 export function claveInstrumentoAnd(e: Enlace): string | null {
@@ -454,7 +522,9 @@ export function claveEtiquetadosLista(e: Enlace): string | null {
 export function datosEtiquetadosLista(m: Modelo, es: readonly Enlace[]): HechoGenerable | null {
     const primero = es[0];
     if (!primero || primero.tipo !== 'etiquetado' || es.length < 2 || es.some(e => claveEtiquetadosLista(e) !== claveEtiquetadosLista(primero))) return null;
-    return { plantilla: primero.etiqueta ? 'SE1L' : 'SE2L', huecos: {
+    const porDefecto = esDefaultUni(primero.etiqueta);
+    return { plantilla: porDefecto ? 'SE2L' : 'SE1L', huecos: {
+        ...(porDefecto ? { defaultUni: hueco(ETIQUETA_POR_DEFECTO) } : {}),
         C1: cosa(m, primero.origen, primero.id, primero.multOrigen, primero.estadoOrigen),
         C2: es.map(e => { const miembro = e as typeof primero; return cosa(m, miembro.destino, miembro.id, miembro.multDestino, miembro.estadoDestino); }),
         t: { texto: primero.etiqueta ?? ETIQUETA_POR_DEFECTO, hecho: primero.id, ref: { tipo: 'enlace', id: primero.id } }
@@ -467,20 +537,27 @@ const unidades: Record<UnidadTiempo, readonly [
 export const LITERALES_EXPANDIDOS: readonly string[] = Object.freeze([
     ...Object.values(cuantificadores), ...Object.values(multiplicidades).flat(),
     // Sufijos canónicos y prefijos históricos que P sigue leyendo.
-    'opcional', 'opcionales', 'un opcional', 'una opcional', 'opcional (cero o más)',
+    'nombre', 'inician', 'manejan', 'opcional', 'opcionales', 'un opcional', 'una opcional', 'opcional (cero o más)',
     // Ly/Lo son macros fonéticos definidos por nucleo/lexico. Su universo es finito.
     'y', 'e', 'o', 'u', ...Object.values(unidades).flat()
 ]);
 export function unidad(u: UnidadTiempo, n: number): string { return unidades[u][n === 1 ? 0 : 1]; }
 function reconocer(id: string, h: Huecos): readonly HechoTexto[] {
     const x = (k: string) => uno(h, k), nombre = (k: string): NombreTipado => ({ nombre: x(k).texto, tipo: x(k).marca === 'proceso' ? 'proceso' : 'objeto', ...(x(k).genero ? { genero: x(k).genero } : {}) });
-    const extremo = (v: Hueco): ExtremoTexto => ({ nombre: v.texto, tipo: v.marca === 'proceso' ? 'proceso' : 'objeto', ...(v.genero ? { genero: v.genero } : {}), ...(v.mult ? { mult: v.mult } : {}), ...(v.estado ? { estado: v.estado.texto } : {}) });
+    const extremo = (v: Hueco): ExtremoTexto => ({ nombre: v.texto, tipo: v.marca === 'proceso' ? 'proceso' : 'objeto', ...(v.nombrePlural ? { nombrePlural: v.nombrePlural } : {}), ...(v.genero ? { genero: v.genero } : {}), ...(v.mult ? { mult: v.mult } : {}), ...(v.estado ? { estado: v.estado.texto } : {}) });
     const ext = (k: string) => extremo(x(k));
+    if (id === 'PLURAL') return x('O').marca === 'objeto' ? [{ k: 'plural', objeto: x('O').texto, nombre: x('plural').texto }] : [];
+    if (id.startsWith('FAN-ramas-')) {
+        const miembros = lista(h, 'ramas'), tipo = id.split('-')[2];
+        const es = miembros.map(v => v.enlaceTexto);
+        if (es.length < 2 || es.some(e => !e || !('objeto' in e) || e.tipo !== tipo || e.objeto.nombre !== (es[0] as Extract<EnlaceTexto, { objeto: ExtremoTexto }>).objeto.nombre)) return [];
+        return [{ k: 'abanico', operador: x('operador').texto as Operador, ramas: es as EnlaceTexto[] }];
+    }
     if (id === 'SE1L' || id === 'SE2L') {
         const origen = x('C1'), miembros = lista(h, 'C2');
         if (miembros.length < 2 || !['objeto', 'proceso'].includes(origen.marca ?? '') ||
             miembros.some(v => v.marca !== origen.marca || v.estado && v.marca !== 'objeto') || origen.estado && origen.marca !== 'objeto') return [];
-        return miembros.map(v => ({ k: 'enlace', enlace: { tipo: 'etiquetado', origen: extremo(origen), destino: extremo(v), ...(h.t ? { etiqueta: x('t').texto } : {}) } }));
+        return miembros.map(v => ({ k: 'enlace', enlace: { tipo: 'etiquetado', origen: extremo(origen), destino: extremo(v), ...(h.t && !h.defaultUni ? { etiqueta: x('t').texto } : {}) } }));
     }
     if (id.startsWith('AND-')) {
         if (id === 'AND-instrumento-procesos' || id === 'AND-agente-procesos') return lista(h, 'Plista').length < 2 ? [] : lista(h, 'Plista').map(p => ({ k: 'enlace', enlace: { tipo: id === 'AND-agente-procesos' ? 'agente' : 'instrumento', objeto: ext('O'), proceso: p.texto } }));
@@ -545,7 +622,13 @@ function reconocer(id: string, h: Huecos): readonly HechoTexto[] {
     if (id.startsWith('FAN') || id === 'C18' || id === 'CFE') {
         const operador = x('operador').texto as Operador;
         const ramas: EnlaceTexto[] = [];
-        if (id === 'FAN5s' || id === 'FAN5e' || id === 'FAN5A') {
+        if (/^FAN5[seA]-cantidades$/.test(id)) {
+            const miembros = lista(h, id.startsWith('FAN5A') ? 'cambios' : id.startsWith('FAN5e') ? 'entradas' : 'salidas');
+            if (miembros.length < 2) return [];
+            for (const v of miembros) ramas.push({ tipo: 'efecto', objeto: extremo(v), proceso: x('P').texto,
+                ...(v.entrada ? { entrada: v.entrada.texto } : {}), ...(v.salida ? { salida: v.salida.texto } : {}) });
+        }
+        else if (id === 'FAN5s' || id === 'FAN5e' || id === 'FAN5A') {
             for (const estado of lista(h, 's'))
                 ramas.push({ tipo: 'efecto', objeto: ext('O'), proceso: x('P').texto, ...(id === 'FAN5e' ? { entrada: estado.texto } : id === 'FAN5A' ? { entrada: x('e').texto, salida: estado.texto } : { salida: estado.texto }) });
         }
@@ -599,9 +682,23 @@ function reconocer(id: string, h: Huecos): readonly HechoTexto[] {
     if (/^S?SE/.test(id)) {
         const reciproco = ['SE4', 'SE5', 'SSE6', 'SSE7'].includes(id);
         const origen = ext(h.O1 ? 'O1' : 'C1'), destino = ext(h.O2 ? 'O2' : 'C2');
-        return [{ k: 'enlace', enlace: { tipo: reciproco ? 'reciproco' : 'etiquetado', origen: { ...origen, ...(h.a ? { estado: x('a').texto } : {}) }, destino: { ...destino, ...(h.b ? { estado: x('b').texto } : {}) }, ...(h.t ? { etiqueta: x('t').texto } : {}) } }];
+        return [{ k: 'enlace', enlace: { tipo: reciproco ? 'reciproco' : 'etiquetado', origen: { ...origen, ...(h.a ? { estado: x('a').texto } : {}) }, destino: { ...destino, ...(h.b ? { estado: x('b').texto } : {}) }, ...(h.t && !h.defaultUni ? { etiqueta: x('t').texto } : {}) } }];
     }
     throw new Error(`Reconocimiento no definido para ${id}`);
+}
+/** Una rama completa conserva su plantilla atómica, sus tokens y su hecho. */
+export function datosRamasCuantificadas(m: Modelo, es: readonly Enlace[], operador: Operador): HechoGenerable {
+    const ramas = es.map(e => {
+        if (!esProcedimental(e)) throw new Error('Rama no procedimental');
+        const p = cosa(m, e.proceso, e.id), h = datosEnlace(m, e);
+        const interior = [...tokensPlantilla(h.plantilla, h.huecos)];
+        const ultimo = interior.at(-1)!;
+        if (!ultimo.texto.endsWith('.')) throw new Error('Rama sin cierre');
+        interior[interior.length - 1] = { ...ultimo, texto: ultimo.texto.slice(0, -1) };
+        return { ...p, tokens: [{ texto: p.texto, rol: 'nombre' as const, marca: 'proceso' as const, ref: p.ref!, hecho: e.id },
+            { texto: ' [', rol: 'texto' as const }, ...interior, { texto: ']', rol: 'texto' as const }] };
+    });
+    return { plantilla: `FAN-ramas-${es[0]!.tipo}-${operador}`, huecos: { operador: hueco(operador), ramas } };
 }
 const colacionContexto = new Intl.Collator('es', { sensitivity: 'base' });
 /** La secuencia conserva cada banda; solo los miembros de una banda se ordenan por nombre. */

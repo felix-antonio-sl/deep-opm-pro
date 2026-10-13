@@ -12,6 +12,7 @@ export function exportarV0(m: Modelo): string {
         if(refs?.descomposicion)refinamientos.descomposicion={opdId:refs.descomposicion};
         if(refs?.despliegue){const o=m.opds[refs.despliegue];refinamientos.despliegue={opdId:refs.despliegue,...(o?.tipo==='despliegue'?{modo:o.modo}:{})};}
         entidades[id]={id,tipo:c.tipo,nombre:c.nombre,esencia:c.esencia,afiliacion:c.afiliacion,
+            ...(c.tipo==='objeto'&&c.nombrePlural!==undefined?{nombrePlural:c.nombrePlural}:{}),
             ...(c.descripcion!==undefined?{descripcion:c.descripcion}:{}),...(c.genero?{genero:c.genero}:{}),
             ...(c.tipo==='objeto'&&c.valor!==undefined?{valorSlot:{tipo:'string',placeholder:'value',valor:c.valor}}:{}),
             ...(c.incompleta?.length?{coleccionIncompleta:c.incompleta}:{}),

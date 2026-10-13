@@ -309,7 +309,9 @@ test('T-057 multiplicidad de agregación y etiquetas conserva extremos correctos
     mal(op.fijarMultiplicidad(m, { enlace: 'e-20', extremo: 'origen', valor: '?' }), 'forma', 'R-MULT-1');
     const e = con(base(), { id: 'e-20', tipo: 'etiquetado', origen: 'o-2', destino: 'o-5' }), n = bien(op.fijarMultiplicidad(e, { enlace: 'e-20', extremo: 'origen', valor: '?' }));
     expect(bien(op.fijarMultiplicidad(n, { enlace: 'e-20', extremo: 'destino', valor: '+' })).enlaces['e-20']).toEqual({ id: 'e-20', tipo: 'etiquetado', origen: 'o-2', destino: 'o-5', multOrigen: '?', multDestino: '+' });
-    mal(op.fijarEstados(n, { enlace: 'e-20', estados: { origen: 's-3', destino: null } }), 'no-ofrecido', 'DR-44');
+    const conEstado = bien(op.fijarEstados(n, { enlace: 'e-20', estados: { origen: 's-3', destino: null } }));
+    expect(conEstado.enlaces['e-20']).toEqual({ id: 'e-20', tipo: 'etiquetado', origen: 'o-2', destino: 'o-5', multOrigen: '?', estadoOrigen: 's-3' });
+    expect(conEstado.secuencia).toBe(n.secuencia);
 });
 test('T-041 fijarEstados retira especialización y distingue estado ajeno del formato erróneo', () => {
     const m = con(base(), { id: 'e-20', tipo: 'generalizacion', refinable: 'o-2', refinador: 'o-5', estados: { general: 's-3', especializacion: 's-6' } });
@@ -416,8 +418,8 @@ test('T-022 V3 multiplicidades compatibles sin estados conservan ID y secuencia'
  const n=bien(op.cambiarTipoEnlace(m,{enlace:'e-20',tipo:'etiquetadoBidireccional',etiquetas:{etiqueta:'contiene',inversa:'pertenece'}}));expect(n.enlaces['e-20']).toEqual({id:'e-20',tipo:'etiquetadoBidireccional',origen:'o-2',destino:'o-5',etiqueta:'contiene',inversa:'pertenece',multOrigen:'+',multDestino:'?'});expect(n.secuencia).toBe(m.secuencia);expect(JSON.stringify(m)).toBe(antes);
 });
 
-test('T-040 V3 estado y multiplicidad no ofrecidos conservan rechazo, input e identidad',()=>{
- const m=con(base(),{id:'e-20',tipo:'etiquetado',origen:'o-2',destino:'o-5',etiqueta:'conoce',estadoOrigen:'s-3',estadoDestino:'s-6',multOrigen:'+',multDestino:'?'}),antes=JSON.stringify(m);expect(validarForma(m).map(x=>x.regla)).toContain('F-5');const r=op.cambiarTipoEnlace(m,{enlace:'e-20',tipo:'etiquetadoBidireccional',etiquetas:{etiqueta:'contiene',inversa:'pertenece'}});expect(r.ok).toBe(false);expect(JSON.stringify(m)).toBe(antes);expect(m.secuencia).toBe(30);expect(Object.keys(m.enlaces)).toEqual(['e-20']);
+test('T-040 V3 B-42 estados y multiplicidades ofrecidos conservan input e identidad',()=>{
+ const m=con(base(),{id:'e-20',tipo:'etiquetado',origen:'o-2',destino:'o-5',etiqueta:'conoce',estadoOrigen:'s-3',estadoDestino:'s-6',multOrigen:'+',multDestino:'?'}),antes=JSON.stringify(m);expect(validarForma(m)).toEqual([]);const n=bien(op.cambiarTipoEnlace(m,{enlace:'e-20',tipo:'etiquetadoBidireccional',etiquetas:{etiqueta:'contiene',inversa:'pertenece'}}));expect(n.enlaces['e-20']).toEqual({id:'e-20',tipo:'etiquetadoBidireccional',origen:'o-2',destino:'o-5',etiqueta:'contiene',inversa:'pertenece',estadoOrigen:'s-3',estadoDestino:'s-6',multOrigen:'+',multDestino:'?'});expect(validarForma(n)).toEqual([]);expect(JSON.stringify(m)).toBe(antes);expect(n.secuencia).toBe(30);expect(Object.keys(n.enlaces)).toEqual(['e-20']);
 });
 
 test('T-022 sentido explícito invierte ambos extremos del mismo tipo en una transacción', () => {

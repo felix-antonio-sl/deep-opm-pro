@@ -34,8 +34,10 @@ test('WP-10 DESIGN §2.4 perfil HODOM real, exacto, determinista y válido', () 
 // Calentamiento independiente y mediana de cinco trabajos sobre identidades nuevas.
 // Preparar/comprobar quedan fuera del reloj; nunca se reutiliza una respuesta cacheada.
 function medir<T>(meta: string, limite: number, preparar: () => () => T, comprobar: (r: T) => void) {
-    const calentamiento = preparar();
-    comprobar(calentamiento());
+    {
+        const calentamiento = preparar();
+        comprobar(calentamiento());
+    }
     const medidas: number[] = [];
     for (let muestra = 0; muestra < 5; muestra++) {
         const trabajo = preparar(), inicio = performance.now(), r = trabajo(), ms = performance.now() - inicio;
@@ -139,11 +141,11 @@ test('T-192 toda enumeración construcción análisis ensayo aplicación mediana
     const medidas = medir('T-192 corpus completo', 3000, prepararCorpusRoundtrip, r => {
         for (const comprobar of r.comprobaciones) comprobar();
         expect(r.casos).toBe(160);
-        expect(r.modelos).toBe(2148);
+        expect(r.modelos).toBe(3714);
         expect(r.cantidadesProcesoRechazadas).toBe(864);
-        expect(r.modelos + r.cantidadesProcesoRechazadas).toBe(3012);
+        expect(r.modelos + r.cantidadesProcesoRechazadas).toBe(4578);
         expect(r.admitidos).toBe(r.modelos);
-        expect(r.argumentosExactos).toBe(1926);
+        expect(r.argumentosExactos).toBe(3410);
         expect(r.importaciones).toBe(r.pendientes);
         expect(r.familias).toEqual(['CX', 'CX3', 'EX', 'FAN5', 'atributos-mixtos', 'atómico', 'fan', 'fan-por-rama']);
     });

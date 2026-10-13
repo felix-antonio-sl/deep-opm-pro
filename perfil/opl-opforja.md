@@ -622,6 +622,9 @@ El recíproco sin etiqueta conserva `se relacionan`. Es extensión declarada de 
 no una producción de la PAS: el dato, el rótulo OPD y el token editable siguen intactos.
 La lectura histórica unívoca permanece; una lectura ambigua se diagnostica sin acciones.
 La equivalencia de etiquetas por defecto de B-38 y la identidad T-182 se conservan.
+La excepción plural de especificación §4.4.11b distingue el default efectivo sin
+delimitadores de la etiqueta libre citada `«se relacionan con»`; exige sujeto plural
+identificado y cantidad plural, y no amplía la equivalencia singular de B38.
 
 **Emisión**: un enlace `etiquetado` emite `**Origen** <tag> **Destino**` con la etiqueta de usuario como verbo; si no hay etiqueta, emite la etiqueta nula `se relaciona con` (SE2). Un enlace `etiquetadoBidireccional` recíproco sin etiqueta diferencial emite `**Origen** y **Destino** se relacionan` (SE5). La bidireccional con dos etiquetas distintas (SE3) emite dos oraciones, una por dirección (f-tag / b-tag); un bidireccional cuyas dos etiquetas coinciden DEBE tratarse como recíproco con esa etiqueta (R-STRE-1).
 
@@ -990,7 +993,7 @@ sus miembros; tampoco absorbe XOR/OR. Después de agrupar por proceso se agrupan
 Las listas etiquetadas UNI cerradas de A.4.6.2.2 conservan origen/estado/multiplicidad comunes exactos,
 etiqueta efectiva común y todos los destinos con sus propios tokens, estados, cantidades y hechos.
 Ausencia y «se relaciona con» expresan el mismo hecho (B-38); agruparlas no modifica los campos del modelo/JSON. No absorben medio
-bidireccional ni recíproco. B-04 sigue impidiendo multiplicidad+estado en un mismo enlace; B-09/B-10/B-42
+bidireccional ni recíproco. B-04 conserva las combinaciones de control y fans sin hueco; B-09/B-42
 conservan sus límites. T-182 conserva firma: otro estado por texto agrega el etiquetado nuevo, no reancla
 el anterior; quitar un miembro no borra. No hay cambios a esa lente.
 
@@ -1012,17 +1015,35 @@ mixta no ofrecida; no inventa dos consumos desde `consume **Alfa** y genera **Be
 La lista AND conserva una oración, sus miembros, cantidades, estados, IDs y referencias.
 No se adopta una excepción de split ni se canoniza este delimitador como literal ISO.
 
-Especificación §4.4.11 concreta los campos string de cantidad: G emite `un/una … opcional`,
-`… opcionales`, `muchos/muchas`, el entero ≥2 o un símbolo global simple; estado antes del
-sufijo, nombre literal conforme a DR12. P conserva prefijos históricos unívocos y símbolos
-sensibles a mayúsculas. Cada referencia `k` designa el mismo parámetro en todo el modelo;
-no hay scopes/IDs de parámetro, valores, ejecución ni equivalencia algebraica inventados.
-Los nombres de parámetro se ofrecen sólo con letras españolas y dígitos, con las palabras de cantidad y los dos literales no finitos
-reservados; es límite del producto, no regla ISO. Matemática y nombres
-compuestos adicionales permanecen en B-10. El rótulo OPD literal `muchos` es realización de
-producto sin glifo ISO acreditado. R-MULT-1A impide cantidades nuevas en procesos y conserva
-con diagnóstico las recuperadas. B-04/DR44 y B-09 no se amplían. Esta realización sustituye
-las descripciones históricas de cardinalidad/orden de §10.3 dentro de este perfil.
+Especificación §4.4.11/11a concreta las cantidades string: enteros no negativos,
+parámetros globales completos, rangos/uniones, aritmética y restricciones declarativas.
+DEC55 delimita expresiones con `«»` y cita parámetros compuestos con comillas dobles;
+los operadores/nombres no se recortan. Los operandos decimales son racionales exactos:
+cuenta constante final entera, símbolos sin asignación ni solver. OPD mantiene la anotación
+tras `;`; OPL transforma `..` en `a`, cada coma de unión en `o` y expresa la restricción
+con `donde` en negrita, conservando su dueño y sin convertirla en una cosa.
+
+Cantidades con estados propios caben en UNI/Bi/Rec y TS3/TS4/TS5/ETS2/ETS3/ETS4, además
+de AND. Los cambios conservan estados contiguos y restricción final; ETS cuantifica una
+vez y exige la identidad de O/ei repetidos. En FAN5s/e/A, compacta si la anotación completa
+es idéntica; de otro modo `FAN5s-cantidades`, `FAN5e-cantidades`, `FAN5A-cantidades`
+seleccionan frases de cambio con P único, O/estados/Q/R por miembro. Son aplicaciones de
+§11 y A.4.5.2.5; no se les atribuye un hueco literal inexistente. Entrada común FAN5A y
+B06/DEC29 permanecen intactos. No se elige cantidad de otra rama ni equivalencia algebraica.
+
+R-MULT-1A impide cantidades nuevas en procesos y conserva con diagnóstico las recuperadas.
+DR44 conserva c y el todo de agregación. DEC56 (§4.4.11b) realiza forma plural explícita
+por ID, metadato aun sin uso y marcador de referencia canónica por ocurrencia, sin
+inflector ni solver; el proceso sujeto sigue singular y el agente plural concuerda.
+N/JSON/guardado y recuperación legacy conservan las formas faltantes con diagnóstico;
+exportar el documento canónico exige completarlas, sin renombrar OPD. Las ramas
+cuantificadas de común O usan una producción completa por miembro cuando la plantilla
+homogénea no conserva su anotación; no eligen datos de otra rama y preservan IDs,
+operador, hechos, tokens y estados. Se levanta sólo la faceta de cantidad de común O
+en B04; B05/B06/B08 y c/todo permanecen. Es extensión de producto, no ISO. El rótulo OPD `muchos` no acredita glifo ISO.
+DIRECTO exige forma válida, cero pérdidas/rechazos/diff y bytes íntegros para preservar1/1..1;
+legacy conserva aliases0/1/2..N. El límite simbólico N se cita `2.."N"`. Esta realización
+sustituye las descripciones históricas de cardinalidad/orden de §10.3 de este perfil.
 
 ### §10.2 Rangos, intervalos y restricciones
 
@@ -1273,18 +1294,24 @@ Rationale: `clasificadorEdicion.ts` consume el output de `parser`/`planificar` y
 
 ### §15.4 Editable inline vs bloqueado
 
-- **R-OPL-EDIT-7**: el canal **inline** (`edicionCanvas.ts·IntencionEdicionOpl`) DEBE limitarse a un enum cerrado de cuatro intenciones acotadas, y cada una DEBE validar la existencia del id antes de mutar:
+- **R-OPL-EDIT-7**: el canal **inline** (`PanelOpl.tsx`) DEBE limitarse a las intenciones lógicas cerradas siguientes; DEC56 añade sólo la fijación escalar del dato plural explícito, y cada una DEBE validar la existencia del id antes de mutar:
 
-  | `IntencionEdicionOpl.tipo` | Mutación | Editable inline |
+  | Intención lógica | Mutación nativa | Editable inline |
   | --- | --- | --- |
-  | `renombrar-entidad` | `renombrarEntidad` | sí (nombre de objeto/proceso) |
+  | `renombrar-entidad` | `renombrarCosa` | sí (nombre de objeto/proceso) |
   | `renombrar-estado` | `renombrarEstado` | sí (nombre de estado) |
-  | `fijar-etiqueta-enlace` | `renombrarEtiquetaEnlace` | sí (etiqueta de enlace) |
+  | `fijar-etiqueta-enlace` | `fijarEtiqueta` | sí (etiqueta de enlace) |
   | `abrir-inspector-enlace` | ninguna (señal al store) | no muta; delega al inspector |
+  | `fijar-forma-plural` (DEC56) | `fijarNombrePlural` sobre el ID del objeto | sí, sólo si el token identifica ese dato; vacío retira explícitamente la forma |
 
-  Toda mutación inline más rica que un renombrado/etiquetado (cambiar tipo de enlace, esencia, designaciones, abanicos) DEBE bloquearse en el canal inline y derivarse al editor libre por patches (§15.1–§15.3) o al inspector. `abrir-inspector-enlace` NO DEBE mutar el modelo; solo señala al store que abra el inspector del enlace.
+  La forma plural y el nombre canónico son datos distintos. El metadato del token decide
+  cuál se edita, incluso si ambos textos coinciden o existe otra cosa con ese nombre.
+  Confirmar un término intacto es no-op; fijar/retirar la forma pasa por la operación
+  validada, una transacción y deshacer. No habilita otras propiedades ni cambia topología.
 
-  Rationale: `aplicarEdicionOpl` retorna `fallo` si el id no existe y `ok(modelo)` sin cambios para `abrir-inspector-enlace`; restringir lo inline a renombrados/etiquetas evita que un edit de texto cambie la topología sin pasar por el flujo deliberado de patches.
+  Toda mutación inline fuera de estas intenciones (cambiar tipo de enlace, esencia, designaciones, abanicos) DEBE bloquearse en el canal inline y derivarse al editor libre por patches (§15.1–§15.3) o al inspector. `abrir-inspector-enlace` NO DEBE mutar el modelo; solo señala al store que abra el inspector del enlace.
+
+  Rationale: `PanelOpl` distingue el dato por `TokenOpl.ref` y `TokenOpl.formaPlural`; las operaciones nativas pasan por `editor.ejecutar`, validan el ID y rechazan sin mutar si no existe. Abrir el inspector sólo navega y muestra el panel; las cinco intenciones son lógicas, no un tipo/API llamado `IntencionEdicionOpl`. Esta frontera evita que editar un término cambie topología fuera del flujo deliberado de patches.
 
 ### §15.5 Edición de nombres y propiedades de enlace
 
@@ -1306,7 +1333,7 @@ Rationale: `clasificadorEdicion.ts` consume el output de `parser`/`planificar` y
 | Conducta | clasificación de 4 estados; razones cerradas; mapeo patch→operación en 3 fases; inline acotado vs bloqueado; propiedades de enlace; compuestas por hecho |
 | Reverse | clasificar (sin mutar) → aplicar patches aprobados; ausencia NO borra |
 | Edge cases | idempotencia de enlace; dimensión de clasificación escindida conserva default; ausencia no-delete |
-| Traza a código | `app/src/opl/clasificadorEdicion.ts·clasificarEdicionOpl` / `etiquetaBotonAplicar` / `RazonNoAplicable` / `razonDesdeDiagnostico`; `app/src/opl/edicionCanvas.ts·aplicarEdicionOpl` / `IntencionEdicionOpl`; `app/src/opl/parser/aplicar.ts·aplicarPatchesOpl` / `aplicarPatchEnlace` / `aplicarMetadatosCondicionExcepcion` / `aplicarPatchAbanico` |
+| Traza a código | `app/src/opl/clasificadorEdicion.ts·clasificarEdicionOpl` / `etiquetaBotonAplicar` / `RazonNoAplicable` / `razonDesdeDiagnostico`; `app/src/ui/PanelOpl.tsx` / `app/src/opl/linea.ts·TokenOpl` (inline por `ref`/`formaPlural`, operaciones nativas vía `editor.ejecutar`); `app/src/opl/parser/aplicar.ts·aplicarPatchesOpl` / `aplicarPatchEnlace` / `aplicarMetadatosCondicionExcepcion` / `aplicarPatchAbanico` |
 | Procedencia | §9 (compuestas/sub-span); §14.5 (resolución por sub-span); videos OPCloud (edición de etiqueta/inspector de enlace) — precedencia 3 |
 
 ## §16 Configuración/opciones que afectan OPL
