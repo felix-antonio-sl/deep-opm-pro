@@ -43,6 +43,24 @@ test('T-287 etapa 2: ambigüedad intracolectiva rechaza, colisión entre colecci
   const r = ok(f); const o = r.modelo.cosas['o-1']; expect(o?.tipo).toBe('objeto'); if (o?.tipo !== 'objeto') throw Error('objeto');
   expect(o.estados[0]!.id).not.toBe('o-1'); expect(Object.values(r.modelo.enlaces)[0]).toMatchObject({ objeto: 'o-1', estado: o.estados[0]!.id });
 });
+test('T-287 etapa 2: una clave JSON repetida rechaza como identidad ambigua antes de que JSON.parse la colapse', () => {
+  const base = JSON.stringify(documento([entidad('o-1', 'objeto', { nombre: 'Primero' })]));
+  const segundo = JSON.stringify(entidad('o-1', 'objeto', { nombre: 'Segundo' }));
+  const casos: [string, string][] = [
+    [base.replace('"entidades":{"o-1":', `"entidades":{"o-1":${segundo},"o-1":`), 'modelo.entidades.o-1'],
+    [base.replace('"entidades":{"o-1":', `"entidades":{"o\\u002d1":${segundo},"o-1":`), 'modelo.entidades.o-1'],
+    [base.replace('"nombre":"Primero"', '"nombre":"Primero","nombre":"Segundo"'), 'modelo.entidades.o-1.nombre'],
+    [JSON.stringify({ json: base.replace('"nombre":"Primero"', '"nombre":"Primero","nombre":"Segundo"') }), 'modelo.entidades.o-1.nombre'],
+    [base.replace('{"formato"', '{"formato":"otro","formato"'), 'formato'],
+  ];
+  for (const [texto, ruta] of casos) {
+    expect(() => JSON.parse(texto)).not.toThrow();
+    const r = importarV0(texto); expect(r.ok).toBe(false); expect(r.informe.rechazos.map(e => e.ruta)).toEqual([ruta]);
+  }
+  // Las mismas claves en objetos distintos, dentro de arreglos o como valores no son repetición.
+  const r = importarV0(JSON.stringify(documento([entidad('o-1'), entidad('o-2', 'objeto', { nombre: 'o-1', descripcion: '"o-1":' })])));
+  expect(r.ok).toBe(true); expect(r.informe.rechazos).toEqual([]);
+});
 test('T-287 etapa 3: acumula referencias rotas con ruta sin fabricar entidades', () => {
   const d = basico(); d.modelo.estados = { s: estado('s', 'missing') }; d.modelo.enlaces = { e: enlace('e', 'efecto', 'missing', 'p-2', { estadoEntradaId: 'other' }) }; d.modelo.opds['opd-1'].apariencias.bad = apariencia('not-there');
   const r = leer(d); expect(r.ok).toBe(false); expect(r.informe.rechazos.length).toBeGreaterThanOrEqual(4); expect(r.informe.rechazos.map(e => e.ruta)).toEqual(expect.arrayContaining(['estados.s.entidadId', 'enlaces.e.origenId', 'enlaces.e.estadoEntradaId', 'opds.opd-1.apariencias.bad.entidadId']));

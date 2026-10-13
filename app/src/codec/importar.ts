@@ -73,21 +73,52 @@ function enteroJson(valor:string):string {
   const entero=String(numero),base=entero.replace(/0+$/,'');
   return coeficiente===base&&potencia===entero.length-base.length?entero:valor;
 }
+// JSON.parse conserva en silencio sólo el último de dos miembros con la misma clave, antes de que
+// `coleccion` pueda ver la ambigüedad. Sobre texto JSON ya válido, una pasada lineal devuelve la
+// ruta de la primera clave repetida dentro de un mismo objeto (claves decodificadas, `\u` incluido).
+function claveRepetida(texto:string):string | undefined {
+  const vistas:(Set<string>|undefined)[]=[], ruta:(string|number)[]=[];
+  let esClave=false;
+  for (let i=0; i<texto.length; i++) {
+    const c=texto.charCodeAt(i);
+    if (c===34) {
+      // Fin de la cadena: la primera comilla precedida por un número par de barras inversas.
+      let j=texto.indexOf('"',i+1);
+      for (let k=j-1; j>0 && texto.charCodeAt(k)===92; k=j-1) { while (texto.charCodeAt(k)===92) k--; if ((j-1-k)%2===0) break; j=texto.indexOf('"',j+1); }
+      if (j<0) return undefined;
+      const claves=vistas.at(-1);
+      if (esClave && claves) {
+        const crudo=texto.slice(i+1,j), clave=crudo.includes('\\') ? JSON.parse(texto.slice(i,j+1)) as string : crudo;
+        ruta[ruta.length-1]=clave;
+        if (claves.has(clave)) return ruta.join('.');
+        claves.add(clave);
+      }
+      esClave=false; i=j;
+    } else if (c===123) { vistas.push(new Set()); ruta.push(''); esClave=true; }
+    else if (c===91) { vistas.push(undefined); ruta.push(0); esClave=false; }
+    else if (c===125 || c===93) { vistas.pop(); ruta.pop(); esClave=false; }
+    else if (c===44) { if (vistas.at(-1)) esClave=true; else ruta[ruta.length-1]=Number(ruta.at(-1))+1; }
+  }
+  return undefined;
+}
+const CLAVE_REPETIDA='Clave JSON repetida: identidad ambigua (JSON.parse conservaría sólo la última).';
 // DEC35: conserva el lexema numérico de los dos campos legacy antes de que Number lo redondee.
 // La alternativa de cadena consume también los valores entre comillas; nunca altera su contenido.
 // Sin reviver recursivo: los documentos con desconocidos profundamente anidados siguen siendo legibles.
-function leerJson(texto:string):unknown {
+function leerJson(texto:string,l:Lectura):{valor:unknown} | undefined {
   const original = texto.replace(/("(?:[^"\\]|\\.)*")(\s*:\s*)(-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?)(?=\s*[,}])|"(?:[^"\\]|\\.)*"/g,
     (fragmento:string,clave:string|undefined,separador:string,numero:string) => {
       if(clave===undefined)return fragmento;
       const nombre:unknown=JSON.parse(clave);
       return nombre==='multiplicidadOrigen'||nombre==='multiplicidadDestino' ? `${clave}${separador}"${enteroJson(numero)}"` : fragmento;
     });
-  return JSON.parse(original);
+  const valor:unknown=JSON.parse(original), repetida=claveRepetida(original);
+  if (repetida===undefined) return {valor};
+  l.rechazar(repetida||'$',CLAVE_REPETIDA); return undefined;
 }
 function sobre(text:string,l:Lectura):Registro | undefined {
   let actual:unknown;
-  try { actual = leerJson(text); } catch { l.rechazar('$','JSON inválido.'); return undefined; }
+  try { const leido=leerJson(text,l); if (!leido) return undefined; actual=leido.valor; } catch { l.rechazar('$','JSON inválido.'); return undefined; }
   for (let profundidad=0; profundidad<32; profundidad++) {
     if (!esRegistro(actual)) { l.rechazar('$','Sobre inválido.'); return undefined; }
     if (actual.carpetaId !== undefined) l.ignorar('carpetaId',actual.carpetaId);
@@ -108,6 +139,7 @@ function sobre(text:string,l:Lectura):Registro | undefined {
       const integrity=registro(actual.integrity);
       if (actual.version !== 1 || typeof actual.payload !== 'string' || integrity.algorithm !== 'SHA-256' || typeof integrity.payloadDigest !== 'string' || sha256(actual.payload) !== integrity.payloadDigest) { l.rechazar('integrity','Versión o checksum SHA-256 inválido.'); return undefined; }
       let value:unknown; try { value=JSON.parse(actual.payload); } catch { l.rechazar('payload','Payload JSON inválido.'); return undefined; }
+      const repetida=claveRepetida(actual.payload); if (repetida!==undefined) { l.rechazar(`payload.${repetida}`,CLAVE_REPETIDA); return undefined; }
       const p=registro(value), manifest=registro(p.manifest), profile=registro(p.profile);
       if (profile.id !== 'deep-opm-pro.modelo' || profile.version !== 'deep-opm-pro.modelo.v0' || typeof manifest.selectedRevisionId !== 'string' || !Array.isArray(p.revisions)) { l.rechazar('manifest','Perfil o selección de revisión inválida.'); return undefined; }
       const ids=p.revisions.map(r=>registro(r).id), selected=p.revisions.map(registro).filter(r=>r.id === manifest.selectedRevisionId);
@@ -119,7 +151,7 @@ function sobre(text:string,l:Lectura):Registro | undefined {
       l.desconocidos(p,'payload',['manifest','profile','revisions','sources']);
     } else { l.rechazar('formato','Formato no reconocido.'); return undefined; }
     if (typeof siguiente !== 'string') { l.rechazar('$','El sobre no contiene modelJson legible.'); return undefined; }
-    try { actual=leerJson(siguiente); } catch { l.rechazar('$','JSON inválido en el sobre.'); return undefined; }
+    try { const leido=leerJson(siguiente,l); if (!leido) return undefined; actual=leido.valor; } catch { l.rechazar('$','JSON inválido en el sobre.'); return undefined; }
   }
   l.rechazar('$','Demasiados sobres anidados.'); return undefined;
 }

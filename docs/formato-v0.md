@@ -62,13 +62,17 @@ vacío; un campo opcional irrepresentable va a `descartado` con su ruta y su val
    (v0) o como arreglo (bundles del Apéndice F); si faltan, quedan vacías. En un OPD, la clave
    `apariciones` se acepta como alias de `apariencias` (vocabulario del Apéndice F, `normalizado`).
    Es rechazo solo lo ambiguo **dentro** de una colección: dos elementos de un arreglo con el mismo
-   `id`, o una clave de `Record` distinta de su `id`. Un mismo id en **dos colecciones distintas**
-   (bundles externos que numeran por colección) no es ambiguo: se conserva en la primera por el
-   orden `entidades, estados, enlaces, abanicos, opds` y se reasigna en las siguientes con un id
-   nuevo `prefijo-N` tomado de la secuencia (§3.3), reescribiendo sus referencias (`normalizado`,
-   CC-09). Igual se reasigna un id fuera de `[A-Za-z0-9._:~-]{1,80}` o cuyo sufijo numérico no deja
-   una secuencia entera segura mayor (F-9) (`normalizado`, T-022). Si la secuencia se agota dentro de
-   los enteros seguros, el documento se rechaza en `nextSeq`; nunca se repite un id.
+   `id`, o una clave de `Record` distinta de su `id`. Como `JSON.parse` conservaría en silencio sólo
+   el último de dos miembros con la misma clave, toda clave repetida dentro de un mismo objeto JSON
+   (también decodificada, p. ej. `"o\u002d1"` y `"o-1"`, y también en un sobre o en el `payload`)
+   es rechazo de identidad ambigua con la ruta de la clave en ese texto JSON. Un mismo id en **dos
+   colecciones distintas** (bundles externos que numeran por colección) no es ambiguo: se conserva
+   en la primera por el orden `entidades, estados, enlaces, abanicos, opds` y se reasigna en las
+   siguientes con un id nuevo `prefijo-N` tomado de la secuencia (§3.3), reescribiendo sus
+   referencias (`normalizado`, CC-09). Igual se reasigna un id fuera de `[A-Za-z0-9._:~-]{1,80}` o
+   cuyo sufijo numérico no deja una secuencia entera segura mayor (F-9) (`normalizado`, T-022). Si
+   la secuencia se agota dentro de los enteros seguros, el documento se rechaza en `nextSeq`; nunca
+   se repite un id.
 3. **Referencias** (método F: rechazo, sin reparar). Cada referencia rota es un rechazo con su ruta:
    - estado a entidad; extremo a entidad o estado; `estadoEntradaId` y `estadoSalidaId`;
    - aparición a entidad y OPD; refinamiento a OPD; `opdRaizId`;
