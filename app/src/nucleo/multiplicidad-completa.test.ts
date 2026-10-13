@@ -291,7 +291,8 @@ for (const lado of ['entrada', 'salida', 'ambos'] as const) for (const control o
                 cantidades[0]!.en.y - c.y - c.alto / 2);
             expect(distancia(objeto)).toBeLessThan(distancia(proceso));
             expect(arista.hechos).toEqual([creado.creados[0]!]);
-            expect(arista.tramos).toHaveLength(lado === 'ambos' ? 2 : 1);
+            // TS3 y también TS4/TS5 standalone son pares de flechas (spec-OPD §4.1, R-OPD-TR-6).
+            expect(arista.tramos).toHaveLength(2);
         });
 
 function firmaCantidades(m: Modelo) {

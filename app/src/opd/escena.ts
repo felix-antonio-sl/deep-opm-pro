@@ -1,4 +1,4 @@
-import type { Modelo, Id, Ref, TipoCosa, ModoDespliegue, Enlace } from '../nucleo/tipos';
+import type { Modelo, Id, Ref, TipoCosa, ModoDespliegue, Enlace, Efecto } from '../nucleo/tipos';
 import { extremos, esProcedimental } from '../nucleo/tipos';
 import { proyectar } from '../nucleo/proyeccion';
 import { indice } from '../nucleo/indice';
@@ -113,6 +113,18 @@ const cerca = (a: Punto, b: Punto, n: number): Punto => {
     const l = Math.hypot(b.x - a.x, b.y - a.y);
     return l ? { x: b.x + (a.x - b.x) * n / l, y: b.y + (a.y - b.y) * n / l } : b;
 };
+// spec-OPD §4.1 y R-OPD-TR-6: TS3, TS4 y TS5 son pares de flechas, objeto → proceso y proceso → objeto, cada
+// extremo anclado a su estado especificado o, en TS4/TS5, al rectángulo del objeto. Sólo una mitad escindida
+// (R-OPD-TR-7, `escision`) dibuja únicamente la suya. Sin estados (T3) no hay par: una flecha bidireccional.
+// Cada flecha es [desde, su estado, hacia, su estado]; la de entrada va primero.
+function flechasEfecto(e: Efecto): readonly (readonly [Id, Id | undefined, Id, Id | undefined])[] | undefined {
+    if (!e.entrada && !e.salida)
+        return undefined;
+    return [
+        ...(e.entrada || !e.escision ? [[e.objeto, e.entrada, e.proceso, undefined] as const] : []),
+        ...(e.salida || !e.escision ? [[e.proceso, undefined, e.objeto, e.salida] as const] : []),
+    ];
+}
 // T-218: el centro del glifo queda a 11 px del eje y fuera de la punta de su extremo (14 px sin
 // marcador; largo del marcador + 9 con él). Cambia de lado sólo si el habitual cae sobre la caja de
 // su cosa y el otro no: el enlace ordinario se pinta bajo la entidad. `en` es la línea base, 4 px abajo.
@@ -297,8 +309,11 @@ export function escena(m: Modelo, opd: Id): Escena {
         const ex = extremos(e);
         const marcas: Arista['marcas'][number][] = [], etiquetas: Arista['etiquetas'][number][] = [];
         const t = tramos[0]!, a = t.puntos[0]!, b = t.puntos.at(-1)!, angulo = Math.atan2(b.y - a.y, b.x - a.x) * 180 / Math.PI;
+        // El primer tramo de TS3, TS4 y TS5 va O→P, aunque extremos(v0) del efecto sea P→O; el de la
+        // mitad de salida escindida, P→O.
+        const entra = e.tipo === 'efecto' && flechasEfecto(e)?.[0]?.[2] === e.proceso;
         if ('control' in e && e.control) {
-            const receptor = e.tipo === 'efecto' && e.entrada ? b : esProcedimental(e) && ex.destino === e.proceso ? b : a;
+            const receptor = entra ? b : esProcedimental(e) && ex.destino === e.proceso ? b : a;
             const desde = receptor === b ? a : b;
             // DEC37: a 32 px el círculo (r 9) deja papel ante las alas de la punta (23 px, ±8).
             marcas.push({ texto: e.control, en: cerca(desde, receptor, 32), angulo: 0 });
@@ -330,9 +345,8 @@ export function escena(m: Modelo, opd: Id): Escena {
             etiqueta(e.ruta, 'ruta', en);
         }
         if ('mult' in e && e.mult) {
-            // El primer tramo de TS3/TS4 va O→P, aunque extremos(v0) del efecto
-            // sea P→O. La cantidad califica siempre su terminal de objeto.
-            const enInicio = e.tipo === 'efecto' && !!e.entrada || ex.origen === ('objeto' in e ? e.objeto : undefined);
+            // La cantidad califica siempre su terminal de objeto.
+            const enInicio = entra || ex.origen === ('objeto' in e ? e.objeto : undefined);
             const objeto = 'objeto' in e ? e.objeto : ex.destino;
             if (enInicio) cantidad(e.mult, 'mult-origen', objeto, a, t.puntos[1]!, t.inicio);
             else cantidad(e.mult, 'mult-origen', objeto, b, t.puntos.at(-2)!, t.fin);
@@ -375,11 +389,10 @@ export function escena(m: Modelo, opd: Id): Escena {
         }
         const tramos: Tramo[] = [];
         const segmento = (a: Contorno, b: Contorno, inicio?: Marcador, fin?: Marcador): Tramo => { const puntos = recortarEnlace(a.caja, a.forma, b.caja, b.forma); return { puntos, ...(inicio ? { inicio } : {}), ...(fin ? { fin } : {}) }; };
-        if (e.tipo === 'efecto' && (e.entrada || e.salida)) {
-            if (e.entrada)
-                tramos.push(segmento(contorno(e.objeto, e.entrada), contorno(e.proceso), undefined, 'punta'));
-            if (e.salida)
-                tramos.push(segmento(contorno(e.proceso), contorno(e.objeto, e.salida), undefined, 'punta'));
+        const flechas = e.tipo === 'efecto' ? flechasEfecto(e) : undefined;
+        if (flechas) {
+            for (const [desde, estadoDesde, hacia, estadoHacia] of flechas)
+                tramos.push(segmento(contorno(desde, estadoDesde), contorno(hacia, estadoHacia), undefined, 'punta'));
         }
         else {
             const a = contorno(ex.origen, estadoA), b = contorno(ex.destino, estadoB);
@@ -389,7 +402,7 @@ export function escena(m: Modelo, opd: Id): Escena {
             tramos.push(e.tipo === 'invocacion' ? { ...t, puntos: ex.origen === ex.destino ? autoinvocacion(a.caja).puntos : rayo(t.puntos[0]!, t.puntos[1]!) } : t);
         }
         const { marcas, etiquetas } = anotaciones(e, tramos);
-        aristas.push({ ref: { tipo: 'enlace', id: e.id }, hechos: v.hechos, tramos: tramos.map((t, i) => ({ ...t, estados: e.tipo === 'efecto' && (e.entrada || e.salida) ? (e.entrada && i === 0 ? [e.entrada, undefined] : [undefined, e.salida]) : [estadoA, estadoB], contenedores: contenedoresDe([ex.origen, ex.destino]), extremos: e.tipo === 'efecto' && (e.entrada || e.salida) ? (e.entrada && i === 0 ? [e.objeto, e.proceso] : [e.proceso, e.objeto]) : [ex.origen, ex.destino] })), rayo: e.tipo === 'invocacion', marcas, etiquetas, capa: estadoA || estadoB ? 20 : 4 });
+        aristas.push({ ref: { tipo: 'enlace', id: e.id }, hechos: v.hechos, tramos: tramos.map((t, i) => ({ ...t, estados: flechas ? [flechas[i]![1], flechas[i]![3]] : [estadoA, estadoB], contenedores: contenedoresDe([ex.origen, ex.destino]), extremos: flechas ? [flechas[i]![0], flechas[i]![2]] : [ex.origen, ex.destino] })), rayo: e.tipo === 'invocacion', marcas, etiquetas, capa: estadoA || estadoB ? 20 : 4 });
     }
     // Peines ya trazados: su triángulo es un obstáculo y sus tramos, cortes que conviene evitar (DEC34).
     const triangulos: Contorno[] = [], tramosPeine: (readonly Punto[])[] = [];
@@ -431,12 +444,11 @@ export function escena(m: Modelo, opd: Id): Escena {
         const geo = abanico(contorno(f.comun), otros, f.operador);
         for (const a of ramas) {
             const e = enlaces.find(e => e.id === a.ref.id)!, ex = extremos(e);
-            const tramos = a.tramos.map((t, i) => {
-                const entrada = e.tipo === 'efecto' && !!e.entrada && i === 0;
-                const saleComun = e.tipo === 'efecto' && (e.entrada || e.salida)
-                    ? (entrada ? e.objeto === f.comun : e.proceso === f.comun) : ex.origen === f.comun;
+            const tramos = a.tramos.map(t => {
+                // Cada tramo conoce su sentido y el puerto que toca en el objeto (par de TS3, TS4 o TS5).
+                const saleComun = t.extremos?.[0] === f.comun;
                 const otro = esProcedimental(e) && e.proceso === f.comun
-                    ? contorno(e.objeto, e.tipo === 'efecto' ? (entrada ? e.entrada : e.salida) : e.estado)
+                    ? contorno(e.objeto, e.tipo === 'efecto' ? t.estados?.[t.extremos?.[0] === e.objeto ? 0 : 1] : e.estado)
                     : contorno(ex.origen === f.comun ? ex.destino : ex.origen);
                 const fin = recortar(otro.caja, geo.acople, otro.forma);
                 return { ...t, puntos: saleComun ? [geo.acople, fin] : [fin, geo.acople] };

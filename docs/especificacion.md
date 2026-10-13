@@ -1692,7 +1692,7 @@ Decoraciones de extremo (reglas §3.7, textual):
 | Punta abierta | open arrowhead | Estructural etiquetado unidireccional |
 | Arpón (media punta) | harpoon | Estructural etiquetado bidireccional/recíproco |
 
-Transformadores (spec-OPD §4.1): consumo = punta cerrada EN el proceso; resultado = punta cerrada EN el objeto; efecto = punta cerrada en AMBOS extremos; TS4/TS5 = una punta (hacia el proceso / hacia el estado destino). «El anclaje es portador del hecho» (R-OPD-TR-6); invertir el extremo cambia el hecho (R-OPD-TR-2).
+Transformadores (spec-OPD §4.1): consumo = punta cerrada EN el proceso; resultado = punta cerrada EN el objeto; efecto = punta cerrada en AMBOS extremos; TS3, TS4 y TS5 = par de flechas de punta cerrada, objeto → proceso y proceso → objeto, cada extremo anclado a su estado especificado y, en TS4/TS5, el otro al rectángulo del objeto (TS4: estado de entrada → proceso y proceso → objeto; TS5: objeto → proceso y proceso → estado de salida); cada mitad escindida (R-OPD-TR-7, metadato `escision`) = una sola flecha (estado de entrada → proceso / proceso → estado de salida). «El anclaje es portador del hecho» (R-OPD-TR-6); invertir el extremo cambia el hecho (R-OPD-TR-2).
 
 Triángulos (reglas §3.8, textual):
 
@@ -2260,7 +2260,7 @@ Los ★ con obligación PUEDE o inferida son soportes necesarios de un DEBE ★ 
 | T-206 | Estado: rountangle en la región inferior del objeto; inicial = borde grueso, final = doble borde, por defecto = flecha diagonal abierta entrante. | DEBE / inf. | ren | R-OPD-EST-1/5/7, R-EST-2 | ★ |
 | T-207 | `Current` declarado con pin externo reservado, distinto de inicial/final/por defecto. | DEBE | ren | R-EST-4, R-OPD-EST-6, DR-37 | |
 | T-208 | Chip `⋯N` con estados ocultos; persiste en canon. | DEBE | ren | R-OPD-EST-9, reglas §3.10, DR-15 | ★ |
-| T-209 | Punta cerrada (swallowtail `M 0 0 L 23 8 L 12 0 L 23 -8 Z`) según dirección: en el proceso (consumo), en el objeto (resultado), en ambos (efecto), una (TS4/TS5). | inf. DEBE | ren | R-OPD-TR-1/2/6, reglas §3.7 | ★ |
+| T-209 | Punta cerrada (swallowtail `M 0 0 L 23 8 L 12 0 L 23 -8 Z`) según dirección: en el proceso (consumo), en el objeto (resultado), en ambos (efecto), par de flechas (TS3/TS4/TS5) y una sola en cada mitad escindida. | inf. DEBE | ren | R-OPD-TR-1/2/6, reglas §3.7 | ★ |
 | T-210 | Piruleta negra (agente) / blanca (instrumento) en el extremo proceso, colgando de una línea visible. | DEBE | ren | R-DEC-1/1A, R-OPD-HAB-2 | ★ |
 | T-211 | Rayo zigzag con punta cerrada en el invocado; autoinvocación en bucle. | inf. DEBE | ren | R-OPD-INV-1 | ★ |
 | T-212 | Triángulos con topología interna (relleno, triángulo interior, vacío, círculo interior); vértice al refinable, base a refinadores, líneas visibles. | DEBE | ren | R-TRI-1..3, R-VIS-TRI-1, AP-20, R-OPD-STR-1/2 | ★ |

@@ -212,7 +212,7 @@ Requisitos ★ de CANON §9, con evidencia por superficie. Un título o inventar
 | T-204 | R-ROT-1/2, R-OPD-COSA-6, AP-23 | parcial | N/I/G/X según prueba; U/P pendientes | src/opd/escena.test.ts, src/opd/exportar.test.ts, src/opd/metricas.test.ts; DEC34 ajuste dentro de la caja persistida; alcance específico, cierre por superficies pendiente |
 | T-206 | R-OPD-EST-1/5/7, R-EST-2 | parcial | N/I/G/X según prueba; U/P pendientes | src/opd/escena.test.ts, src/opd/geometria.test.ts, src/opd/golden.test.ts; alcance específico, cierre por superficies pendiente |
 | T-208 | R-OPD-EST-9, reglas §3.10, DR-15 | parcial | N/I/G/X según prueba; U/P pendientes | src/opd/escena.test.ts; alcance específico, cierre por superficies pendiente |
-| T-209 | R-OPD-TR-1/2/6, reglas §3.7 | parcial | N/I/G/X según prueba; U/P pendientes | src/opd/escena.test.ts, src/opd/exportar.test.ts, src/opd/marcadores.test.ts; alcance específico, cierre por superficies pendiente |
+| T-209 | R-OPD-TR-1/2/6, reglas §3.7 | parcial | N/I/G/X según prueba; U/P pendientes | src/opd/escena.test.ts, src/opd/exportar.test.ts, src/opd/marcadores.test.ts; TS4/TS5 standalone con su par de flechas y la mitad escindida con una (escena.test, golden transformadores-estados, asas en lienzo.test); alcance específico, cierre por superficies pendiente |
 | T-210 | R-DEC-1/1A, R-OPD-HAB-2 | parcial | N/I/G/X según prueba; U/P pendientes | src/opd/escena.test.ts, src/opd/marcadores.test.ts; alcance específico, cierre por superficies pendiente |
 | T-211 | R-OPD-INV-1 | parcial | N/I/G/X según prueba; U/P pendientes | src/opd/escena.test.ts, src/opd/geometria.test.ts; alcance específico, cierre por superficies pendiente |
 | T-212 | R-TRI-1..3, R-VIS-TRI-1, AP-20, R-OPD-STR-1/2 | parcial | N/I/G/X según prueba; U/P pendientes | src/opd/escena.test.ts, src/opd/geometria.test.ts, src/opd/marcadores.test.ts; DEC34 peine que no atraviesa cosas; alcance específico, cierre por superficies pendiente |
@@ -257,7 +257,7 @@ JSON conserva los datos. WP-9 reproduce las diez primeras parciales y lente la 1
 
 | caso | diferencia textual | estado | evidencia / siguiente verificación |
 |---|---|---|---|
-| 1 | Procedencia escindida TS4/TS5 frente standalone | parcial | lente: auto-no-op conserva escisión/JSON; import standalone no inventa procedencia. |
+| 1 | Procedencia escindida TS4/TS5 frente standalone | parcial | lente: auto-no-op conserva escisión/JSON; import standalone no inventa procedencia. El OPD sí los distingue: par de flechas el standalone, una flecha la mitad escindida (T-209). |
 | 2 | Borrado; OPL aditivo | parcial | lente: ausencia no elimina ni reserva ID; no reconstruye borrado desde texto. |
 | 3 | Posiciones y tamaños | parcial | lente: mueve/redimensiona con operaciones, OPL igual; import pierde geometría. |
 | 4 | Estados ocultos en todos los OPD, global/local | parcial | lente/editor-opl: D6 conserva ocultos globales; sincroniza sólo visibilidad local explícita. |

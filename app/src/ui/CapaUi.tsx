@@ -14,7 +14,9 @@ export function CapaUi(p:{modelo:Modelo;escena:Escena;seleccion:Seleccion;hover:
         const ref:Ref={tipo:'enlace',id},rama=s.peine[3+i];return activo(ref)&&rama?[{ref,tramos:[rama]}]:[];
     }))];
     const seleccionado=(ref:Ref)=>ref.tipo==='cosa'?p.seleccion.cosas.includes(ref.id):ref.tipo==='estado'?p.seleccion.estados.includes(ref.id):false;
-    const extremos=p.escena.aristas.filter(a=>p.seleccion.enlaces.includes(a.ref.id)).flatMap(a=>a.tramos.flatMap(t=>[{p:t.puntos[0]!,extremo:p.modelo.enlaces[a.ref.id]?.tipo==='efecto'&&t.estados?.[0]?'destino':'origen'},{p:t.puntos.at(-1)!,extremo:p.modelo.enlaces[a.ref.id]?.tipo==='efecto'&&t.estados?.[0]?'origen':'destino'}].map(x=>({...x,enlace:a.ref.id}))));
+    // En el efecto el objeto es el destino nuclear aunque la flecha de entrada del par (TS3, TS4, TS5) salga de él.
+    const extremos=p.escena.aristas.filter(a=>p.seleccion.enlaces.includes(a.ref.id)).flatMap(a=>{const e=p.modelo.enlaces[a.ref.id],deObjeto=(t:typeof a.tramos[number])=>e?.tipo==='efecto'&&t.extremos?.[0]===e.objeto;
+        return a.tramos.flatMap(t=>[{p:t.puntos[0]!,extremo:deObjeto(t)?'destino':'origen'},{p:t.puntos.at(-1)!,extremo:deObjeto(t)?'origen':'destino'}].map(x=>({...x,enlace:a.ref.id})));});
     const inicio=()=>{if(p.gesto.k!=='conectando')return null;const r=p.gesto.desde;const n=p.escena.nodos.find(n=>n.ref.id===r.cosa);const b=r.estado?n?.estados.find(s=>s.ref.id===r.estado)?.caja:n?.caja;return b?{x:b.x+b.ancho,y:b.y+b.alto/2}:null;};
     const a=inicio(),g=p.gesto;
     const recta=(a:Punto,b:Punto)=><line x1={a.x} y1={a.y} x2={b.x} y2={b.y} class="guia-ui" pointer-events="none" />;

@@ -143,3 +143,24 @@ test('T-051 alternativas efecto TS4/TS5 mantienen estado, ID y un undo real en X
   const n=ed.obtener().modelo!,fan=Object.values(n.abanicos)[0]!;expect(fan.operador).toBe(operador);expect(fan.enlaces).toHaveLength(2);expect(n.enlaces[id]).toEqual(m.enlaces[id]);expect(Object.values(n.enlaces).find(e=>e.id!==id)).toEqual({id:expect.any(String),tipo:'efecto',objeto:'o-2',proceso:'p-5',[rol]:'s-4'});expect(ed.obtener().pasado).toHaveLength(h+1);ed.deshacer();expect(ed.obtener().modelo).toBe(m);ed.cerrar();await ciclos();
  }
 });
+// Las asas de reanclaje nombran el extremo nuclear de cada flecha: en el efecto, el objeto es el destino
+// aunque la flecha de entrada del par (TS3, TS4, TS5) salga de él.
+test('T-209 T-011 asas de reanclaje de TS3, TS4, TS5 y mitades escindidas nombran el extremo de cada flecha', async () => {
+    const { CapaUi } = await import('./CapaUi');
+    const b = modeloCon({ objetos: [['Pedido', ['nuevo', 'listo']]], procesos: ['Procesar'] }), o = porNombre(b, 'Pedido'), p = porNombre(b, 'Procesar').id;
+    if (o.tipo !== 'objeto') throw Error('objeto');
+    const [nuevo, listo] = o.estados.map(s => s.id) as [string, string];
+    const asas = (v: unknown): { x: number; y: number; extremo: string }[] => {
+        if (Array.isArray(v)) return v.flatMap(asas);
+        if (!v || typeof v !== 'object') return [];
+        const n = v as { props?: Record<string, unknown> & { children?: unknown } };
+        const propia = n.props?.['data-ui'] === 'reanclar' ? [{ x: n.props.x as number + 4, y: n.props.y as number + 4, extremo: n.props['data-extremo'] as string }] : [];
+        return [...propia, ...asas(n.props?.children)];
+    };
+    for (const campos of [{ entrada: nuevo, salida: listo }, { entrada: nuevo }, { salida: listo }, { entrada: nuevo, escision: { par: 'x', mitad: 'entrada' as const } }, { salida: listo, escision: { par: 'x', mitad: 'salida' as const } }]) {
+        const m = { ...b, enlaces: { e: { id: 'e', tipo: 'efecto' as const, objeto: o.id, proceso: p, ...campos } } }, e = escena(m, m.raiz);
+        const esperadas = e.aristas[0]!.tramos.flatMap(t => [{ ...t.puntos[0]!, extremo: t.extremos![0] === o.id ? 'destino' : 'origen' }, { ...t.puntos.at(-1)!, extremo: t.extremos![1] === o.id ? 'destino' : 'origen' }]);
+        const dibujo = CapaUi({ modelo: m, escena: e, seleccion: { cosas: [], estados: [], enlaces: ['e'], abanicos: [] }, hover: null, realce: [], gesto: { k: 'reposo' }, zoom: 1, legal: () => false });
+        expect(asas(dibujo)).toEqual(esperadas);
+    }
+});

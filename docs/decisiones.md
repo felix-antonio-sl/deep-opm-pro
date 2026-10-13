@@ -874,7 +874,9 @@ estricto» y su fila en la tabla 3 de `docs/conformidad.md`:
   - Efecto T3: punta en ambos extremos.
   - TS3: dos tramos, `estado_entrada → proceso` (punta en el proceso) y `proceso → estado_salida`
     (punta en el estado).
-  - TS4: `estado → proceso`. TS5: `proceso → estado` (R-OPD-TR-6, T-209).
+  - TS4: `estado_entrada → proceso` y `proceso → objeto` (rectángulo). TS5: `objeto → proceso` y
+    `proceso → estado_salida` (spec-OPD §4.1, R-OPD-TR-6, T-209). Sólo la mitad escindida de un
+    TS3 (`escision`, R-OPD-TR-7) es una flecha: `estado_entrada → proceso` o `proceso → estado_salida`.
   - Agente e instrumento: piruleta negra o blanca en el extremo proceso, colgando de la línea
     (T-210).
 - **Invocación** (T-211). Es la polilínea `A, M1, M2, B`, con:

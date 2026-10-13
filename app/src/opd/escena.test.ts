@@ -1,6 +1,7 @@
 import { expect, test } from 'bun:test';
 import type { Modelo, Cosa, Enlace, Opd, Objeto, Proceso } from '../nucleo/tipos';
 import { escena } from './escena';
+import type { Rect } from './escena';
 import { aTexto, dibujar } from './dibujo';
 import { anchoTexto } from './metricas';
 import { LARGO_MARCADOR, MARCADORES } from './marcadores';
@@ -34,16 +35,47 @@ test('T-206 cuatro designaciones dentro del objeto; pin current externo', () => 
 test('T-208 chip global o local; anclaje expresa estado suprimido', () => { const c = { ...o(), tipo: 'objeto' as const, estados: [{ id: 's1', nombre: 'nuevo', suprimido: true as const }, { id: 's2', nombre: 'listo' }] }, base = m([c, p()]), local = { ...base, opds: { sd: { ...base.opds.sd!, apariciones: { ...base.opds.sd!.apariciones, o: { ...base.opds.sd!.apariciones.o!, ocultos: ['s2'] } } } } }; expect(escena(local, 'sd').nodos[0]!.chipOcultos?.n).toBe(2); expect(aTexto(dibujar(escena(local, 'sd'), 'canon'))).toContain('⋯2'); expect(escena({ ...local, enlaces: { e: { id: 'e', tipo: 'consumo', objeto: 'o', proceso: 'p', estado: 's1' } } }, 'sd').nodos[0]!.chipOcultos?.n).toBe(1); });
 for (const tipo of ['consumo', 'resultado', 'efecto', 'agente', 'instrumento'] as const)
     test(`T-209 T-210 ${tipo} marcadores por rol`, () => { const e = escena(m([o(), p()], [{ id: 'e', tipo, objeto: 'o', proceso: 'p' }]), 'sd').aristas[0]!; expect(e.tramos[0]!.inicio).toBe(tipo === 'efecto' ? 'punta' : undefined); expect(e.tramos[0]!.fin).toBe(tipo === 'agente' ? 'piruletaNegra' : tipo === 'instrumento' ? 'piruletaBlanca' : 'punta'); expect(e.hechos).toEqual(['e']); expect(e.capa).toBe(4); });
-test('T-209 TS3 dos tramos y TS4/5 una punta', () => {
+// spec-OPD §4.1 y R-OPD-TR-6: TS3, TS4 y TS5 son pares de flechas; en TS4/TS5 el otro enlace del par se
+// ancla al rectángulo del objeto. Sólo la mitad escindida (R-OPD-TR-7, metadato `escision`) es una flecha.
+test('T-209 T-214 TS3, TS4 y TS5 dibujan su par de flechas; la mitad escindida, sólo la suya', () => {
     const obj = { ...o(), tipo: 'objeto' as const, estados: [{ id: 's1', nombre: 'nuevo' }, { id: 's2', nombre: 'listo' }] };
-    for (const [entrada, salida, n] of [['s1', 's2', 2], ['s1', undefined, 1], [undefined, 's2', 1]] as const) {
-        const e = escena(m([obj, p()], [{ id: 'e', tipo: 'efecto', objeto: 'o', proceso: 'p', ...(entrada ? { entrada } : {}), ...(salida ? { salida } : {}) }]), 'sd').aristas[0]!;
-        expect(e.tramos).toHaveLength(n);
-        expect(e.capa).toBe(20);
-        for (const t of e.tramos) {
+    const casos = [
+        [{ entrada: 's1', salida: 's2' }, [['o', 's1', 'p', undefined], ['p', undefined, 'o', 's2']]],
+        [{ entrada: 's1' }, [['o', 's1', 'p', undefined], ['p', undefined, 'o', undefined]]],
+        [{ salida: 's2' }, [['o', undefined, 'p', undefined], ['p', undefined, 'o', 's2']]],
+        [{ entrada: 's1', escision: { par: 'x', mitad: 'entrada' } }, [['o', 's1', 'p', undefined]]],
+        [{ salida: 's2', escision: { par: 'x', mitad: 'salida' } }, [['p', undefined, 'o', 's2']]],
+    ] as const;
+    for (const [campos, esperados] of casos) {
+        const e = escena(m([obj, p()], [{ id: 'e', tipo: 'efecto', objeto: 'o', proceso: 'p', ...campos }]), 'sd'), a = e.aristas[0]!;
+        expect(a.tramos.map(t => [t.extremos![0], t.estados![0], t.extremos![1], t.estados![1]])).toEqual(esperados.map(x => [...x]));
+        expect(a.hechos).toEqual(['e']);
+        expect(a.capa).toBe(20);
+        const objeto = e.nodos.find(n => n.ref.id === 'o')!;
+        for (const t of a.tramos) {
             expect(t.inicio).toBeUndefined();
             expect(t.fin).toBe('punta');
+            // El extremo con estado toca su cápsula; el otro extremo de objeto, el borde del rectángulo y ninguna cápsula.
+            for (const [k, punto] of [[0, t.puntos[0]!], [1, t.puntos.at(-1)!]] as const) {
+                if (t.extremos![k] !== 'o') continue;
+                const dentro = (r: Rect) => punto.x >= r.x - 1e-6 && punto.x <= r.x + r.ancho + 1e-6 && punto.y >= r.y - 1e-6 && punto.y <= r.y + r.alto + 1e-6;
+                const capsula = objeto.estados.find(s => s.ref.id === t.estados![k]);
+                if (capsula) expect(dentro(capsula.caja)).toBe(true);
+                else {
+                    const r = objeto.caja, borde = Math.min(Math.abs(punto.x - r.x), Math.abs(punto.x - r.x - r.ancho), Math.abs(punto.y - r.y), Math.abs(punto.y - r.y - r.alto));
+                    expect(dentro(r) && borde < 1e-6).toBe(true);
+                    expect(objeto.estados.some(s => dentro(s.caja))).toBe(false);
+                }
+            }
         }
+    }
+    // R-OPD-CTL-1: el modificador va junto a la flecha que entra al proceso, a 32 px de su punta (DEC37).
+    for (const campos of [{ entrada: 's1' }, { salida: 's2' }]) {
+        const a = escena(m([obj, p()], [{ id: 'e', tipo: 'efecto', objeto: 'o', proceso: 'p', control: 'e', ...campos }]), 'sd').aristas[0]!;
+        const entra = a.tramos.find(t => t.extremos![1] === 'p')!, desde = entra.puntos[0]!, punta = entra.puntos.at(-1)!, largo = Math.hypot(punta.x - desde.x, punta.y - desde.y);
+        expect(a.marcas.map(x => x.texto)).toEqual(['e']);
+        expect(a.marcas[0]!.en.x).toBeCloseTo(punta.x + (desde.x - punta.x) * 32 / largo, 6);
+        expect(a.marcas[0]!.en.y).toBeCloseTo(punta.y + (desde.y - punta.y) * 32 / largo, 6);
     }
 });
 test('T-211 rayo invocación y lazo autoinvocación', () => { const e = escena(m([p(), p('q', 'Preparar')], [{ id: 'e', tipo: 'invocacion', origen: 'p', destino: 'q' }, { id: 'l', tipo: 'invocacion', origen: 'p', destino: 'p' }]), 'sd'); expect(e.aristas.every(a => a.rayo)).toBe(true); expect(e.aristas[0]!.tramos[0]!.puntos).toHaveLength(4); expect(e.aristas[1]!.tramos[0]!.puntos.length).toBe(3); });
