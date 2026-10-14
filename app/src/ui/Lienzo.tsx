@@ -11,7 +11,7 @@ import { tiposLegales, MATRIZ } from '../nucleo/matriz';
 import type { TeclaComando } from '../editor/atajos';
 import type { Editor as Controlador } from '../editor/estado';
 import { extremos as extremosEnlace } from '../nucleo/tipos';
-import type { Modelo, Ref, ModoDespliegue, Enlace, Multiplicidad } from '../nucleo/tipos';
+import type { Modelo, Ref, Enlace, Multiplicidad } from '../nucleo/tipos';
 import { validarNombreCosa, validarNombreEstado } from '../nucleo/lexico';
 import { colocar } from '../nucleo/colocacion';
 import { escena } from '../opd/escena';
@@ -24,6 +24,7 @@ import { NombreEnLinea } from './NombreEnLinea';
 import { MenuTipoEnlace, confirmarDatos, opcionesCambio } from './MenuTipoEnlace';
 import { MenuContextual } from './MenuContextual';
 import { Dialogo } from './Dialogo';
+import { DialogoDespliegue } from './DialogoDespliegue';
 import type { Accion } from '../nucleo/operaciones';
 const VACIA = (): Seleccion => ({ cosas: [], estados: [], enlaces: [], abanicos: [] });
 export function puntoModelo(p: Punto, c: Camara): Punto { return { x: (p.x-c.x)/c.zoom, y: (p.y-c.y)/c.zoom }; }
@@ -76,7 +77,7 @@ export function Lienzo(p: DatosRanura) {
     const [gesto,fijar]=useState<Gesto>({k:'reposo'}),actual=useRef<Gesto>(gesto),[hover,realzar]=useState<Ref|null>(null),[menu,contextual]=useState<Punto|null>(null);
     const [quitar,confirmarQuitar]=useState<readonly Ref[]|null>(null);
     const [ocultos,mostrarOcultos]=useState<string|null>(null);
-    const [edicion,editar]=useState<{ref:Ref;valor:string;inversa?:string;en:Punto}|null>(null),[despliegue,desplegar]=useState(false),[buscar,busqueda]=useState<string|null>(null),[eliminar,confirmarEliminar]=useState(false),[estadoBorrar,borrarEstado]=useState<string|null>(null),[cambiando,cambiarEnlace]=useState<string|null>(null);
+    const [edicion,editar]=useState<{ref:Ref;valor:string;inversa?:string;en:Punto}|null>(null),[despliegue,desplegar]=useState<string|null>(null),[buscar,busqueda]=useState<string|null>(null),[eliminar,confirmarEliminar]=useState(false),[estadoBorrar,borrarEstado]=useState<string|null>(null),[cambiando,cambiarEnlace]=useState<string|null>(null);
     const dedos=useRef(new Map<number,Punto>()),pellizco=useRef<{distancia:number;centro:Punto;camara:Camara}|null>(null);
     const bandaDrag=useRef<{desde:Punto;x:number}|null>(null);
     const [tipoRefinador,fijarTipoRefinador]=useState<'objeto'|'proceso'>('objeto'),tiposCadena=useRef<Array<'objeto'|'proceso'>>([]);
@@ -119,7 +120,7 @@ export function Lienzo(p: DatosRanura) {
         }
         aplicar(r);
     }
-    function cancelar() {cambiar({k:'reposo'});editar(null);busqueda(null);contextual(null);desplegar(false);confirmarEliminar(false);borrarEstado(null);cambiarEnlace(null);mostrarOcultos(null);p.editor.solicitar(null);if(p.editor.obtener().modo==='gestion-modal')p.editor.fijarModo('edicion');host.current?.focus();}
+    function cancelar() {cambiar({k:'reposo'});editar(null);busqueda(null);contextual(null);desplegar(null);confirmarEliminar(false);borrarEstado(null);cambiarEnlace(null);mostrarOcultos(null);p.editor.solicitar(null);if(p.editor.obtener().modo==='gestion-modal')p.editor.fijarModo('edicion');host.current?.focus();}
     function contexto():ContextoComando {const s=p.editor.obtener().seleccion;if(s.estados.length)return'estado';if(s.abanicos.length)return'abanico';if(s.simbolo)return'simbolo';if(s.enlaces.length>1)return'multiple';if(s.enlaces.length)return'enlace';const c=m.cosas[s.cosas[0]??''];if(!c)return'lienzo';return idx.subprocesoDe.has(c.id)?'subproceso':e.nodos.find(n=>n.ref.id===c.id)?.contenedor?'contenedor':c.tipo==='objeto'?'objeto':'proceso';}
     function banda(y:number):{banda:number}|{nuevaBandaAntesDe:number}|null {
         if(contenedor.tipo!=='descomposicion')return null;
@@ -140,7 +141,7 @@ export function Lienzo(p: DatosRanura) {
         else if(s.k==='enlace'&&s.opcion==='buscar-o-crear'){busqueda((buscar??'')+(s.texto??''));p.editor.solicitar(null);}
         else if(s.k==='enlace'&&ref){cambiar({k:'conectando',desde:extremo(ref),punto:cursor.current});p.editor.solicitar(null);}
         else if(s.k==='encadenar'||s.k==='refinador'){tiposCadena.current=[];fijarTipoRefinador('objeto');cambiar({k:'encadenando',opd,bandas:[],actual:'',modo:contenedor.tipo==='despliegue'?'refinadores':'subprocesos',...(s.gesto?{id:s.gesto}:{})});p.editor.solicitar(null);}
-        else if(s.k==='desplegar'){desplegar(true);p.editor.solicitar(null);}
+        else if(s.k==='desplegar'){desplegar(ref?.tipo==='cosa'?ref.id:null);p.editor.solicitar(null);}
         else if(s.k==='multiplicidad'){
             const acciones=p.estado.seleccion.enlaces.map(enlace=>accionMultiplicidad(m.enlaces[enlace]!,s.opcion==='origen'));
             if(acciones.length)p.editor.ejecutarVarias(acciones,'Multiplicidad de selección');p.editor.solicitar(null);
@@ -150,7 +151,7 @@ export function Lienzo(p: DatosRanura) {
         else if(s.k==='tipo'&&p.estado.seleccion.enlaces.length){const id=p.estado.seleccion.enlaces[0]!,ex=extremosSeleccionados(m,id);if(ex){cambiarEnlace(id);cambiar({k:'menuTipo',...ex,opciones:opcionesCambio(m,opd,id,ex)});}p.editor.solicitar(null);}
         else if(s.k==='camara'){espacio.current=true;p.editor.solicitar(null);}
     },[p.estado.solicitud]);
-    useEffect(()=>{const modal=menu!==null||quitar!==null||despliegue||eliminar||estadoBorrar!==null||ocultos!==null||buscar!==null;if(modal&&p.editor.obtener().modo==='edicion')p.editor.fijarModo('gestion-modal');return()=>{if(modal&&p.editor.obtener().modo==='gestion-modal')p.editor.fijarModo('edicion');};},[menu,quitar,despliegue,eliminar,estadoBorrar,ocultos,buscar]);
+    useEffect(()=>{const modal=menu!==null||quitar!==null||despliegue!==null||eliminar||estadoBorrar!==null||ocultos!==null||buscar!==null;if(modal&&p.editor.obtener().modo==='edicion')p.editor.fijarModo('gestion-modal');return()=>{if(modal&&p.editor.obtener().modo==='gestion-modal')p.editor.fijarModo('edicion');};},[menu,quitar,despliegue,eliminar,estadoBorrar,ocultos,buscar]);
     function teclado(ev:KeyboardEvent,enMenu=false) {
         if(ev.defaultPrevented||ev.isComposing)return;const target=ev.target instanceof Element?ev.target:null;if(target?.closest('dialog')&&!enMenu)return;const g=actual.current;
         if(menu!==null&&ev.key==='Escape'){ev.preventDefault();ev.stopPropagation();contextual(null);p.editor.fijarModo('edicion');host.current?.focus();return;}
@@ -224,7 +225,7 @@ export function Lienzo(p: DatosRanura) {
         {edicion&&<NombreEnLinea en={edicion.en} valor={edicion.valor} titulo={edicion.ref.tipo==='estado'?'Renombrar estado':edicion.ref.tipo==='enlace'?'Etiqueta':'Renombrar cosa'} cambiar={valor=>editar({...edicion,valor})} {...(edicion.inversa!==undefined?{inversa:edicion.inversa,cambiarInversa:(inversa:string)=>editar({...edicion,inversa})}:{})} confirmar={()=>{const r=edicion.ref.tipo==='estado'?p.editor.ejecutar({op:'renombrarEstado',args:{estado:edicion.ref.id,nombre:edicion.valor}}):edicion.ref.tipo==='enlace'?p.editor.ejecutar({op:'fijarEtiqueta',args:{enlace:edicion.ref.id,etiqueta:edicion.valor||null,...(edicion.inversa!==undefined?{inversa:edicion.inversa}:{})}}):p.editor.ejecutar({op:'renombrarCosa',args:{cosa:edicion.ref.id,nombre:edicion.valor}});if(r.ok)editar(null);}} cancelar={()=>editar(null)} tecla={ev=>{if(ev.key==='Escape'){ev.preventDefault();ev.stopPropagation();editar(null);}}} />}
         {g.k==='menuTipo'&&<MenuTipoEnlace modelo={m} opd={opd} gesto={g} cambio={!!cambiando} elegir={elegir} cancelar={cancelar} tecla={ev=>teclado(ev,true)} datos={(o,d)=>{const r=confirmarDatos(m,opd,g,o,d,cambiando??undefined);if(!r.acciones.length)return false;if(cambiando){p.editor.fijarModo('edicion');const cambiado=p.editor.ejecutar(r.acciones[0]!);if(cambiado.ok)cancelar();return cambiado.ok;}p.editor.fijarModo('edicion');aplicar(r);return true;}} />}
         {menu&&<MenuContextual editor={p.editor} estado={{...p.estado,modo:'edicion'}} contexto={contexto()} en={{x:Math.min(menu.x,(host.current?.clientWidth??800)-276),y:Math.min(menu.y,(host.current?.clientHeight??600)-160)}} cerrar={()=>{contextual(null);p.editor.fijarModo('edicion');host.current?.focus();}} ejecutar={c=>{if(c.id==='estado-eliminar'){const id=p.editor.obtener().seleccion.estados[0];if(id&&e.aristas.some(a=>a.tramos.some(t=>t.estados?.includes(id)))){borrarEstado(id);return;}}c.ejecutar(p.editor);}} />}
-        {despliegue&&<Dialogo titulo="Desplegar por modo" cerrar={()=>desplegar(false)}>{(['agregacion','exhibicion','generalizacion','clasificacion'] as ModoDespliegue[]).map((modo,i)=><button onClick={()=>{const cosa=p.editor.obtener().seleccion.cosas[0];if(!cosa)return;p.editor.fijarModo('edicion');const r=p.editor.ejecutar({op:'desplegar',args:{opd,cosa,modo}});if(r.ok){desplegar(false);p.editor.navegar(r.valor.creados.find(id=>r.valor.modelo.opds[id])!);p.editor.solicitar({k:'encadenar'});}}}>{i+1} {modo}</button>)}</Dialogo>}
+        {despliegue&&<DialogoDespliegue {...p} cosa={despliegue} cerrar={()=>desplegar(null)}/>}
         {ocultos&&m.cosas[ocultos]?.tipo==='objeto'&&<Dialogo titulo="Estados ocultos" cerrar={()=>mostrarOcultos(null)}>{m.cosas[ocultos].estados.filter(s=>!e.nodos.find(n=>n.ref.id===ocultos)?.estados.some(v=>v.ref.id===s.id)).map(s=><button onClick={()=>{p.editor.fijarModo('edicion');const r=p.editor.ejecutarVarias([{op:'suprimirEstado',args:{estado:s.id,opd:null,activa:false}},{op:'suprimirEstado',args:{estado:s.id,opd,activa:false}}],'Mostrar estado');if(r.ok)mostrarOcultos(null);}}>{s.nombre} · Mostrar</button>)}</Dialogo>}
         {estadoBorrar&&<Dialogo titulo="Eliminar estado enlazado" cerrar={()=>borrarEstado(null)}><p>Los enlaces anclados a este estado quedarán sobre su objeto.</p><button onClick={()=>{p.editor.fijarModo('edicion');const r=p.editor.ejecutar({op:'eliminarEstado',args:{estado:estadoBorrar}});if(r.ok)borrarEstado(null);}}>Eliminar estado</button></Dialogo>}
         {quitar&&<Dialogo titulo="Confirmar quitar de este OPD" cerrar={()=>confirmarQuitar(null)}><p>{quitar.filter(r=>r.tipo==='cosa').length===1?'Se quitará':'Se quitarán'} {cuenta(quitar.filter(r=>r.tipo==='cosa').length,'aparición','apariciones')}. Las cosas, estados y enlaces se conservan en el modelo.</p><button onClick={()=>confirmarQuitar(null)}>Cancelar</button><button onClick={()=>{const accion=accionQuitar(quitar);if(!accion)return;p.editor.fijarModo('edicion');const r=p.editor.ejecutar(accion);if(r.ok)confirmarQuitar(null);}}>Quitar apariciones</button></Dialogo>}
