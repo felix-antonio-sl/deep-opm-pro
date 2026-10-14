@@ -120,7 +120,32 @@ test('T-072 T-166 B-02 CX13 reconoce la descomposición de objeto: partes en ord
  expect(caso('**A** se descompone en **B**, **C** y **D**, en esa secuencia, así como *Validar* y *Contar*.').hechos).toEqual([{k:'descomposicion',cosa:objeto,bandas:[['B'],['C'],['D']],internos:['Validar','Contar']}]);
  expect(caso('**A** desde SD se descompone en SD1 en **B** e **Índice**, en esa secuencia.').hechos).toEqual([{k:'descomposicion',cosa:objeto,bandas:[['B'],['Índice']],internos:[],opdPadre:'SD',opdHijo:'SD1'}]);
  // Sin «en esa secuencia», con partes de otro tipo o en paralelo no hay CX13 ni lista etiquetada plausible.
- for(const t of ['**A** se descompone en **B** y **C**.','**A** se descompone en **B** y *C*, en esa secuencia.','**A** se descompone en paralelo **B** y **C**.','**A** desde SD se descompone en SD1 en **B**.']){const l=caso(t);expect(l.hechos).toEqual([]);expect(l.diagnosticos[0]).toMatchObject({codigo:'non-canonical',regla:'R-CX-DESP-2'});}
+ for(const t of ['**A** se descompone en **B** y **C**.','**A** se descompone en **B** y *C*, en esa secuencia.','**A** se descompone en paralelo **B** y **C**.','**A** desde SD se descompone en SD1 en **B**.','**A** proceso se descompone en **B** y **C**.']){const l=caso(t);expect(l.hechos).toEqual([]);expect(l.diagnosticos[0]).toMatchObject({codigo:'non-canonical',regla:'R-CX-DESP-2'});}
+});
+test('T-156 T-157 B-16 B-48 «se descompone en» de proceso: las formas canónicas se reconocen y otra lectura no es lista etiquetada',()=>{
+ // Una por plantilla de PLANTILLAS con sujeto proceso, con las variantes de «así como», «paralelo» y sufijo «proceso».
+ const canonicas=[
+  ['*A* se descompone en *B*, en esa secuencia.','CX1'],
+  ['*A* proceso se descompone en *B*, *C* proceso e *Inspeccionar*, en esa secuencia, así como **O** y **Q**.','CX1'],
+  ['*A* se descompone en paralelo *B* y *C*.','CX2'],
+  ['*A* se descompone en paralelo *B*, *C* e *Inspeccionar*, así como **O**.','CX2'],
+  ['*A* se descompone en *B*, paralelo *C* y *D*, y *E*, en esa secuencia.','CXM'],
+  ['*A* se descompone en paralelo *B* y *C*, *D*, e *Inspeccionar*, en esa secuencia, así como **O**.','CXM'],
+  ['*A* se descompone en *B* y *C*, así como **O**, **Q** y **R**.','CXI'],
+  ['*A* desde SD se descompone en SD1 en *B* y *C*, en esa secuencia.','CXN'],
+  ['*A* desde SD1 se descompone en SD1.2 en *B*, paralelo *C* y *D*, en esa secuencia.','CXN']
+ ] as const;
+ for(const [t,id] of canonicas){const l=caso(t);expect(l.diagnosticos).toEqual([]);expect(l.plantilla).toBe(id);expect(l.hechos).toEqual([expect.objectContaining({k:'descomposicion',cosa:{nombre:'A',tipo:'proceso'}})]);}
+ expect(new Set<string>(canonicas.map(([,id])=>id))).toEqual(new Set(PLANTILLAS.filter(p=>p.patron.startsWith('{P} ')&&p.patron.includes(' se descompone en ')).map(p=>p.id)));
+ // Sin marca, con hijos de otro tipo o «desde» fuera de CX11: antes SE1L/SE3 con la etiqueta «se descompone en».
+ for(const t of ['*A* se descompone en *B* y *C*.','*A* se descompone en *B*.','*A* se descompone en *B*, *C* y *D*.','*A* desde SD se descompone en SD1 en *B* y *C*.','*A* desde SD se descompone en *B* y *C*.',
+  '*A* se descompone en *B* y **C**, en esa secuencia.','*A* se descompone en **B**.','*A* se descompone en *B* y *C*, en esa secuencia, así como *D*.','*A* desde SD se descompone en SD1 en *B* y *C*, así como **O**.','*A* se descompone en *B*,*C*, en esa secuencia.'])
+ {const l=caso(t);expect(l.hechos).toEqual([]);expect(l.diagnosticos[0]).toMatchObject({codigo:'non-canonical',regla:'R-CX-DESP-2'});}
+ // Canónicas del canon que el producto no lee: advertencia sin hechos, nunca non-canonical ni lista etiquetada.
+ for(const t of ['*A* desde SD se descompone en SD1 en paralelo *B* y *C*.','*A* desde SD se descompone en SD1 en paralelo *B* y *C*, así como **O**.','*A* desde SD se descompone en SD1 en *B*, paralelo *C* y *D*, en esa secuencia, así como **O**.','*A* se descompone en *B* y en paralelo *C* y *D*, en esa secuencia.'])
+ {const l=caso(t);expect(l.hechos).toEqual([]);expect(l.diagnosticos[0]).toMatchObject({codigo:'unsupported-canonical',severidad:'warning',regla:'R-IMPORT-5'});}
+ expect(NO_CANONIZADAS.filter(x=>x.regla==='R-CX-DESP-2').map(x=>x.registro)).toEqual(['B-02','B-16']);
+ expect(NO_SOPORTADAS.find(x=>x.mensaje?.includes('CX11'))?.registro).toBe('B-48');
 });
 test('T-003 R-ZNC-1 la grafía histórica de caracterización es no canonizada, registrada en B-37 y sin hechos',()=>{for(const t of ['**Objeto sin Estados** exhibe `cero` **Tamaño**.','**Proceso Físico** y **Objeto Físico** exhiben `física` **Esencia**.']){const l=caso(t);expect(l.hechos).toEqual([]);expect(l.diagnosticos[0]).toMatchObject({codigo:'non-canonical',regla:'R-ZNC-1'});}expect(NO_CANONIZADAS.find(x=>x.regla==='R-ZNC-1')?.registro).toBe('B-37');});
 import {planificar as planificarLimites} from './planificar';

@@ -36,7 +36,7 @@ export interface Paso {
     readonly etiqueta: string;
     readonly gesto?: string;
 }
-export type SolicitudUI = { readonly k: 'buscar' | 'opl' | 'ayuda' | 'crear' | 'renombrar' | 'estado' | 'enlace' | 'multiplicidad' | 'tipo' | 'desplegar' | 'encadenar' | 'refinador' | 'informe' | 'borrador' | 'reingreso' | 'conflicto' | 'salida' | 'descarga' | 'biblioteca' | 'importar' | 'camara'; readonly refs?: readonly Ref[]; readonly tipo?: TipoCosa; readonly texto?: string; readonly informe?: Informe; readonly servidorCambio?: boolean; readonly opcion?: string; readonly gesto?: string };
+export type SolicitudUI = { readonly k: 'buscar' | 'opl' | 'ayuda' | 'crear' | 'renombrar' | 'estado' | 'enlace' | 'multiplicidad' | 'tipo' | 'desplegar' | 'agrupar' | 'encadenar' | 'refinador' | 'informe' | 'borrador' | 'reingreso' | 'conflicto' | 'salida' | 'descarga' | 'biblioteca' | 'importar' | 'camara'; readonly refs?: readonly Ref[]; readonly tipo?: TipoCosa; readonly texto?: string; readonly informe?: Informe; readonly servidorCambio?: boolean; readonly opcion?: string; readonly gesto?: string };
 export interface EstadoEditor {
     readonly solicitud: SolicitudUI | null;
     readonly pantalla: 'acceso' | 'biblioteca' | 'editor';

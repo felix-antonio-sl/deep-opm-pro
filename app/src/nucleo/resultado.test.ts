@@ -63,7 +63,7 @@ caso('T-011 DS-20 admite reparar el error previo con salida válida y conserva t
     expect(JSON.stringify(viejo)).toBe(antes);
 });
 caso('T-011 operaciones aplican secuencia atómica y preservan entrada', () => {
-    expect(Object.keys(OPERACIONES).length).toBe(48);
+    expect(Object.keys(OPERACIONES).length).toBe(49); // T-325 agrega «agrupar».
     expect(aplicarAcciones(entrada, [])).toEqual({ ok: true, valor: { modelo: entrada, creados: [] }, trazas: [] });
     const r = aplicarAcciones(entrada, [{ op: 'renombrarModelo', args: { nombre: 'Nuevo' } }, { op: 'fijarUnidadTiempo', args: { unidad: 'hour' } }]);
     expect(r.ok).toBe(true);

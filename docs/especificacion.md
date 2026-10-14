@@ -84,7 +84,7 @@ Regla de no sobrebloqueo (R-AP-0C, R-APP-5, R-OPD-VAL-4, R-ZNC-1/2): solo se **b
 | Cosa duplicada en el mismo OPD (silueta) | Indicador condicionado a permitir el duplicado; no se exige permitirlo | reglas §3.10, GAP-OPD-DUPLICADO |
 | Previsualización raster | No canónica (PUEDE) | R-OPD-EXP-1 |
 | Principios y contenido del modelo (propósito declarado, alcance, función como proceso, SD con interesados/beneficiario, importancia proporcional, reclasificación por desgaste, tasa de consumo) | Obligan al **modelo/modelador**, no son verificables mecánicamente; R-PRIN-9 (vista = mismo modelo) se cumple por kernel único | R-PRIN-1..9, R-SD-1..3, R-IMP-1/2, R-AG-3/4, R-CONS-2/3, R-PROC-5..7 |
-| Simplificación de OPD sobrecargado | PUEDE; R-SIMP-2 (prohibido crear enlaces proc↔proc sin semántica) solo rige si se ofrece; la vista padre derivada (§3.5) no crea enlaces entre pares | R-SIMP-1/2, método A4.5 |
+| Simplificación de OPD sobrecargado | PUEDE; se ofrece como «Agrupar en un proceso (out-zoom)» (§3.2b, T-325); R-SIMP-2 rige: la vista padre derivada (§3.5) no crea enlaces entre pares | R-SIMP-1/2, método A4.5 |
 | Marca `ordered` junto al triángulo; etiquetados bifurcados (`ordenados por`, `más`) | Extensión declarada / PUEDE | R-OPD-STR-5, R-OPL-SE-4, R-OPL-LISTA-2 |
 | «La app no acepta un único estado (≥2)» | Limitación circunstancial de v0 descrita en el bundle; contradice R-OBJ-2 (`s ≥ 1`). No se exige ni se advierte | método Apéndice F |
 | Gobierno documental: R-DOC-*, R-APP-0/1/6/7, R-§2x-PRESC/ENF/MIG/DEP, R-OPD-AUD-1, R-§20-AUD-1, tablas de trazabilidad a código v0, commits, sha256, «bestia», pneuma, HITL | No son funciones de la app | varios |
@@ -416,6 +416,20 @@ La misma operación y el mismo OPD hijo que en §3.2, con el objeto como contene
 | R-OPD-REF-11 | Sin distribución: un enlace en el contorno del objeto queda allí. | — |
 | DR-13, válvula §0.5 | Sin vista abstraída: el padre no muestra los hechos de partes ni de procesos internos (el canon no la define para objetos). | — |
 | CX13, R-CX-DESP-2 | `**Objeto** se descompone en **O1** y **O2**, en esa secuencia[, así como *P*].`, emitida en el bloque del hijo; P acepta también la forma de diagrama nuevo (`desde SD … en SD1 en …`). Otra lectura de «**A** se descompone en …» es no canónica. | DEBE |
+
+### 3.2b Agrupar en un proceso (out-zoom, método A4.5)
+
+Recomposición en el mismo diagrama seguida de descomposición en un OPD nuevo (R-SIMP-1, método A4.5): los procesos
+elegidos pasan a ser subprocesos de un proceso intermedio nuevo, que los sustituye en el OPD de origen.
+
+| ID | Regla | Oblig. |
+|---|---|---|
+| R-SIMP-1, A4.5 | Se agrupan procesos del SD o subprocesos de la descomposición de un proceso (no de un despliegue), con un nombre nuevo para el proceso intermedio. | PUEDE |
+| R-SIMP-2, DR-13 | No crea, mueve ni borra hechos: el origen los muestra abstraídos en el proceso nuevo; ningún enlace procedimental nuevo une procesos. | DEBE |
+| R-INV-2/2A | El grupo conserva el orden temporal: bandas contiguas completas o parte de una sola banda; en el SD, sin orden declarado, la altura visible da las bandas del hijo (tolerancia T-030). | DEBE |
+| A3.3, T-066 | Lo agrupado queda interno del hijo: no puede verse fuera del grupo ni enlazarse con cosas que el origen no muestra. Un objeto elegido pasa a interno sólo si nada fuera del grupo lo muestra. Los refinamientos de lo agrupado pasan al grupo con su subárbol. | DEBE |
+| R-HIJO-3 | El hijo trae como externos las cosas del origen unidas a lo agrupado. | DEBE |
+| R-PREC-1, AP-30, R-CX-DIST-2 | Se rechaza si la vista abstraída ganaría una precedencia inválida o un evento sistémico cruzaría el contorno nuevo. | DEBE |
 
 ### 3.3 Despliegue (unfold) de cosa
 
@@ -801,9 +815,9 @@ Estado: C, no ★ (escalonable; mientras no se ofrezca, el parser responde `unsu
 |---|---|---|
 | CX1 | *Proceso* se descompone en *P1*, *P2* y *P3*, en esa secuencia. | C ★ |
 | CX2 | *Proceso* se descompone en paralelo *P1* y *P2*. | C ★ |
-| CX mixta | *Proceso* se descompone en *P1*, paralelo *P2* y *P3*, y *P4*, en esa secuencia. | C·S ★ (R-OPL-CX-5 DEBE preservar el paralelo dentro de la secuencia) |
+| CX mixta | *Proceso* se descompone en *P1*, paralelo *P2* y *P3*, y *P4*, en esa secuencia. | C·S ★ (R-OPL-CX-5 DEBE preservar el paralelo dentro de la secuencia; el grupo final «y en paralelo» de CX12: `unsupported-canonical`, B-48) |
 | CX interno | spec-OPL §7.1 (textual): `… se descompone en *P1* y *P2*, así como **ObjetoInterno**.`; EBNF: `…, en esa secuencia, así como …` | C·S (PUEDE, R-OPL-CX-6; no emitida; el parser acepta ambos órdenes) |
-| CX nuevo OPD | *Proceso* desde SD se descompone en SD1 en *P1* y *P2*, en esa secuencia. (EBNF) | P (DR-24) |
+| CX nuevo OPD | *Proceso* desde SD se descompone en SD1 en *P1* y *P2*, en esa secuencia. (EBNF) | P (DR-24; la variante paralela o con objetos internos: `unsupported-canonical`, B-48) |
 | CX3 | **Cosa** se despliega en SD1 en **T1**, **T2** y **T3**. | C ★ (oración de despliegue emitida en el OPD hijo, DR-24) |
 | CX10 | **Cosa** desde SD se despliega por partes en SD1 en **T1**, **T2** y **T3**. (por partes, por rasgos [, así como …], por especialización, por instancias) | C ★ (G la emite en lugar de CX3 sólo cuando los refinados se unen a la cosa por más de una relación fundamental y CX3 no diría el modo; P reconoce las cuatro y usa el modo nombrado, B-11) |
 | despliegue sin etiqueta | **Todo** se despliega en **Parte1** y **Parte2**. (+ `, así como *Operación*` en rasgos heterogéneos) | P |
@@ -813,7 +827,7 @@ Estado: C, no ★ (escalonable; mientras no se ofrezca, el parser responde `unsu
 | CX7/CX8 | *Proceso* se recompone desde `diagrama`. · **Objeto** se recompone desde `diagrama`. | X (GAP-RECOMPONE) |
 | CM1–CM3 | vistas de sub-modelo y referencias externas | X |
 
-Reglas: R-CX-DESP-2 / R-CX-SYNC-2 — el despliegue NUNCA lleva `en esa secuencia` ni `paralelo` (`Incorrecto: **Pedido** se despliega en **Cabecera** y **Línea**, en esa secuencia.`). R-CX-0 — sin oración de refinamiento sin refinadores. R-OPD-OP-3 — un OPD semidescompuesto no emite oración canónica.
+Reglas: R-CX-DESP-2 / R-CX-SYNC-2 — el despliegue NUNCA lleva `en esa secuencia` ni `paralelo` (`Incorrecto: **Pedido** se despliega en **Cabecera** y **Línea**, en esa secuencia.`). Otra lectura de «*Proceso* se descompone en …», como la que no lleva ninguna de las dos marcas, es no canónica: nunca una lista etiquetada. R-CX-0 — sin oración de refinamiento sin refinadores. R-OPD-OP-3 — un OPD semidescompuesto no emite oración canónica.
 
 #### 4.4.10 Rutas (reglas §4.12, textual)
 
@@ -2369,6 +2383,7 @@ Los ★ con obligación PUEDE o inferida son soportes necesarios de un DEBE ★ 
 | T-322 | Durante el arrastre, marca transitoria de enlace inválido (fuera de canon). | PUEDE | ren | R-OPD-VAL-3 | |
 | T-323 | Simulación: si existe, R-EJEC-7..10, R-OPD-SIM-1..7 y F.2 son DEBE, en canal propio no persistente. | DEBE si existe | ope | reglas §2.8, spec-OPD §20, método F.2 | |
 | T-324 | Extensiones de §0.4 (Pr, m-de-f, negación, demora, tipos, rangos, estereotipos, sub-modelos, vistas, semi-plegado, composición eje a): si se implementan, rigen sus reglas y su generador + parser juntos (nunca emisión-only). | PUEDE | gob | §0.4, R-§19-ROT-1 | |
+| T-325 | Agrupar procesos en un proceso intermedio (out-zoom, §3.2b): operación atómica que crea el proceso y su descomposición con lo agrupado, sin cambiar hechos ni orden temporal. | PUEDE | ope | R-SIMP-1/2, método A4.5, R-INV-2/2A, A3.3 | ★ |
 
 ---
 

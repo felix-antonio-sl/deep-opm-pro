@@ -15,6 +15,7 @@ export type Gesto = ( {
 } | {
     readonly k: 'creando';
     readonly banda?: { readonly indice: number; readonly paralelo: boolean };
+    readonly agrupar?: readonly Id[]; // out-zoom (T-325): el nombre es el del proceso que agrupa estas cosas
     readonly tipo: TipoCosa;
     readonly en: Punto;
     readonly nombre: string;
@@ -113,9 +114,10 @@ export function reducirGesto(m: Modelo, opd: Id, g: Gesto, ev: EventoLienzo): {
     };
     if (g.k === 'creando') {
         const nombre = ev.k === 'nombre' ? ev.nombre : g.nombre;
-        if (tecla === 'Tab') return salida({ ...g, tipo: g.tipo === 'objeto' ? 'proceso' : 'objeto' });
+        if (tecla === 'Tab' && !g.agrupar) return salida({ ...g, tipo: g.tipo === 'objeto' ? 'proceso' : 'objeto' });
         if (tecla === 'Enter' || ev.k === 'nombre' && ev.confirmar) {
             if (validarNombreCosa(nombre)) return salida({ ...g, nombre });
+            if (g.agrupar) return salida(reposo, [{ op: 'agrupar', args: { opd, cosas: g.agrupar, nombre, x: g.en.x, y: g.en.y } }]);
             const siguiente: Gesto = ev.k === 'tecla' && ev.mayus ? { ...g, en:{x:g.en.x,y:g.en.y+100}, nombre: '', id: id + ':siguiente' } : reposo;
             return salida(siguiente, [{ op: 'crearCosa', args: { opd, tipo: g.tipo, nombre, x: g.en.x, y: g.en.y, ...(g.banda ? {banda:g.banda} : {}) } }]);
         }

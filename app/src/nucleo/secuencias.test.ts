@@ -35,7 +35,7 @@ test('T-064 secuencias realmente eligen las ocho operaciones de refinamiento', (
 
 test('T-064 las ocho operaciones de refinamiento son aceptadas en las 8000 acciones sin filtro', () => {
     expect(Object.values(estadisticas).reduce((n, e) => n + e.seleccionadas, 0)).toBe(8000);
-    for (const op of ['descomponer', 'agregarEnDescomposicion', 'moverEnDescomposicion', 'fijarBandas', 'desplegar', 'agregarRefinadores', 'eliminarRefinamiento', 'distribuirEnlace']) { expect(estadisticas[op]?.aceptadas, op).toBeGreaterThan(0); }
+    for (const op of ['descomponer', 'agregarEnDescomposicion', 'moverEnDescomposicion', 'fijarBandas', 'desplegar', 'agregarRefinadores', 'eliminarRefinamiento', 'distribuirEnlace', 'agrupar']) { expect(estadisticas[op]?.aceptadas, op).toBeGreaterThan(0); }
     console.info('WP4r secuencias estadísticas ' + JSON.stringify(estadisticas));
     console.info('B-02 cambios sobre descomposiciones de objeto ' + JSON.stringify(deObjeto));
     for (const op of ['descomponer', 'agregarEnDescomposicion', 'crearCosa', 'eliminarRefinamiento']) expect(deObjeto[op] ?? 0, `${op} de objeto`).toBeGreaterThan(0);

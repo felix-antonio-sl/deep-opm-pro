@@ -6,7 +6,7 @@ import { indice, claveNombre } from './indice';
 import { validarNombreCosa } from './lexico';
 import { validarForma } from './forma';
 import { noOfrecido, violacionesAbanico, violacionesContexto } from './matriz';
-import { colocarDescomposicion, colocarDespliegue } from './colocacion';
+import { colocarDescomposicion, colocarDespliegue, TOLERANCIA_ALTURA } from './colocacion';
 import { proyectar, hechoDeMayorFuerza } from './proyeccion';
 const ref = (id: Id): Ref => ({ tipo: 'cosa', id });
 const ro = (id: Id): Ref => ({ tipo: 'opd', id });
@@ -225,4 +225,83 @@ export const eliminarRefinamiento: Operacion<{ opd: Id }> = (m, a) => transaccio
         else if (enlaces.length !== f.enlaces.length) tx.poner('abanicos', { ...f, enlaces });
     }
     formaFinal(tx);
+});
+
+// Out-zoom (A4.5, R-SIMP-1/2): recompone en el mismo OPD los procesos elegidos bajo un proceso intermedio nuevo y lo
+// descompone en un OPD hijo con ellos como subprocesos. No crea, mueve ni borra hechos: el OPD de origen los muestra
+// abstraídos en el proceso nuevo (DR-13) y conserva su orden temporal (R-INV-2/2A).
+export const agrupar: Operacion<{ opd: Id; cosas: readonly Id[]; nombre: string; x?: number; y?: number }> = (m, a) => transaccion(m, tx => {
+    const o = obtenerOpd(tx, a.opd), idx = indice(m), sel = [...new Set(a.cosas)], seleccion = new Set(sel);
+    const nombreDe = (id: Id) => m.cosas[id]!.tipo === 'objeto' ? `**${m.cosas[id]!.nombre}**` : `*${m.cosas[id]!.nombre}*`;
+    if (o.tipo === 'despliegue' || o.tipo === 'descomposicion' && m.cosas[o.cosa]?.tipo !== 'proceso')
+        negar(tx, 'tipo-incompatible', 'R-SIMP-1', 'Sólo se agrupan procesos del SD o subprocesos de la descomposición de un proceso.', [ro(o.id)]);
+    for (const id of sel) {
+        if (!Object.hasOwn(m.cosas, id)) negar(tx, 'no-encontrado', 'producto', 'La cosa ya no existe.', [ref(id)]);
+        if (!Object.hasOwn(o.apariciones, id)) negar(tx, 'no-visible', 'R-EDIT-1', 'Sólo se agrupan cosas que aparecen en este OPD.', [ref(id), ro(o.id)]);
+    }
+    const procesos = sel.filter(id => m.cosas[id]!.tipo === 'proceso'), objetos = sel.filter(id => m.cosas[id]!.tipo === 'objeto');
+    if (!procesos.length) negar(tx, 'forma', 'R-SIMP-1', 'Agrupar requiere al menos un proceso.', [ro(o.id)]);
+    if (o.tipo === 'descomposicion') for (const id of procesos) if (!o.bandas.some(b => b.includes(id)))
+        negar(tx, 'externo-no-refinable', 'A3.3', `${nombreDe(id)} no es subproceso de este OPD: sólo se agrupan subprocesos.`, [ref(id), ro(o.id)]);
+    // Los refinamientos de lo elegido pasan al grupo con su subárbol; fuera de él nada elegido puede verse (A3.3).
+    const hijosDeO = idx.hijosDe.get(o.id) ?? [], trasladados = hijosDeO.filter(id => seleccion.has((m.opds[id] as Exclude<Opd, { tipo: 'raiz' }>).cosa));
+    const dentro = new Set<Id>([o.id]);
+    for (const pendientes = [...trasladados]; pendientes.length;) { const id = pendientes.pop()!; dentro.add(id); pendientes.push(...idx.hijosDe.get(id) ?? []); }
+    for (const id of sel) {
+        const fuera = (idx.aparicionesDe.get(id) ?? []).find(x => !dentro.has(x));
+        if (fuera) negar(tx, 'es-interno', 'A3.3', `${nombreDe(id)} también aparece en ${idx.etiqueta.get(fuera)}: lo agrupado sólo puede verse dentro del grupo.`, [ref(id), ro(fuera)]);
+    }
+    // Orden: bandas contiguas completas o parte de una sola banda, para no cambiar el tiempo del contenedor.
+    let bandas: Id[][], resto: (p: Id) => Id[][] = () => [];
+    if (o.tipo === 'descomposicion') {
+        const tocadas = o.bandas.flatMap((b, k) => b.some(id => seleccion.has(id)) ? [k] : []), i = tocadas[0]!, j = tocadas.at(-1)!;
+        if (i !== j) for (let k = i; k <= j; k++) if (!o.bandas[k]!.every(id => seleccion.has(id)))
+            negar(tx, 'forma', 'R-INV-2', 'Agrupa bandas contiguas completas, o subprocesos de una misma banda: así el grupo conserva el orden temporal.', [ro(o.id), ...o.bandas[k]!.filter(id => !seleccion.has(id)).map(ref)]);
+        bandas = i === j ? [o.bandas[i]!.filter(id => seleccion.has(id))] : o.bandas.slice(i, j + 1).map(b => [...b]);
+        resto = p => i === j ? o.bandas.map((b, k) => k === i ? [...b.filter(id => !seleccion.has(id)), p] : [...b]) : [...o.bandas.slice(0, i).map(b => [...b]), [p], ...o.bandas.slice(j + 1).map(b => [...b])];
+    } else {
+        // En el SD no hay orden declarado: la altura que se ve lo da, con la tolerancia con que v0 deriva bandas (T-030).
+        const caja = (id: Id) => o.apariciones[id]!;
+        bandas = [];
+        for (const id of [...procesos].sort((x, y) => caja(x).y - caja(y).y || caja(x).x - caja(y).x || (x < y ? -1 : 1))) {
+            const ultima = bandas.at(-1);
+            if (ultima && Math.abs(caja(id).y - caja(ultima[0]!).y) <= TOLERANCIA_ALTURA) ultima.push(id); else bandas.push([id]);
+        }
+    }
+    nombre(tx, a.nombre);
+    const p = tx.nuevoId('p'), h = tx.nuevoId('opd'), afiliacion = o.tipo === 'descomposicion' ? m.cosas[o.cosa]!.afiliacion : 'sistemica';
+    tx.poner('cosas', { id: p, tipo: 'proceso', nombre: a.nombre, esencia: 'informacional', afiliacion });
+    if (afiliacion === 'ambiental') tx.traza({ regla: 'R-OBJ-6', mensaje: `*${a.nombre}* heredó la afiliación ambiental del contenedor.`, refs: [ref(p), ref((o as OpdDescomposicion).cosa)] });
+    const cajas = sel.map(id => o.apariciones[id]!), minX = Math.min(...cajas.map(c => c.x)), maxX = Math.max(...cajas.map(c => c.x + c.ancho));
+    const minY = Math.min(...cajas.map(c => c.y)), maxY = Math.max(...cajas.map(c => c.y + c.alto));
+    const enO = { x: Math.round(a.x ?? (minX + maxX) / 2 - 67), y: Math.round(a.y ?? (minY + maxY) / 2 - 30), ancho: 135, alto: 60 };
+    // El hijo trae como externos las cosas del OPD de origen unidas a lo agrupado (R-HIJO-3).
+    const externos = new Set<Id>();
+    for (const e of Object.values(m.enlaces)) {
+        const ex = extremos(e);
+        for (const [x, y] of [[ex.origen, ex.destino], [ex.destino, ex.origen]] as const)
+            if (seleccion.has(x) && !seleccion.has(y) && Object.hasOwn(o.apariciones, y)) externos.add(y);
+    }
+    const apH: OpdDescomposicion['apariciones'] = { [p]: { x: enO.x, y: enO.y, ancho: 420, alto: 188 }, ...Object.fromEntries([...sel, ...externos].map(id => [id, o.apariciones[id]!])) };
+    const ordenH = idx.hijosDe.get(o.id)?.filter(id => !trasladados.includes(id)).length ?? 0;
+    layout(tx, { id: h, tipo: 'descomposicion', padre: o.id, cosa: p, orden: ordenH, bandas, internos: objetos, apariciones: apH });
+    const apO = Object.fromEntries(Object.entries(o.apariciones).filter(([id]) => !seleccion.has(id)));
+    apO[p] = enO;
+    if (o.tipo === 'descomposicion') layout(tx, { ...o, bandas: resto(p), internos: o.internos.filter(id => !seleccion.has(id)), apariciones: apO });
+    else tx.poner('opds', { ...o, apariciones: apO });
+    // Los hermanos que quedan en el origen conservan su orden relativo; los trasladados, el suyo bajo el grupo.
+    hijosDeO.filter(id => !trasladados.includes(id)).forEach((id, orden) => { const x = tx.m.opds[id] as Exclude<Opd, { tipo: 'raiz' }>; if (x.orden !== orden) tx.poner('opds', { ...x, orden }); });
+    trasladados.forEach((id, orden) => tx.poner('opds', { ...(tx.m.opds[id] as Exclude<Opd, { tipo: 'raiz' }>), padre: h, orden }));
+    // T-066: lo agrupado sólo se enlaza con cosas visibles en el grupo.
+    for (const e of Object.values(m.enlaces)) {
+        const ex = extremos(e);
+        for (const [x, y] of [[ex.origen, ex.destino], [ex.destino, ex.origen]] as const)
+            if (seleccion.has(x) && !Object.hasOwn(tx.m.opds[h]!.apariciones, y))
+                negar(tx, 'interno-no-visible', 'T-066', `${nombreDe(x)} se enlaza con ${nombreDe(y)}, que no aparece en este OPD: no puede quedar dentro del grupo.`, [ref(x), ref(y), re(e.id)]);
+    }
+    formaFinal(tx);
+    // R-PREC-1: la vista abstraída de ningún OPD gana una precedencia inválida (AP-30).
+    const invalidas = (x: Modelo) => new Set(Object.keys(x.opds).flatMap(id => proyectar(x, id).conflictos.filter(c => c.codigo === 'precedencia-invalida').map(c => JSON.stringify(c.refs))));
+    const antes = invalidas(m), nueva = [...invalidas(tx.m)].find(c => !antes.has(c));
+    if (nueva) negar(tx, 'contexto', 'R-PREC-1', `Agrupar daría a *${a.nombre}* enlaces que no se pueden recomponer sobre el mismo objeto (AP-30).`, (JSON.parse(nueva) as Ref[]));
 });

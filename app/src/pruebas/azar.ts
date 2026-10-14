@@ -36,6 +36,9 @@ export namespace azar {
                 acciones.push({ op: 'crearCosa', args: { opd: o.id, tipo: 'proceso', nombre, x: 140, y: 80, alcance: 'interno' } }, { op: 'crearCosa', args: { opd: o.id, tipo: 'objeto', nombre, x: 140, y: 80, alcance: 'interno' } });
             }
             if (o.tipo === 'despliegue') acciones.push({ op: 'agregarRefinadores', args: { opd: o.id, nombres: [nombre] } });
+            // Out-zoom (T-325): agrupa los dos primeros procesos del SD o los dos primeros subprocesos.
+            const agrupables = o.tipo === 'raiz' ? procesos : o.tipo === 'descomposicion' ? o.bandas.flat() : [];
+            if (agrupables.length) acciones.push({ op: 'agrupar', args: { opd: o.id, cosas: agrupables.slice(0, 2), nombre: `Agrupar_${m.secuencia}` } });
             if (o.tipo !== 'raiz') acciones.push({ op: 'eliminarRefinamiento', args: { opd: o.id } });
         }
         for (const e of Object.values(m.enlaces)) acciones.push({ op: 'distribuirEnlace', args: { enlace: e.id } }, { op: 'fijarControl', args: { enlace: e.id, control: 'c' } }, { op: 'eliminarEnlaces', args: { enlaces: [e.id] } });
