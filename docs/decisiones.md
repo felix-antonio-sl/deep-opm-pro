@@ -439,7 +439,8 @@ busca sin distinguir tildes; esto no cambia la identidad ni la unicidad nominal 
 El arrastre muestra la figura, sus estados y sus conexiones en una vista transitoria que ensaya
 la misma operación que se confirma al soltar; no guarda posiciones intermedias ni ocupa el
 historial al cancelar. Arrastrar desde Objeto/Proceso en la paleta muestra la forma y solicita
-el nombre al soltar dentro del lienzo; clic y teclado conservan la creación al centro.
+el nombre al soltar dentro del lienzo, respetando ese punto. Activar los botones por clic o
+teclado conserva la creación al centro.
 Los estados se reordenan por arrastre sobre otro estado del mismo objeto, con destinos
 calculados sobre la escena inicial para evitar oscilaciones; fuera del objeto conservan su
 posición y dueño. Backspace sin modificadores equivale a Delete sólo para enlaces seleccionados.

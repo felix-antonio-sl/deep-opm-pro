@@ -48,10 +48,12 @@ test('T-081 mover el contenedor previsualiza sus internos y la posición soltada
 for(const tipo of ['objeto','proceso'] as const)test(`T-252 arrastrar ${tipo} desde paleta sigue al puntero y pide nombre sólo al soltar`,async({page,request})=>{
  const id='e2e-paleta-'+tipo;await sembrar(request,'vacio',id);await abrir(page,id);const antes=await leer(request,id),b=(await lienzo(page).boundingBox())!,boton=(await page.getByRole('button',{name:tipo==='objeto'?'Objeto O':'Proceso P',exact:true}).boundingBox())!;
  const fin={x:b.x+b.width*.55,y:b.y+b.height*.45};await page.mouse.move(boton.x+boton.width/2,boton.y+boton.height/2);await page.mouse.down();await page.mouse.move(fin.x-25,fin.y+20,{steps:4});await page.mouse.move(fin.x,fin.y);
- await expect(lienzo(page).locator('.fantasma-ui')).toHaveCount(1);await expect(page.getByRole('textbox',{name:`Nombre del ${tipo}`,exact:true})).toHaveCount(0);expect(await leer(request,id)).toEqual(antes);
+ await expect(lienzo(page).locator('.fantasma-ui')).toHaveCount(1);const preview=(await lienzo(page).locator('.fantasma-ui').boundingBox())!;await expect(page.getByRole('textbox',{name:`Nombre del ${tipo}`,exact:true})).toHaveCount(0);expect(await leer(request,id)).toEqual(antes);
  await page.mouse.up();const campo=page.getByRole('textbox',{name:`Nombre del ${tipo}`,exact:true});await expect(campo).toBeVisible();expect(await leer(request,id)).toEqual(antes);
  await campo.fill(tipo==='objeto'?'Registro':'Registrar');await campo.press('Enter');await guardado(page);const nombre=tipo==='objeto'?'Registro':'Registrar',c=(await cosa(page,nombre).boundingBox())!;
- expect(c.x).toBeCloseTo(fin.x,0);expect(c.y).toBeCloseTo(fin.y,0);expect(Object.keys(modelo(await leer(request,id)).modelo.entidades)).toHaveLength(1);
+ // Coordenadas persistidas enteras y geometría DOM: tolerancia de 2 px, sin salto respecto al preview.
+ for(const eje of ['x','y'] as const){expect(Math.abs(c[eje]-fin[eje])).toBeLessThanOrEqual(2);expect(Math.abs(c[eje]-preview[eje])).toBeLessThanOrEqual(2);}
+ expect(Object.keys(modelo(await leer(request,id)).modelo.entidades)).toHaveLength(1);
  await tecla(page,'Control+z');await guardado(page);expect((await leer(request,id)).texto).toBe(antes.texto);
 });
 
