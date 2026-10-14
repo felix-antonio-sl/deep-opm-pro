@@ -3,6 +3,7 @@ _local/
 decompiled/
 app/node_modules/
 app/dist/
+app/dist-servidor/
 app/.vite/
 app/bun.lockb
 app/*.tsbuildinfo
