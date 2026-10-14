@@ -1,20 +1,30 @@
 import { createPortal } from 'preact/compat';
 import { useLayoutEffect, useRef, useState } from 'preact/hooks';
 import { indice } from '../nucleo/indice';
-import { tiposLegales } from '../nucleo/matriz';
+import { tiposLegales, MATRIZ } from '../nucleo/matriz';
 import type { DatosEtiquetas, OpcionTipo } from '../nucleo/matriz';
 import type { Modelo, Id } from '../nucleo/tipos';
 import { cuenta } from './cuenta';
 import { reducirGesto } from '../editor/gestos';
 import type { Gesto } from '../editor/gestos';
 import { lineaDeEnlace } from '../opl/generar';
+import { aplicarAccion } from '../nucleo/operaciones';
 import { Dialogo } from './Dialogo';
 export function confirmarDatos(m: Modelo, opd: Id, g: Extract<Gesto,{k:'menuTipo'}>, eleccion: OpcionTipo, etiquetas: DatosEtiquetas, enlace?: Id) {
+    if(enlace){const accion={op:'cambiarTipoEnlace' as const,args:{enlace,tipo:eleccion.tipo,sentido:eleccion.sentido,etiquetas}};return aplicarAccion(m,accion).ok?{gesto:{k:'reposo'} as const,acciones:[accion]}:{gesto:g,acciones:[]};}
     const opciones = tiposLegales(m,{opd,desde:g.desde,hacia:g.hacia,etiquetas});
     const indice = opciones.findIndex(o=>o.tipo===eleccion.tipo&&o.sentido===eleccion.sentido&&o.legal===true);
     if (indice < 0) return {gesto:g,acciones:[]};
-    if (enlace) return {gesto:{k:'reposo'} as const,acciones:[{op:'cambiarTipoEnlace' as const,args:{enlace,tipo:eleccion.tipo,sentido:eleccion.sentido,etiquetas}}]};
     return reducirGesto(m,opd,{...g,opciones},{k:'elegir',indice});
+}
+/** La previsualización de edición ensaya la misma operación que confirma el menú. */
+export function opcionesCambio(m:Modelo,opd:Id,enlace:Id,extremos:Pick<Extract<Gesto,{k:'menuTipo'}>,'desde'|'hacia'>):readonly OpcionTipo[]{
+ return tiposLegales(m,{opd,...extremos}).map((o):OpcionTipo=>{
+  const r=aplicarAccion(m,{op:'cambiarTipoEnlace',args:{enlace,tipo:o.tipo,sentido:o.sentido}});
+  if(r.ok){const {id,...candidato}=r.valor.modelo.enlaces[enlace]!;return {tipo:o.tipo,sentido:o.sentido,legal:true,candidato,avisos:[]};}
+  if(o.legal==='pendiente'&&r.rechazo.codigo==='lexico')return o;
+  return {tipo:o.tipo,sentido:o.sentido,legal:false,motivo:r.rechazo};
+ }).sort((a,b)=>Number(a.legal!==true)-Number(b.legal!==true)||Number(a.legal===false)-Number(b.legal===false)||MATRIZ[a.tipo].menu-MATRIZ[b.tipo].menu);
 }
 export function opcionesPresentadas(opciones: readonly OpcionTipo[]) {
     const disponibles=opciones.map((o,i)=>({o,i})).filter(({o})=>o.legal!==false||o.alternativa);

@@ -80,6 +80,15 @@ test('T-022 UI-10 Nuevo rechaza espacios y normaliza el nombre antes de guardar'
  await page.getByRole('button',{name:'Volver a la Biblioteca'}).click();await page.getByLabel('Acciones de Modelo identificable').click();await page.getByRole('button',{name:'Renombrar',exact:true}).click();await expect(page.getByRole('textbox',{name:'Renombrar modelo',exact:true})).toBeFocused();
 });
 
+test('T-040 UI-11 cambio de instrumento a agente muestra validación real y preserva identidad',async({page,request})=>{
+ const id='e2e-ui11';await sembrar(request,'simple',id);await abrir(page,id);await conectar(page,'Pedido','Procesar',/instrumento · directo/);await guardado(page);
+ const d=await leer(request,id),enlace=Object.keys(modelo(d).modelo.enlaces)[0]!;await seleccionarEnlace(page,enlace);await page.getByRole('button',{name:'Cambiar tipo',exact:true}).click();
+ const item=page.getByRole('menuitem',{name:/agente · directo/});await expect(item).toBeVisible();await expect(item).not.toContainText('Ya existe un rol');await item.click();await guardado(page);
+ expect(modelo(await leer(request,id)).modelo.enlaces[enlace]!.tipo).toBe('agente');await seleccionarEnlace(page,enlace);await page.getByRole('button',{name:'Cambiar tipo',exact:true}).click();await page.getByRole('menuitem',{name:/instrumento · directo/}).click();
+ await seleccionar(page,'Pedido');await page.locator('.zona-propiedades').getByRole('combobox',{name:'Esencia',exact:true}).selectOption('informacional');
+ await seleccionarEnlace(page,enlace);await page.getByRole('button',{name:'Cambiar tipo',exact:true}).click();await page.getByRole('dialog',{name:/^Enlace:/}).locator('details summary').click();await expect(page.getByRole('dialog',{name:/^Enlace:/})).toContainText('R-AG-1');
+});
+
 test('T-025 UI-12 nombre vacío inicial orienta y confirmar muestra el error',async({page,request})=>{
  const id='e2e-ui12';await sembrar(request,'vacio',id);await abrir(page,id);await tecla(page,'o');const input=page.getByRole('textbox',{name:'Nombre del objeto'});
  await expect(lienzo(page)).not.toContainText('no cumple el léxico');await expect(lienzo(page)).toContainText('Ejemplo:');await input.press('Enter');await expect(lienzo(page)).toContainText('no cumple el léxico');

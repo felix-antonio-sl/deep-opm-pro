@@ -34,6 +34,16 @@ test('T-040 pendientes reconsultan tipo y sentido por identidad de elección', a
     expect(confirmarDatos(m,m.raiz,{k:'menuTipo',desde,hacia,opciones},opcion,{etiqueta:'',inversa:'pertenece'}).acciones).toHaveLength(0);
     expect(JSON.stringify(m)).toBe(antes);
 });
+test('T-040 UI-11 opciones de cambio ensayan la sustitución real sin colisión consigo mismas',async()=>{
+ const {opcionesCambio}=await import('./MenuTipoEnlace'),{crearEnlace}=await import('../nucleo/enlaces');
+ for(const esencia of ['fisica','informacional'] as const){const base=modeloCon({objetos:[['Pedido',[]]],procesos:['Preparar']}),id=porNombre(base,'Pedido').id,proceso=porNombre(base,'Preparar').id,c=base.cosas[id]!;
+  const b={...base,cosas:{...base.cosas,[id]:{...c,esencia}}},r=crearEnlace(b,{opd:b.raiz,candidato:{tipo:'instrumento',objeto:id,proceso}});expect(r.ok).toBe(true);if(!r.ok)throw Error(r.rechazo.mensaje);
+  const m=congelar(r.valor.modelo),antes=JSON.stringify(m),enlace=r.valor.creados[0]!,opciones=opcionesCambio(m,m.raiz,enlace,{desde:{cosa:id},hacia:{cosa:proceso}}),agente=opciones.find(o=>o.tipo==='agente'&&o.sentido==='directo')!;
+  expect(agente.legal).toBe(esencia==='fisica');if(agente.legal===false)expect(agente.motivo.regla).toBe('R-AG-1');
+  for(const o of opciones.filter(o=>o.legal!== 'pendiente')){const actual=aplicarAcciones(m,[{op:'cambiarTipoEnlace',args:{enlace,tipo:o.tipo,sentido:o.sentido}}]);expect(actual.ok).toBe(o.legal);}
+  expect(JSON.stringify(m)).toBe(antes);
+ }
+});
 test('T-011 coordenadas cámara invierten pantalla sin mutar modelo', async () => {
     const { puntoModelo }=await import('./Lienzo');
     expect(puntoModelo({x:120,y:80},{x:20,y:30,zoom:2})).toEqual({x:50,y:25});

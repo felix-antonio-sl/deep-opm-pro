@@ -21,7 +21,7 @@ import { SvgPreact } from './SvgPreact';
 import { cuenta } from './cuenta';
 import { CapaUi } from './CapaUi';
 import { NombreEnLinea } from './NombreEnLinea';
-import { MenuTipoEnlace, confirmarDatos } from './MenuTipoEnlace';
+import { MenuTipoEnlace, confirmarDatos, opcionesCambio } from './MenuTipoEnlace';
 import { MenuContextual } from './MenuContextual';
 import { Dialogo } from './Dialogo';
 import type { Accion } from '../nucleo/operaciones';
@@ -101,6 +101,7 @@ export function Lienzo(p: DatosRanura) {
     function evento(ev:EventoLienzo) {
         const s=p.editor.obtener(), g=actual.current;
         if(!s.modelo)return;
+        if(g.k==='menuTipo'&&cambiando&&ev.k==='tecla'&&ev.tecla==='Tab'){const o=g.opciones[g.elegida??0],i=g.opciones.findIndex(x=>x.tipo===o?.tipo&&x.sentido!==o.sentido);if(i>=0)cambiar({...g,elegida:i});return;}
         if(g.k==='encadenando'&&g.modo==='refinadores'&&ev.k==='tecla'&&ev.tecla==='Tab'&&contenedor.tipo==='despliegue'&&contenedor.modo==='exhibicion'){
             fijarTipoRefinador(t=>t==='objeto'?'proceso':'objeto');return;
         }
@@ -146,7 +147,7 @@ export function Lienzo(p: DatosRanura) {
         }
         else if(s.k==='tipo'&&s.opcion==='confirmar-eliminar'){confirmarEliminar(true);p.editor.solicitar(null);}
         else if(s.k==='tipo'&&s.opcion==='coleccion-incompleta'&&p.estado.seleccion.simbolo){const z=e.simbolos.find(z=>z.clave===p.estado.seleccion.simbolo);if(z&&z.relacion!=='clasificacion')p.editor.ejecutar({op:'fijarIncompleta',args:{cosa:z.refinable,relacion:z.relacion,activa:!m.cosas[z.refinable]?.incompleta?.includes(z.relacion)}});p.editor.solicitar(null);}
-        else if(s.k==='tipo'&&p.estado.seleccion.enlaces.length){const id=p.estado.seleccion.enlaces[0]!,ex=extremosSeleccionados(m,id);if(ex){cambiarEnlace(id);cambiar({k:'menuTipo',...ex,opciones:tiposLegales(m,{opd,...ex})});}p.editor.solicitar(null);}
+        else if(s.k==='tipo'&&p.estado.seleccion.enlaces.length){const id=p.estado.seleccion.enlaces[0]!,ex=extremosSeleccionados(m,id);if(ex){cambiarEnlace(id);cambiar({k:'menuTipo',...ex,opciones:opcionesCambio(m,opd,id,ex)});}p.editor.solicitar(null);}
         else if(s.k==='camara'){espacio.current=true;p.editor.solicitar(null);}
     },[p.estado.solicitud]);
     useEffect(()=>{const modal=menu!==null||quitar!==null||despliegue||eliminar||estadoBorrar!==null||ocultos!==null||buscar!==null;if(modal&&p.editor.obtener().modo==='edicion')p.editor.fijarModo('gestion-modal');return()=>{if(modal&&p.editor.obtener().modo==='gestion-modal')p.editor.fijarModo('edicion');};},[menu,quitar,despliegue,eliminar,estadoBorrar,ocultos,buscar]);
