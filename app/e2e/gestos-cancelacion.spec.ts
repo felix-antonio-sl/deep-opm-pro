@@ -32,6 +32,13 @@ test('T-183 el nombre duplicado no se guarda al salir y Escape desde el lienzo c
  await tecla(page,'Escape');await expect(input).toHaveCount(0);await guardado(page);expect(await leer(request,id)).toEqual(antes);
 });
 
+test('T-183 abrir el menú contextual termina primero el renombrado válido sin superponer editores',async({page,request})=>{
+ const id='e2e-gesto-nombre-menu';await sembrar(request,'simple',id);await abrir(page,id);
+ await cosa(page,'Pedido').dblclick();const input=page.getByRole('textbox',{name:'Renombrar cosa',exact:true});await input.fill('Pedido revisado');
+ await cosa(page,'Procesar').click({button:'right'});await expect(input).toHaveCount(0);await expect(page.getByRole('menu',{name:'Acciones de selección'})).toBeVisible();
+ await tecla(page,'Escape');await guardado(page);expect(modelo(await leer(request,id)).modelo.entidades.o!.nombre).toBe('Pedido revisado');
+});
+
 test('T-011 soltar el tirador en vacío elimina la guía sin historial y conserva conectar por clic',async({page,request})=>{
  const id='e2e-gesto-enlace-soltar';await sembrar(request,'simple',id);await abrir(page,id);const antes=await leer(request,id);await seleccionar(page,'Pedido');
  const asa=(await lienzo(page).locator('[data-ui="conectar"][data-ref="cosa:o"]').boundingBox())!,p=await fondo(page);
