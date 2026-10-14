@@ -136,7 +136,12 @@ export function reducirGesto(m: Modelo, opd: Id, g: Gesto, ev: EventoLienzo): {
             return siguiente ? salida({...g,sobre:{cosa:siguiente}}) : salida(g);
         }
         if (ev.k === 'mover') { const sobre = extremo(ev.sobre); const { sobre: viejo, ...resto } = g; return salida({ ...resto, punto: ev.punto, ...(sobre ? { sobre } : {}) }); }
-        if (ev.k === 'arriba' || tecla === 'Enter') { const hacia = ev.k === 'arriba' ? extremo(ev.sobre) ?? g.sobre : g.sobre; if (!hacia) return salida(g); return salida({ k: 'menuTipo', desde: g.desde, hacia, opciones: tiposLegales(m, { opd, desde: g.desde, hacia }), id }); }
+        if (ev.k === 'arriba' || tecla === 'Enter') {
+            // Soltar decide por el punto actual; Enter conserva el destino elegido por teclado.
+            const hacia = ev.k === 'arriba' ? extremo(ev.sobre) : g.sobre;
+            if (!hacia) return salida(ev.k === 'arriba' ? reposo : g);
+            return salida({ k: 'menuTipo', desde: g.desde, hacia, opciones: tiposLegales(m, { opd, desde: g.desde, hacia }), id });
+        }
     }
     if (g.k === 'menuTipo') {
         if (tecla === 'ArrowUp' || tecla === 'ArrowDown') return salida({...g,elegida:Math.max(0,Math.min(g.opciones.length-1,(g.elegida??0)+(tecla==='ArrowDown'?1:-1)))});
@@ -167,7 +172,7 @@ export function reducirGesto(m: Modelo, opd: Id, g: Gesto, ev: EventoLienzo): {
     }
     if (g.k === 'reanclando') {
         if (ev.k === 'mover') return salida({ ...g, punto: ev.punto });
-        if (ev.k === 'arriba') { const hacia = extremo(ev.sobre); return hacia ? salida(reposo, [{ op: 'reanclarExtremo', args: { opd, enlace: g.enlace, extremo: g.extremo, hacia } }]) : salida(g); }
+        if (ev.k === 'arriba') { const hacia = extremo(ev.sobre); return salida(reposo, hacia ? [{ op: 'reanclarExtremo', args: { opd, enlace: g.enlace, extremo: g.extremo, hacia } }] : []); }
     }
     if (g.k === 'banda' && (ev.k === 'arriba' || tecla === 'Enter')) return g.destino ? salida(reposo, [{ op: 'moverEnDescomposicion', args: { opd, cosa: g.proceso, destino: g.destino } }]) : salida(reposo);
     if (g.k === 'encadenando') {
