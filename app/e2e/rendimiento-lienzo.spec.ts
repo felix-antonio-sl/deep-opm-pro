@@ -17,7 +17,7 @@ test('T-011 panear y zoom con 600 cosas conserva la tinta y no reconstruye los p
   (window as unknown as {terminarObservacion:()=>number[]}).terminarObservacion=()=>{obs.forEach(o=>o.disconnect());return cuentas;};
  });
  const transformar=lienzo(page).locator('svg.svg-lienzo > g'),inicio=await transformar.getAttribute('transform');
- await page.mouse.down({button:'middle'});await page.mouse.move(x+110,y+65,{steps:12});await page.mouse.up({button:'middle'});await expect(transformar).not.toHaveAttribute('transform',inicio!);
+ await page.mouse.down({button:'middle'});await expect(transformar).toHaveCSS('will-change','transform');await page.mouse.move(x+110,y+65,{steps:12});await page.mouse.up({button:'middle'});await expect(transformar).toHaveCSS('will-change','auto');await expect(transformar).not.toHaveAttribute('transform',inicio!);
  await page.keyboard.down('Control');await page.mouse.wheel(0,-110);await page.keyboard.up('Control');await expect(lienzo(page).getByRole('status')).not.toHaveText('20%');
  await page.getByRole('button',{name:'Encuadrar',exact:true}).click();await expect(transformar).toHaveAttribute('transform',inicio!);
  expect(await tinta.innerHTML()).toBe(dibujo);expect(await page.evaluate(()=>(window as unknown as {terminarObservacion:()=>number[]}).terminarObservacion())).toEqual([0,0,0]);
