@@ -43,6 +43,22 @@ test('T-243 UI-06 Ir desde diagnóstico móvil muestra el destino',async({page,r
  await page.screenshot({path:info.outputPath('diagnostico-destino.png')});
 });
 
+test('T-178 UI-07 Escape conserva OPL pendiente hasta descartar explícitamente',async({page,request},info)=>{
+ const id='e2e-ui07';await sembrar(request,'simple',id);await abrir(page,id);const antes=await leer(request,id),area=await editarOpl(page),original=await area.inputValue();
+ const borrador=original+'\n**Informe** es informacional.\nlínea no reconocida';await area.fill(borrador);await expect(page.getByRole('button',{name:/^Aplicar \d+ cambio/})).toBeEnabled();await area.press('Escape');
+ await expect(page.getByText('Hay texto OPL pendiente sin aplicar.')).toBeVisible();await page.screenshot({path:info.outputPath('opl-pendiente.png')});
+ await page.getByRole('button',{name:'Continuar editando'}).click();await expect(area).toHaveValue(borrador);await expect(area).toBeFocused();
+ await page.getByRole('button',{name:'Cerrar diálogo',exact:true}).click();await page.keyboard.press('Escape');await expect(area).toHaveValue(borrador);
+ await area.press('Escape');await page.getByRole('button',{name:'Descartar borrador'}).click();await expect(page.getByRole('dialog',{name:'Editar OPL'})).toBeHidden();
+ const reabierta=await editarOpl(page);await expect(reabierta).toHaveValue(original);await reabierta.press('Escape');expect(await leer(request,id)).toEqual(antes);
+});
+test('T-178 observación adicional: OPL móvil abre con el inicio del texto visible',async({page,request},info)=>{
+ await page.setViewportSize({width:390,height:844});const id='e2e-opl-movil-inicio',d=await sembrar(request,'refinado',id),v=modelo(d);v.modelo.entidades.o!.nombre='Documento de entrada de procesamiento de solicitudes';await guardar(request,id,JSON.stringify(v),d.rev);await abrir(page,id);
+ await tecla(page,'Control+e');const area=page.getByRole('textbox',{name:'Texto OPL',exact:true});await expect(area).toBeFocused();
+ await expect.poll(()=>area.evaluate(n=>n.scrollLeft)).toBe(0);expect(await area.evaluate(n=>(n as HTMLTextAreaElement).selectionStart)).toBe(0);
+ const dialog=page.getByRole('dialog',{name:'Editar OPL'});expect(await dialog.evaluate(n=>n.scrollWidth<=n.clientWidth+1)).toBe(true);await page.screenshot({path:info.outputPath('opl-movil-inicio.png')});
+});
+
 for(const movil of [false,true])test(`T-011 UI-08 crear desde barra queda fuera de ella ${movil?'móvil':'escritorio'}`,async({page,request},info)=>{
  if(movil)await page.setViewportSize({width:390,height:844});const id=`e2e-ui08-${movil}`;await sembrar(request,'simple',id);await abrir(page,id);
  const barra=lienzo(page).locator('.paleta-lienzo');await barra.getByRole('button',{name:/^Proceso/}).click();const input=page.getByRole('textbox',{name:'Nombre del proceso',exact:true});
