@@ -248,8 +248,9 @@ canónica (P7), y toda acción se deshace en un paso.
     - Un clic en el arco selecciona el abanico. Propiedades muestra el operador, las ramas, «Control
       de todas las ramas» (solo las combinaciones con plantilla) y «Disolver» (vuelve a AND).
       Con el abanico seleccionado, `X` alterna el operador.
-11. **Descomponer y bandas.**
-    1. Con un proceso seleccionado, `D` (o el menú «Descomponer»). `descomponer` crea **ya** el OPD
+11. **Descomponer (in-zoom) y bandas.**
+    1. Con un proceso seleccionado, `D` (o «Descomponer (in-zoom)» en el menú o en Propiedades). Si
+       no se puede, el menú y Propiedades dicen por qué. `descomponer` crea **ya** el OPD
        hijo, con el contenedor y los externos colocados y **sin subprocesos semilla** (DECISIONS
        18), navega a él y abre el campo de nombre dentro del contenedor, en la banda 1.
     2. Se escribe `Recibir ↵ Validar ⇧↵ Verificar ↵ Despachar ⎋`: ↵ pasa a la banda siguiente
@@ -279,9 +280,10 @@ canónica (P7), y toda acción se deshace en un paso.
     8. Si el primer o el último subproceso cambian después, los enlaces no se mueven (T-076). La
        franja lo recuerda una vez: «Los enlaces siguen donde estaban; arrastra su extremo para
        reasignarlos».
-12. **Desplegar por modo.**
-    1. `U` (o el menú «Desplegar ▸ Agregación · Exhibición · Generalización · Clasificación», con
-       las teclas `1`–`4`).
+12. **Desplegar (unfold) por modo.**
+    1. `U` (o «Desplegar (unfold)» en el menú o en Propiedades; el diálogo ofrece «Agregación: partes ·
+       Exhibición: rasgos · Generalización: especializaciones · Clasificación: instancias», con las
+       teclas `1`–`4`).
     2. Se abre el OPD hijo con la cosa arriba y sus hijos estructurales directos de ese modo.
     3. Un campo de nombre encadenado crea refinadores nuevos (↵ siguiente, ⎋ termina), cada uno con
        su enlace estructural. En exhibición, `Tab` alterna entre atributo (objeto) y operación
@@ -364,7 +366,7 @@ canónica (P7), y toda acción se deshace en un paso.
     - Cada operación, cada «Aplicar» del OPL, cada «Aplicar a los N» y cada descomposición con
       nombres encadenados es un paso.
     - Deshacer **vuelve al OPD donde ocurrió** y restaura la selección. La franja dice «Deshecho:
-      Descomponer *Cocinar*».
+      Descomponer (in-zoom) *Cocinar*».
 24. **Guardado y conflicto** (§8.4).
     - El indicador muestra «Guardado», «Cambios sin guardar», «Guardando…», «Sin conexión: guardado
       en este navegador», «Conflicto», «Sesión vencida», «No se pudo guardar» o «Versión nueva: recarga». `Ctrl+S` guarda
@@ -421,7 +423,7 @@ desplaza; `Ctrl`+rueda o pellizcar hace zoom multiplicativo de 10 %, anclado al 
 | lienzo | `O` · `P` | crear objeto · proceso (en el cursor) |
 | cosa | `F2` · `↵` / doble clic | renombrar · entrar al refinamiento (si no tiene, renombrar) |
 | cosa | `R` · `S` (objeto) | modo enlace · nuevo estado |
-| cosa | `D` (proceso) · `U` · `N` (contenedor o refinable) | descomponer · desplegar · nombres encadenados |
+| cosa | `D` · `U` · `N` (contenedor o refinable) | descomponer (in-zoom) · desplegar (unfold) · nombres encadenados |
 | cosa | `Mayús+F` · `Mayús+A` | física ↔ informacional · sistémica ↔ ambiental |
 | cosa | `Supr` · `Mayús+Supr` | quitar de este OPD · eliminar del modelo |
 | cosa | flechas · `Mayús`+flechas | mover 1 px · 10 px |

@@ -117,7 +117,7 @@ const ETIQUETAS: Readonly<Record<NombreOperacion, string>> = {
     agregarEstado: 'Agregar estado', renombrarEstado: 'Renombrar estado', moverEstado: 'Mover estado', eliminarEstado: 'Eliminar estado', designar: 'Designar estado', suprimirEstado: 'Suprimir estado',
     crearEnlace: 'Crear enlace', cambiarTipoEnlace: 'Cambiar tipo de enlace', fijarEstados: 'Fijar estados del enlace', fijarControl: 'Fijar control', fijarEtiqueta: 'Fijar etiqueta', fijarRuta: 'Fijar ruta', fijarMultiplicidad: 'Fijar multiplicidad', reanclarExtremo: 'Reanclar extremo', distribuirEnlace: 'Distribuir enlace', eliminarEnlaces: 'Eliminar enlaces',
     formarAbanico: 'Formar abanico', fijarOperador: 'Fijar operador', agregarRama: 'Agregar rama', quitarRama: 'Quitar rama', disolverAbanico: 'Disolver abanico', fijarControlAbanico: 'Fijar control del abanico',
-    descomponer: 'Descomponer', agregarEnDescomposicion: 'Agregar subprocesos', moverEnDescomposicion: 'Mover subproceso', fijarBandas: 'Fijar bandas', desplegar: 'Desplegar', agregarRefinadores: 'Agregar refinadores', eliminarRefinamiento: 'Eliminar refinamiento',
+    descomponer: 'Descomponer (in-zoom)', agregarEnDescomposicion: 'Agregar a la descomposición', moverEnDescomposicion: 'Mover en la descomposición', fijarBandas: 'Fijar bandas', desplegar: 'Desplegar (unfold)', agregarRefinadores: 'Agregar refinadores', eliminarRefinamiento: 'Eliminar refinamiento',
 };
 export function etiquetaAccion(m: Modelo, a: Accion): string {
     const args = a.args;

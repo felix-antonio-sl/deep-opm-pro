@@ -8,6 +8,7 @@ import {Dialogo} from './Dialogo';
 import {textoUi,textoPlano} from './TextoUi';
 
 const MODOS=['agregacion','exhibicion','generalizacion','clasificacion'] as const;
+const NOMBRES:Readonly<Record<typeof MODOS[number],string>>={agregacion:'Agregación: partes',exhibicion:'Exhibición: rasgos',generalizacion:'Generalización: especializaciones',clasificacion:'Clasificación: instancias'};
 export function DialogoDespliegue(p:DatosRanura&{cosa:string;cerrar:()=>void}) {
  const m=p.estado.modelo!,idx=indice(m),existente=idx.refinamientosDe.get(p.cosa)?.despliegue,nombre=m.cosas[p.cosa]?.nombre??'El elemento';
  const [error,fallar]=useState('');
@@ -29,11 +30,11 @@ export function DialogoDespliegue(p:DatosRanura&{cosa:string;cerrar:()=>void}) {
   if(!r.ok){p.editor.fijarModo('gestion-modal');fallar(r.rechazo.mensaje);return;}
   abrir(r.valor.creados.find(id=>r.valor.modelo.opds[id])!,true);
  }
- return createPortal(<Dialogo titulo="Desplegar por modo" cerrar={p.cerrar}>
+ return createPortal(<Dialogo titulo="Desplegar (unfold) por modo" cerrar={p.cerrar}>
   {existente?<><p><strong>{nombre}</strong> ya tiene un despliegue en <strong>{idx.etiqueta.get(existente)}</strong>.</p><button onClick={()=>abrir(existente)}>Ir al despliegue</button></>:<>
    {origen!==p.estado.opd&&<p>El despliegue de <strong>{nombre}</strong> se creará desde <strong>{idx.etiqueta.get(origen)}</strong>.</p>}
    {rechazo&&!rechazo.ok&&<p role="alert">{textoUi(rechazo.rechazo.mensaje)}</p>}
-   {opciones.map((o,i)=><button key={o.modo} disabled={!o.previa.ok} title={o.previa.ok?'':textoPlano(o.previa.rechazo.mensaje)} onClick={()=>elegir(o.accion)}>{i+1} {o.modo}</button>)}
+   {opciones.map((o,i)=><button key={o.modo} disabled={!o.previa.ok} title={o.previa.ok?'':textoPlano(o.previa.rechazo.mensaje)} onClick={()=>elegir(o.accion)}>{i+1} {NOMBRES[o.modo]}</button>)}
   </>}
   {error&&<p role="alert">{textoUi(error)}</p>}
  </Dialogo>,document.body);
