@@ -6,6 +6,12 @@ import {planificar} from '../opl/planificar';
 import {exportarV0} from '../codec/exportar';
 import {crearEditor} from '../editor/estado';
 import {dependencias,configuracion,ciclos} from '../editor/pruebas.test';
+test('T-243 UI-05 referencia de OPD prima sobre la primera aparición y filtra selección incompatible',async()=>{
+ const {irRefs}=await import('./ArbolOpd'),d=dependencias(),ed=crearEditor(configuracion(d));const b=d.m,p=porNombre(b,'Preparar'),h=must(descomponer(b,{opd:b.raiz,proceso:p.id,bandas:[['Recibir']]}));d.documento(exportarV0(h.modelo));await ed.abrir(b.id);
+ const hijo=h.creados[0]!,interno=Object.values(h.modelo.cosas).find(c=>c.nombre==='Recibir')!,antes=ed.obtener().modelo!;
+ irRefs(ed,[{tipo:'cosa',id:p.id},{tipo:'cosa',id:interno.id},{tipo:'opd',id:hijo}]);expect(ed.obtener().opd).toBe(hijo);expect(ed.obtener().seleccion.cosas).toEqual([p.id,interno.id]);
+ irRefs(ed,[{tipo:'cosa',id:p.id},{tipo:'cosa',id:interno.id}],b.raiz);expect(ed.obtener().opd).toBe(b.raiz);expect(ed.obtener().seleccion.cosas).toEqual([p.id]);expect(ed.obtener().modelo).toBe(antes);expect(ed.obtener().pasado).toEqual([]);ed.cerrar();await ciclos();
+});
 
 test('T-031 árbol conserva preorden e IDs y navega sólo al destino instalado',async()=>{
  const {filasArbol}=await import('./ArbolOpd');

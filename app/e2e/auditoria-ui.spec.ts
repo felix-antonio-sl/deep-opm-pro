@@ -25,6 +25,24 @@ test('T-011 UI-04 selección y temblor del puntero conservan bytes revisión e h
  await expect(page.getByRole('button',{name:'Deshacer',exact:true}).first()).toBeDisabled();await guardado(page);expect(await leer(request,id)).toEqual(antes);
 });
 
+for(const movil of [false,true])test(`T-243 UI-05 aviso de solape conserva su OPD ${movil?'móvil':'escritorio'}`,async({page,request},info)=>{
+ if(movil)await page.setViewportSize({width:390,height:844});const id=`e2e-ui05-${movil}`;const d=await sembrar(request,'refinado',id),v=modelo(d),h=v.modelo.opds.h!;
+ h.apariencias['a-h-o']!.x=370;h.apariencias['a-h-o']!.y=70;await guardar(request,id,JSON.stringify(v),d.rev);await abrir(page,id);await navegar(page,/SD1 Procesar/);
+ if(movil)await page.getByLabel('Más acciones').click();await page.getByRole('button',{name:/^Exportar/}).last().click();const dialog=page.getByRole('dialog',{name:'Exportar',exact:true});
+ await dialog.locator('p').filter({hasText:'Dos cosas se solapan.'}).getByRole('button',{name:'Ver',exact:true}).first().click();
+ await expect(page.getByRole('navigation',{name:'Ruta de OPD'})).toContainText('SD1');await expect(lienzo(page)).toBeVisible();await expect(cosa(page,'Preparar')).toBeVisible();
+ if(movil)await expect(page.getByRole('navigation',{name:'Zonas del editor'}).getByRole('button',{name:'Lienzo',exact:true})).toHaveAttribute('aria-pressed','true');
+ await page.screenshot({path:info.outputPath('solape-destino.png')});
+});
+
+test('T-243 UI-06 Ir desde diagnóstico móvil muestra el destino',async({page,request},info)=>{
+ await page.setViewportSize({width:390,height:844});const id='e2e-ui06';await sembrar(request,'refinado',id);await abrir(page,id);
+ await page.getByRole('navigation',{name:'Zonas del editor'}).getByRole('button',{name:/^Diagnóstico/}).click();
+ const articulo=page.locator('.panel-diagnostico article').filter({hasText:'Preparar'}).first();await articulo.getByRole('button',{name:'Ir',exact:true}).click();
+ await expect(lienzo(page)).toBeVisible();await expect(cosa(page,'Preparar')).toBeVisible();await expect(page.getByRole('navigation',{name:'Ruta de OPD'})).toContainText('SD1');
+ await page.screenshot({path:info.outputPath('diagnostico-destino.png')});
+});
+
 for(const movil of [false,true])test(`T-011 UI-08 crear desde barra queda fuera de ella ${movil?'móvil':'escritorio'}`,async({page,request},info)=>{
  if(movil)await page.setViewportSize({width:390,height:844});const id=`e2e-ui08-${movil}`;await sembrar(request,'simple',id);await abrir(page,id);
  const barra=lienzo(page).locator('.paleta-lienzo');await barra.getByRole('button',{name:/^Proceso/}).click();const input=page.getByRole('textbox',{name:'Nombre del proceso',exact:true});

@@ -27,8 +27,9 @@ export function navegarConSeleccion(editor:Controlador,opd:string){
 }
 export function irRefs(editor:Controlador,refs:readonly Ref[],opd?:string) {
  const s=editor.obtener(),m=s.modelo;if(!m)return;
- const destino=opd&&m.opds[opd]?opd:opdsEnPreorden(m).find(id=>refs.some(r=>contieneRef(m,id,r)));
- if(destino)editor.navegar(destino,{seleccionar:refs});
+ const explicito=opd??refs.find(r=>r.tipo==='opd')?.id;
+ const destino=explicito&&m.opds[explicito]?explicito:opdsEnPreorden(m).find(id=>refs.some(r=>contieneRef(m,id,r)));
+ if(destino)editor.navegar(destino,{seleccionar:refs.filter(r=>contieneRef(m,destino,r))});
 }
 export function perdidasAccion(m:Modelo,a:Accion){const r=aplicarAccion(m,a);if(!r.ok)return {r,perdidas:[] as string[],conservados:[] as string[]};const n=r.valor.modelo,p:string[]=[],c:string[]=[];for(const [id,x]of Object.entries(m.cosas)){if(!n.cosas[id])p.push(`${x.nombre} (${id})`);if(x.tipo==='objeto')for(const s of x.estados)if(!indice(n).estadoDe.has(s.id))p.push(`${x.nombre}: ${s.nombre} (${s.id})`);}for(const [id,e]of Object.entries(m.enlaces))if(!n.enlaces[id])p.push(describirEnlace(m,e)+` (${id})`);for(const id of Object.keys(m.abanicos))if(!n.abanicos[id])p.push(`Abanico ${id}`);for(const [id,o]of Object.entries(m.opds)){if(!n.opds[id])p.push(`OPD ${id}`);for(const cosa of Object.keys(o.apariciones))if(!n.opds[id]?.apariciones[cosa]&&a.op!=='quitarDeOpd')p.push(`Aparición de ${m.cosas[cosa]?.nombre??cosa} en ${id}`);}if(a.op==='quitarDeOpd')for(const id of a.args.cosas)p.push(`Aparición de ${m.cosas[id]?.nombre??id} en ${a.args.opd}`);if(a.op==='eliminarRefinamiento'){const o=m.opds[a.args.opd];if(o&&o.tipo!=='raiz'&&n.cosas[o.cosa])c.push(m.cosas[o.cosa]!.nombre+' conserva su identidad');for(const id of Object.keys(n.enlaces))if(m.enlaces[id])c.push(describirEnlace(n,n.enlaces[id]!));}return {r,perdidas:p,conservados:c};}
 export function ArbolOpd(p:DatosRanura & {elegido?:()=>void}) {

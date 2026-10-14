@@ -11,7 +11,7 @@ import { Dialogo, LimitePanel } from './Dialogo';
 import { MenuExportar } from './MenuExportar';
 import { ArbolOpd, navegarConSeleccion } from './ArbolOpd';
 import { cuenta } from './cuenta';
-export interface DatosRanura { readonly editor: Controlador; readonly estado: EstadoEditor }
+export interface DatosRanura { readonly editor: Controlador; readonly estado: EstadoEditor; readonly mostrarDestino?: () => void }
 export interface RanurasEditor { readonly lienzo?: ComponentType<DatosRanura>; readonly arbol?: ComponentType<DatosRanura>; readonly propiedades?: ComponentType<DatosRanura>; readonly opl?: ComponentType<DatosRanura>; readonly diagnostico?: ComponentType<DatosRanura>; readonly solicitud?: ComponentType<DatosRanura> }
 const GUARDADO = { guardado: 'Guardado', pendiente: 'Cambios sin guardar', guardando: 'Guardando…', 'sin-conexion': 'Sin conexión', conflicto: 'Conflicto', 'sesion-vencida': 'Sesión vencida', error: 'No se pudo guardar', eliminado: 'Eliminado en otra sesión', 'version-nueva': 'Versión nueva: recarga' };
 const titulos = { lienzo: 'Lienzo', arbol: 'OPDs', propiedades: 'Propiedades', opl: 'OPL', diagnostico: 'Diagnóstico' };
@@ -37,7 +37,7 @@ export function Editor(p: { editor: Controlador; estado: EstadoEditor; salir: ()
         window.addEventListener('keydown', tecla); return () => window.removeEventListener('keydown', tecla);
     }, [p.editor]);
     useEffect(() => { const f = (e: BeforeUnloadEvent) => { if (p.estado.guardado !== 'guardado' && p.estado.guardado !== 'version-nueva') { e.preventDefault(); e.returnValue = ''; } }; window.addEventListener('beforeunload', f); return () => window.removeEventListener('beforeunload', f); }, [p.estado.guardado]);
-    function ranura(k: keyof typeof titulos) { const R = p.ranuras?.[k]; return R ? <LimitePanel key={`${k}-${p.estado.opd}`} nombre={titulos[k]} opd={p.estado.opd}><R editor={p.editor} estado={p.estado} /></LimitePanel> : <div class="ranura-pendiente"><h2>{titulos[k]}</h2>{k === 'lienzo' && !Object.keys(m.cosas).length && <p>El modelo está vacío.</p>}</div>; }
+    function ranura(k: keyof typeof titulos) { const R = p.ranuras?.[k]; return R ? <LimitePanel key={`${k}-${p.estado.opd}`} nombre={titulos[k]} opd={p.estado.opd}><R editor={p.editor} estado={p.estado} mostrarDestino={()=>cambiar('lienzo')} /></LimitePanel> : <div class="ranura-pendiente"><h2>{titulos[k]}</h2>{k === 'lienzo' && !Object.keys(m.cosas).length && <p>El modelo está vacío.</p>}</div>; }
     const ruta: string[] = []; let actual = p.estado.opd;
     while (m.opds[actual]) { ruta.unshift(actual); const o = m.opds[actual]!; if (o.tipo === 'raiz') break; actual = o.padre; }
     const nombreOpd = (id: string) => { const o = m.opds[id]!; return o.tipo === 'raiz' ? m.nombre : m.cosas[o.cosa]?.nombre ?? ''; };
@@ -64,6 +64,6 @@ export function Editor(p: { editor: Controlador; estado: EstadoEditor; salir: ()
         <nav class="navegacion-estrecha" aria-label="Zonas del editor">{Object.entries(titulos).map(([id, texto]) => <button aria-pressed={zona === id} onClick={() => { cambiar(id as keyof typeof titulos); p.editor.fijarPaneles({ arbol: true, derecha: true }); }}>{texto}{id === 'diagnostico' ? ` ${ds.length}` : ''}</button>)}</nav>
         {renombre && <Dialogo titulo="Renombrar modelo" cerrar={() => renombrar(false)}><form onSubmit={e => { e.preventDefault(); const r = p.editor.ejecutarVarias([{ op: 'renombrarModelo', args: { nombre } }], 'Modelo renombrado'); if (r.ok) renombrar(false); }}><label>Nombre del modelo<input autoFocus required value={nombre} onInput={e => nombrar(e.currentTarget.value)} /></label><button>Guardar nombre</button></form></Dialogo>}
         {rutaAbierta&&<Dialogo titulo="Diagramas del modelo" cerrar={()=>abrirRuta(false)}><ArbolOpd editor={p.editor} estado={p.estado} elegido={()=>abrirRuta(false)}/></Dialogo>}
-        {menu&&<MenuExportar editor={p.editor} estado={p.estado} cerrar={()=>exportacion(false)}/>}
+        {menu&&<MenuExportar editor={p.editor} estado={p.estado} mostrarDestino={()=>cambiar('lienzo')} cerrar={()=>exportacion(false)}/>}
     </div>;
 }
