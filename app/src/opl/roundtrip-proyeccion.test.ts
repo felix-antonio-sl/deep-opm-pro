@@ -19,11 +19,11 @@ interface Montaje { m: Modelo; opd: Id; id: (nombre: string) => Id; }
 // Un nivel: Procesar → Inspeccionar, Aceptar. Dos niveles: además Inspeccionar → Revisar, Firmar.
 function montaje(niveles: 1 | 2 = 1): Montaje {
     const b = modeloCon({ objetos: [['Pedido', ['nuevo', 'listo']], ['Informe', []]], procesos: ['Procesar'] });
-    const d = must(descomponer(b, { opd: b.raiz, proceso: porNombre(b, 'Procesar').id, bandas: [['Inspeccionar'], ['Aceptar']] }));
+    const d = must(descomponer(b, { opd: b.raiz, cosa: porNombre(b, 'Procesar').id, bandas: [['Inspeccionar'], ['Aceptar']] }));
     let m = d.modelo;
     const opds = [d.creados[0]!];
     if (niveles === 2) {
-        const n = must(descomponer(m, { opd: opds[0]!, proceso: porNombre(m, 'Inspeccionar').id, bandas: [['Revisar'], ['Firmar']] }));
+        const n = must(descomponer(m, { opd: opds[0]!, cosa: porNombre(m, 'Inspeccionar').id, bandas: [['Revisar'], ['Firmar']] }));
         m = n.modelo; opds.push(n.creados[0]!);
     }
     for (const opd of opds) for (const nombre of ['Pedido', 'Informe'])

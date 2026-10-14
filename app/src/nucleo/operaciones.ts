@@ -5,7 +5,7 @@ import { crearCosa, renombrarCosa, cambiarTipoCosa, fijarEsencia, fijarAfiliacio
 import { agregarEstado, renombrarEstado, moverEstado, eliminarEstado, designar, suprimirEstado } from './estados';
 import { crearEnlace, cambiarTipoEnlace, fijarEstados, fijarControl, fijarEtiqueta, fijarRuta, fijarMultiplicidad, reanclarExtremo, distribuirEnlace, eliminarEnlaces } from './enlaces';
 import { formarAbanico, fijarOperador, agregarRama, quitarRama, disolverAbanico, fijarControlAbanico } from './abanicos';
-import { descomponer, agregarSubprocesos, moverSubproceso, fijarBandas, desplegar, agregarRefinadores, eliminarRefinamiento } from './refinamiento';
+import { descomponer, agregarEnDescomposicion, moverEnDescomposicion, fijarBandas, desplegar, agregarRefinadores, eliminarRefinamiento } from './refinamiento';
 export interface ExtremoRef {
     readonly cosa: Id;
     readonly estado?: Id;
@@ -31,7 +31,7 @@ export const OPERACIONES = { renombrarModelo, fijarUnidadTiempo, fijarDescripcio
     traerCosa, moverApariciones, redimensionar, quitarDeOpd, eliminarCosas, agregarEstado, renombrarEstado, moverEstado,
     eliminarEstado, designar, suprimirEstado, crearEnlace, cambiarTipoEnlace, fijarEstados, fijarControl, fijarEtiqueta,
     fijarRuta, fijarMultiplicidad, reanclarExtremo, distribuirEnlace, eliminarEnlaces, formarAbanico, fijarOperador,
-    agregarRama, quitarRama, disolverAbanico, fijarControlAbanico, descomponer, agregarSubprocesos, moverSubproceso,
+    agregarRama, quitarRama, disolverAbanico, fijarControlAbanico, descomponer, agregarEnDescomposicion, moverEnDescomposicion,
     fijarBandas, desplegar, agregarRefinadores, eliminarRefinamiento } as const;
 export type NombreOperacion = keyof typeof OPERACIONES;
 export type ArgsDe<K extends NombreOperacion> = Parameters<(typeof OPERACIONES)[K]>[1];
@@ -90,8 +90,8 @@ export function aplicarAccion(m: Modelo, a: Accion): Respuesta<Hecho> {
         case 'disolverAbanico': return OPERACIONES.disolverAbanico(m, a.args);
         case 'fijarControlAbanico': return OPERACIONES.fijarControlAbanico(m, a.args);
         case 'descomponer': return OPERACIONES.descomponer(m, a.args);
-        case 'agregarSubprocesos': return OPERACIONES.agregarSubprocesos(m, a.args);
-        case 'moverSubproceso': return OPERACIONES.moverSubproceso(m, a.args);
+        case 'agregarEnDescomposicion': return OPERACIONES.agregarEnDescomposicion(m, a.args);
+        case 'moverEnDescomposicion': return OPERACIONES.moverEnDescomposicion(m, a.args);
         case 'fijarBandas': return OPERACIONES.fijarBandas(m, a.args);
         case 'desplegar': return OPERACIONES.desplegar(m, a.args);
         case 'agregarRefinadores': return OPERACIONES.agregarRefinadores(m, a.args);
@@ -117,7 +117,7 @@ const ETIQUETAS: Readonly<Record<NombreOperacion, string>> = {
     agregarEstado: 'Agregar estado', renombrarEstado: 'Renombrar estado', moverEstado: 'Mover estado', eliminarEstado: 'Eliminar estado', designar: 'Designar estado', suprimirEstado: 'Suprimir estado',
     crearEnlace: 'Crear enlace', cambiarTipoEnlace: 'Cambiar tipo de enlace', fijarEstados: 'Fijar estados del enlace', fijarControl: 'Fijar control', fijarEtiqueta: 'Fijar etiqueta', fijarRuta: 'Fijar ruta', fijarMultiplicidad: 'Fijar multiplicidad', reanclarExtremo: 'Reanclar extremo', distribuirEnlace: 'Distribuir enlace', eliminarEnlaces: 'Eliminar enlaces',
     formarAbanico: 'Formar abanico', fijarOperador: 'Fijar operador', agregarRama: 'Agregar rama', quitarRama: 'Quitar rama', disolverAbanico: 'Disolver abanico', fijarControlAbanico: 'Fijar control del abanico',
-    descomponer: 'Descomponer', agregarSubprocesos: 'Agregar subprocesos', moverSubproceso: 'Mover subproceso', fijarBandas: 'Fijar bandas', desplegar: 'Desplegar', agregarRefinadores: 'Agregar refinadores', eliminarRefinamiento: 'Eliminar refinamiento',
+    descomponer: 'Descomponer', agregarEnDescomposicion: 'Agregar subprocesos', moverEnDescomposicion: 'Mover subproceso', fijarBandas: 'Fijar bandas', desplegar: 'Desplegar', agregarRefinadores: 'Agregar refinadores', eliminarRefinamiento: 'Eliminar refinamiento',
 };
 export function etiquetaAccion(m: Modelo, a: Accion): string {
     const args = a.args;

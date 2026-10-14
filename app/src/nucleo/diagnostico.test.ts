@@ -10,13 +10,13 @@ const ap = { x: 0, y: 0, ancho: 140, alto: 70 };
 function objeto(id: string, nombre = 'Pedido'): Cosa { return { id, tipo: 'objeto', nombre, esencia: 'fisica', afiliacion: 'sistemica', estados: [{ id: `${id}-s1`, nombre: 'pendiente' }, { id: `${id}-s2`, nombre: 'pagado' }] }; }
 function proceso(id: string, nombre = 'Procesar Pedido'): Cosa { return { id, tipo: 'proceso', nombre, esencia: 'informacional', afiliacion: 'sistemica' }; }
 function modelo(cosas: Cosa[] = [objeto('o'), proceso('p')], enlaces: Enlace[] = [], hijos: Opd[] = []): Modelo {
-    const internos = new Set(hijos.flatMap(o => o.tipo === 'descomposicion' ? [...o.bandas.flat(), ...o.objetosInternos] : []));
+    const internos = new Set(hijos.flatMap(o => o.tipo === 'descomposicion' ? [...o.bandas.flat(), ...o.internos] : []));
     return congelar({ id: 'm-diagnostico', nombre: 'Diagnóstico sintético', unidadTiempo: 'min', raiz: 'sd', secuencia: 100,
         cosas: Object.fromEntries(cosas.map(c => [c.id, c])), enlaces: Object.fromEntries(enlaces.map(e => [e.id, e])), abanicos: {},
         opds: Object.fromEntries([{ id: 'sd', tipo: 'raiz', apariciones: Object.fromEntries(cosas.filter(c => !internos.has(c.id)).map(c => [c.id, ap])) } as Opd, ...hijos].map(o => [o.id, o])) });
 }
 // R-INV-2/2A (B-45): cada banda a su altura, por debajo de la anterior.
-function hijo(bandas: string[][] = [['p1'], ['p2']]): Opd { return { id: 'h', tipo: 'descomposicion', padre: 'sd', cosa: 'p', orden: 0, bandas, objetosInternos: [], apariciones: Object.fromEntries([...['p', 'o'].map(id => [id, ap]), ...bandas.flatMap((b, k) => b.map(id => [id, { ...ap, y: 100 * (k + 1) }]))]) }; }
+function hijo(bandas: string[][] = [['p1'], ['p2']]): Opd { return { id: 'h', tipo: 'descomposicion', padre: 'sd', cosa: 'p', orden: 0, bandas, internos: [], apariciones: Object.fromEntries([...['p', 'o'].map(id => [id, ap]), ...bandas.flatMap((b, k) => b.map(id => [id, { ...ap, y: 100 * (k + 1) }]))]) }; }
 function refinado(enlaces: Enlace[] = [], bandas = [['p1'], ['p2']]): Modelo { return modelo([objeto('o'), proceso('p'), proceso('p1', 'Preparar Pedido'), proceso('p2', 'Entregar Pedido')], enlaces, [hijo(bandas)]); }
 function cambiar(m: Modelo, datos: Partial<Modelo>): Modelo { return congelar({ ...m, ...datos }); }
 function cosa(m: Modelo, id: string, datos: Partial<Cosa>): Modelo { return cambiar(m, { cosas: { ...m.cosas, [id]: { ...m.cosas[id]!, ...datos } as Cosa } }); }
@@ -144,7 +144,7 @@ test('T-263 transformación heredada transitiva y por segundo general; habilitad
 });
 test('T-263 transformación en nieto satisface proceso ancestro sin copiar enlaces', () => {
     const h = hijo([['p1']]);
-    const n: Opd = { id: 'n', tipo: 'descomposicion', padre: 'h', cosa: 'p1', orden: 0, bandas: [['p2']], objetosInternos: [], apariciones: { p1: ap, p2: ap, o: ap } };
+    const n: Opd = { id: 'n', tipo: 'descomposicion', padre: 'h', cosa: 'p1', orden: 0, bandas: [['p2']], internos: [], apariciones: { p1: ap, p2: ap, o: ap } };
     const m = modelo([objeto('o'), proceso('p'), proceso('p1', 'Preparar Pedido'), proceso('p2', 'Entregar Pedido')], [c('e', 'p2')], [h, n]);
     const texto = JSON.stringify(m);
     expect(validarForma(m)).toEqual([]);
@@ -155,7 +155,7 @@ test('T-263 transformación en nieto satisface proceso ancestro sin copiar enlac
 test('T-260 AP-27 conserva warning omisible y error obligatorio con matriz real', () => {
     const evento: Enlace = { id: 'evento', tipo: 'instrumento', objeto: 'o', proceso: 'p2', control: 'e' };
     const externo = refinado([evento]), h = externo.opds.h!; if (h.tipo !== 'descomposicion') throw Error('Fixture sin descomposición.');
-    const omisible = cambiar(externo, { opds: { ...externo.opds, sd: { ...externo.opds.sd!, apariciones: { p: ap } }, h: { ...h, objetosInternos: ['o'] } } });
+    const omisible = cambiar(externo, { opds: { ...externo.opds, sd: { ...externo.opds.sd!, apariciones: { p: ap } }, h: { ...h, internos: ['o'] } } });
     expect(validarForma(omisible)).toEqual([]);
     expect(diagnosticar(omisible).filter(d => d.regla === 'AP-27')).toEqual([expect.objectContaining({ codigo: 'enlace-invalido', severidad: 'warning', refs: [{ tipo: 'enlace', id: 'evento' }] })]);
     expect(gatesExportacion(omisible, 'modelo')).toEqual([]);

@@ -213,7 +213,7 @@ export interface OpdDescomposicion extends OpdBase {
     readonly cosa: Id; // cosa: un proceso (descomposición de objeto diferida, DR-23)
     readonly orden: number; // orden entre hermanos (etiqueta SDx.y, DR-4)
     readonly bandas: readonly (readonly Id[])[]; // subprocesos; banda = paralelo; fuente de verdad del tiempo (T-030)
-    readonly objetosInternos: readonly Id[]; // alcance persistido (T-033)
+    readonly internos: readonly Id[]; // objetos internos; alcance persistido (T-033)
 }
 export interface OpdDespliegue extends OpdBase {
     readonly tipo: 'despliegue';

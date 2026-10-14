@@ -354,7 +354,7 @@ function ensayar(m: Modelo, alcance: Id | 'modelo', texto: string, basePrivadaVa
             let d = Object.values(actual.opds).find(o => o.tipo !== 'raiz' && o.cosa === c && (h.k === 'descomposicion' ? o.tipo === 'descomposicion' : o.tipo === 'despliegue'));
             if (!d && h.k === 'descomposicion') {
                 for (const n of h.bandas.flat()) if (buscar({ nombre: n, tipo: 'proceso' })) throw new Fallo('ambiguous-symbol', `${n} no es subproceso de ${h.proceso}.`, 'R-IMPORT-7');
-                const ids = agregar(t, { op: 'descomponer', args: { opd: padre, proceso: c, bandas: h.bandas } }, 'crear-refinamiento', 1, c);
+                const ids = agregar(t, { op: 'descomponer', args: { opd: padre, cosa: c, bandas: h.bandas } }, 'crear-refinamiento', 1, c);
                 d = actual.opds[ids.find(id => actual.opds[id])!]!;
             } else if (!d && h.k === 'despliegue') {
                 const tipos = new Set(activos.flatMap(x => x.hechos).filter((x): x is Extract<HechoTexto, { k: 'enlace' }> => x.k === 'enlace').map(x => x.enlace).filter(e => 'refinable' in e && !esRF5(e) && claveNombre(e.refinable.nombre) === claveNombre(n.nombre) && h.refinadores.some(r => claveNombre(r.nombre) === claveNombre(e.refinador.nombre))).map(e => e.tipo));
@@ -385,7 +385,7 @@ function ensayar(m: Modelo, alcance: Id | 'modelo', texto: string, basePrivadaVa
                 const originales = new Set(d.bandas.flat());
                 for (const b of h.bandas) for (const n of b) { const p = buscar({ nombre: n, tipo: 'proceso' }); if (p && !originales.has(p.id)) throw new Fallo('ambiguous-symbol', `${n} no pertenece a ${h.proceso}.`); }
                 const nuevos = h.bandas.flat().filter(n => !buscar({ nombre: n, tipo: 'proceso' }));
-                if (nuevos.length) agregar(t, { op: 'agregarSubprocesos', args: { opd: d.id, bandas: nuevos.map(n => [n]), posicion: 'final' } }, 'crear-refinamiento', 1, c);
+                if (nuevos.length) agregar(t, { op: 'agregarEnDescomposicion', args: { opd: d.id, bandas: nuevos.map(n => [n]), posicion: 'final' } }, 'crear-refinamiento', 1, c);
                 const bands = h.bandas.map(b => b.map(n => buscar({ nombre: n, tipo: 'proceso' })!.id));
                 if (bands.flat().length !== (actual.opds[d.id] as Extract<Opd, {tipo:'descomposicion'}>).bandas.flat().length) throw new Fallo('unsupported-canonical', 'La ausencia de subprocesos no los elimina.', 'R-§19-LENS-1');
                 const particionCanonica = (bs: readonly (readonly string[])[]) => estable(bs.map(b => [...b].sort()));

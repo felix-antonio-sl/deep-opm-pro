@@ -14,7 +14,7 @@ import { validarForma } from '../nucleo/forma';
 import { erroresContexto } from '../nucleo/matriz';
 test('T-282 Markdown genuino contiene todos los bloques en preorden y contexto de padres',()=>{
  const b=modeloCon({objetos:[['Pedido',[]]],procesos:['Procesar','Preparar','Finalizar']});
- const m:Modelo={...b,opds:{...b.opds,'opd-1':{...b.opds['opd-1']!,apariciones:{'o-2':b.opds['opd-1']!.apariciones['o-2']!,'p-3':b.opds['opd-1']!.apariciones['p-3']!}},h:{id:'h',tipo:'descomposicion',padre:'opd-1',cosa:'p-3',orden:0,bandas:[['p-4'],['p-5']],objetosInternos:[],apariciones:{'p-3':{x:0,y:0,ancho:400,alto:300},'p-4':{x:30,y:65,ancho:135,alto:60},'p-5':{x:30,y:160,ancho:135,alto:60}}}}};
+ const m:Modelo={...b,opds:{...b.opds,'opd-1':{...b.opds['opd-1']!,apariciones:{'o-2':b.opds['opd-1']!.apariciones['o-2']!,'p-3':b.opds['opd-1']!.apariciones['p-3']!}},h:{id:'h',tipo:'descomposicion',padre:'opd-1',cosa:'p-3',orden:0,bandas:[['p-4'],['p-5']],internos:[],apariciones:{'p-3':{x:0,y:0,ancho:400,alto:300},'p-4':{x:30,y:65,ancho:135,alto:60},'p-5':{x:30,y:160,ancho:135,alto:60}}}}};
  expect(validarForma(m)).toEqual([]);expect(erroresContexto(m)).toEqual([]);const antes=JSON.stringify(m),doc=generarDocumentoOpl(m),bloques=generarModelo(m);
  expect([...new Set(bloques.map(b=>b.opd))]).toEqual(['opd-1','h']);expect(doc).toBe(`# ${m.nombre}\n\n${textoCanonico(bloques)}`);
  expect(doc.indexOf('## SD\n')).toBeLessThan(doc.indexOf('## SD1'));

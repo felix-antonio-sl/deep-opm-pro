@@ -202,7 +202,7 @@ for (const genero of [undefined, 'f'] as const)
 
 test('T-132 T-194 B-41 una lista del hijo no absorbe hechos de otro párrafo ni borra CX', () => {
     let m = modeloCon({ procesos: ['Gestionar'] }); const p = porNombre(m, 'Gestionar').id;
-    const d = must(descomponer(m, { opd: m.raiz, proceso: p, bandas: [['Validar'], ['Archivar']] })); m = d.modelo;
+    const d = must(descomponer(m, { opd: m.raiz, cosa: p, bandas: [['Validar'], ['Archivar']] })); m = d.modelo;
     const hijo = d.creados[0]!;
     for (const nombre of ['Validar', 'Archivar']) m = must(crearEnlace(m, { opd: hijo, candidato: { tipo: 'agregacion', refinable: p, refinador: porNombre(m, nombre).id } })).modelo;
     const ls = generarBloque(m, hijo);

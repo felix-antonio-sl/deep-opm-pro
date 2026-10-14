@@ -18,7 +18,7 @@ export interface Indice {
     readonly preorden: readonly Id[];
     readonly etiqueta: ReadonlyMap<Id, string>;
     readonly internoDe: ReadonlyMap<Id, Id>; // cosa interna → OPD de descomposición
-    readonly subprocesoDe: ReadonlyMap<Id, {
+    readonly bandaDe: ReadonlyMap<Id, { // subproceso → su banda
         readonly opd: Id;
         readonly banda: number;
     }>;
@@ -45,7 +45,7 @@ export function indice(m: Modelo): Indice {
     }>(), enlacesDeCosa = new Map<Id, Id[]>(), enlacesDeEstado = new Map<Id, Id[]>(), abanicoDeEnlace = new Map<Id, Id>(), aparicionesDe = new Map<Id, Id[]>(), refinamientosDe = new Map<Id, {
         descomposicion?: Id;
         despliegue?: Id;
-    }>(), hijosDe = new Map<Id, Id[]>(), etiqueta = new Map<Id, string>(), internoDe = new Map<Id, Id>(), subprocesoDe = new Map<Id, {
+    }>(), hijosDe = new Map<Id, Id[]>(), etiqueta = new Map<Id, string>(), internoDe = new Map<Id, Id>(), bandaDe = new Map<Id, {
         opd: Id;
         banda: number;
     }>(), porClaveNombre = new Map<string, Id[]>();
@@ -76,9 +76,9 @@ export function indice(m: Modelo): Indice {
         añadir(hijosDe, o.padre, o.id);
         refinamientosDe.set(o.cosa, { ...refinamientosDe.get(o.cosa), [o.tipo]: o.id });
         if (o.tipo === 'descomposicion') {
-            for (const c of o.objetosInternos)
+            for (const c of o.internos)
                 internoDe.set(c, o.id);
-            o.bandas.forEach((b, banda) => b.forEach(c => { internoDe.set(c, o.id); subprocesoDe.set(c, { opd: o.id, banda }); }));
+            o.bandas.forEach((b, banda) => b.forEach(c => { internoDe.set(c, o.id); bandaDe.set(c, { opd: o.id, banda }); }));
         }
     }
     for (const hs of hijosDe.values())
@@ -95,7 +95,7 @@ export function indice(m: Modelo): Indice {
         (hijosDe.get(id) ?? []).forEach((h, i) => visitar(h, t === 'SD' ? `SD${i + 1}` : `${t}.${i + 1}`));
     };
     visitar(m.raiz, 'SD');
-    const idx: Indice = { estadoDe, enlacesDeCosa, enlacesDeEstado, abanicoDeEnlace, aparicionesDe, refinamientosDe, hijosDe, preorden, etiqueta, internoDe, subprocesoDe, porClaveNombre };
+    const idx: Indice = { estadoDe, enlacesDeCosa, enlacesDeEstado, abanicoDeEnlace, aparicionesDe, refinamientosDe, hijosDe, preorden, etiqueta, internoDe, bandaDe, porClaveNombre };
     memo.set(m, idx);
     return idx;
 }

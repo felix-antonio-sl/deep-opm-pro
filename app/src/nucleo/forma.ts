@@ -193,7 +193,7 @@ export function validarForma(m: Modelo): readonly Violacion[] {
                     miembros.add(c);
                 }
             }
-            for (const c of o.objetosInternos) {
+            for (const c of o.internos) {
                 existe(c, 'cosa');
                 if (miembros.has(c) || m.cosas[c]?.tipo !== 'objeto' || !aparece(o, c))
                     fallo('F-8', 'Objeto interno inválido o sin aparición.', [ref('opd', o.id), ref('cosa', c)]);

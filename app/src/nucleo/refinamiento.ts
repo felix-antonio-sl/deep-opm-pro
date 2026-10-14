@@ -123,27 +123,27 @@ function agregarEnTx(tx: Tx, a: { opd: Id; bandas: readonly (readonly string[])[
     layout(tx, { ...o, bandas, apariciones: apps });
     if (antes === 0 && bandas.length) distribuirContornoTx(tx, o.id);
 }
-export const descomponer: Operacion<{ opd: Id; proceso: Id; bandas?: readonly (readonly string[])[] }> = (m, a) => transaccion(m, tx => {
-    precondicion(tx, a.opd, a.proceso, 'descomposicion'); const id = tx.nuevoId('opd');
-    const conectados = new Set<Id>(); for (const e of Object.values(m.enlaces)) { const ex = extremos(e); if (ex.origen === a.proceso) conectados.add(ex.destino); if (ex.destino === a.proceso) conectados.add(ex.origen); }
-    conectados.delete(a.proceso); const apariciones: OpdDescomposicion['apariciones'] = { [a.proceso]: { x: 0, y: 0, ancho: 420, alto: 188 }, ...Object.fromEntries([...conectados].map(c => [c, m.opds[a.opd]!.apariciones[c] ?? { x: 0, y: 0, ancho: 135, alto: 60 }])) };
-    layout(tx, { id, tipo: 'descomposicion', padre: a.opd, cosa: a.proceso, orden: indice(m).hijosDe.get(a.opd)?.length ?? 0, bandas: [], objetosInternos: [], apariciones });
+export const descomponer: Operacion<{ opd: Id; cosa: Id; bandas?: readonly (readonly string[])[] }> = (m, a) => transaccion(m, tx => {
+    precondicion(tx, a.opd, a.cosa, 'descomposicion'); const id = tx.nuevoId('opd');
+    const conectados = new Set<Id>(); for (const e of Object.values(m.enlaces)) { const ex = extremos(e); if (ex.origen === a.cosa) conectados.add(ex.destino); if (ex.destino === a.cosa) conectados.add(ex.origen); }
+    conectados.delete(a.cosa); const apariciones: OpdDescomposicion['apariciones'] = { [a.cosa]: { x: 0, y: 0, ancho: 420, alto: 188 }, ...Object.fromEntries([...conectados].map(c => [c, m.opds[a.opd]!.apariciones[c] ?? { x: 0, y: 0, ancho: 135, alto: 60 }])) };
+    layout(tx, { id, tipo: 'descomposicion', padre: a.opd, cosa: a.cosa, orden: indice(m).hijosDe.get(a.opd)?.length ?? 0, bandas: [], internos: [], apariciones });
     if (a.bandas?.length) agregarEnTx(tx, { opd: id, bandas: a.bandas, posicion: 'final' }); formaFinal(tx);
 });
-export const agregarSubprocesos: Operacion<{ opd: Id; bandas: readonly (readonly string[])[]; posicion: 'final' | { antesDeBanda: number } | { enBanda: number } }> = (m, a) => transaccion(m, tx => { agregarEnTx(tx, a); formaFinal(tx); });
+export const agregarEnDescomposicion: Operacion<{ opd: Id; bandas: readonly (readonly string[])[]; posicion: 'final' | { antesDeBanda: number } | { enBanda: number } }> = (m, a) => transaccion(m, tx => { agregarEnTx(tx, a); formaFinal(tx); });
 function particion(tx: Tx, oid: Id, bandas: readonly (readonly Id[])[]): void {
     const o = descomp(tx, oid), actual = o.bandas.flat(), nuevos = bandas.flat();
     if (bandas.some(b => !b.length) || nuevos.length !== actual.length || new Set(nuevos).size !== nuevos.length || nuevos.some(id => !actual.includes(id))) negar(tx, 'forma', 'F-8', 'Las bandas deben particionar todos los subprocesos exactamente una vez.', [ro(oid)]);
     layout(tx, { ...o, bandas }); formaFinal(tx);
 }
 export const fijarBandas: Operacion<{ opd: Id; bandas: readonly (readonly Id[])[] }> = (m, a) => transaccion(m, tx => particion(tx, a.opd, a.bandas));
-export const moverSubproceso: Operacion<{ opd: Id; proceso: Id; destino: { banda: number } | { nuevaBandaAntesDe: number } }> = (m, a) => transaccion(m, tx => {
-    const o = descomp(tx, a.opd), bandas = o.bandas.map(b => [...b]), origen = bandas.findIndex(b => b.includes(a.proceso));
-    if (origen < 0) negar(tx, 'no-encontrado', 'T-082', 'El proceso no es un subproceso de este OPD.', [ref(a.proceso), ro(o.id)]);
+export const moverEnDescomposicion: Operacion<{ opd: Id; cosa: Id; destino: { banda: number } | { nuevaBandaAntesDe: number } }> = (m, a) => transaccion(m, tx => {
+    const o = descomp(tx, a.opd), bandas = o.bandas.map(b => [...b]), origen = bandas.findIndex(b => b.includes(a.cosa));
+    if (origen < 0) negar(tx, 'no-encontrado', 'T-082', 'El proceso no es un subproceso de este OPD.', [ref(a.cosa), ro(o.id)]);
     const k = 'banda' in a.destino ? a.destino.banda : a.destino.nuevaBandaAntesDe;
     if (!Number.isInteger(k) || k < 0 || k > bandas.length || 'banda' in a.destino && k === bandas.length) negar(tx, 'forma', 'F-8', 'La banda destino no existe.', [ro(o.id)]);
-    bandas[origen] = bandas[origen]!.filter(id => id !== a.proceso);
-    if ('banda' in a.destino) bandas[k]!.push(a.proceso); else bandas.splice(k, 0, [a.proceso]);
+    bandas[origen] = bandas[origen]!.filter(id => id !== a.cosa);
+    if ('banda' in a.destino) bandas[k]!.push(a.cosa); else bandas.splice(k, 0, [a.cosa]);
     particion(tx, o.id, bandas.filter(b => b.length));
 }, { permiteErroresNuevos: true });
 function refinadoresEnTx(tx: Tx, a: { opd: Id; nombres: readonly string[]; tipo?: TipoCosa }): void {
@@ -170,7 +170,7 @@ export const agregarRefinadores: Operacion<{ opd: Id; nombres: readonly string[]
 export const eliminarRefinamiento: Operacion<{ opd: Id }> = (m, a) => transaccion(m, tx => {
     const o = obtenerOpd(tx, a.opd); if (o.tipo === 'raiz') negar(tx, 'es-contenedor', 'R-REF-3', 'La raíz no es un refinamiento.', [ro(o.id)]);
     if (indice(m).hijosDe.get(o.id)?.length) negar(tx, 'refinamiento-no-hoja', 'R-REF-3', 'Elimina primero los refinamientos hijos.', [ro(o.id)]);
-    const internos = new Set(o.tipo === 'descomposicion' ? [...o.bandas.flat(), ...o.objetosInternos] : Object.keys(o.apariciones).filter(id => id !== o.cosa && indice(m).aparicionesDe.get(id)?.length === 1));
+    const internos = new Set(o.tipo === 'descomposicion' ? [...o.bandas.flat(), ...o.internos] : Object.keys(o.apariciones).filter(id => id !== o.cosa && indice(m).aparicionesDe.get(id)?.length === 1));
     const materializados = new Set<Id>();
     if (o.tipo === 'descomposicion') {
         const vista = proyectar(m, o.padre);

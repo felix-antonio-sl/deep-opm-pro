@@ -41,7 +41,7 @@ caso('T-100 índice calcula árbol, apariciones, refinamientos y alcance en preo
     const caja = { x: 0, y: 0, ancho: 135, alto: 60 };
     const { [id('Interno')]: omitido, ...apariciones } = base.opds[base.raiz]!.apariciones;
     void omitido;
-    const m = congelar({ ...base, secuencia: 103, opds: { [base.raiz]: { ...base.opds[base.raiz]!, apariciones }, 'opd-101': { id: 'opd-101', tipo: 'despliegue' as const, padre: base.raiz, cosa: id('Alfa'), orden: 1, modo: 'agregacion' as const, apariciones: { [id('Alfa')]: caja } }, 'opd-100': { id: 'opd-100', tipo: 'descomposicion' as const, padre: base.raiz, cosa: id('Contener'), orden: 0, bandas: [[id('Interno')]], objetosInternos: [], apariciones: { [id('Contener')]: caja, [id('Interno')]: caja } } } });
+    const m = congelar({ ...base, secuencia: 103, opds: { [base.raiz]: { ...base.opds[base.raiz]!, apariciones }, 'opd-101': { id: 'opd-101', tipo: 'despliegue' as const, padre: base.raiz, cosa: id('Alfa'), orden: 1, modo: 'agregacion' as const, apariciones: { [id('Alfa')]: caja } }, 'opd-100': { id: 'opd-100', tipo: 'descomposicion' as const, padre: base.raiz, cosa: id('Contener'), orden: 0, bandas: [[id('Interno')]], internos: [], apariciones: { [id('Contener')]: caja, [id('Interno')]: caja } } } });
     modelos.push(m);
     const i = indice(m);
     expect(i.preorden).toEqual([base.raiz, 'opd-100', 'opd-101']);
@@ -50,7 +50,7 @@ caso('T-100 índice calcula árbol, apariciones, refinamientos y alcance en preo
     expect(i.aparicionesDe.get(id('Contener'))).toEqual([base.raiz, 'opd-100']);
     expect(i.refinamientosDe.get(id('Alfa'))).toEqual({ despliegue: 'opd-101' });
     expect(i.internoDe.get(id('Interno'))).toBe('opd-100');
-    expect(i.subprocesoDe.get(id('Interno'))).toEqual({ opd: 'opd-100', banda: 0 });
+    expect(i.bandaDe.get(id('Interno'))).toEqual({ opd: 'opd-100', banda: 0 });
 });
 caso('T-025 índice busca sin acentos, incluye estados, limita resultados y describe enlaces', () => {
     const m = modeloCon({ objetos: [['Árbol', ['húmedo']]], procesos: ['Regar'], enlaces: [['instrumento', 'Árbol', 'Regar']] });

@@ -7,7 +7,7 @@ import { exportarV0 } from '../src/codec/exportar';
 test('T-030 T-283 B-45 la altura que contradice las bandas se diagnostica, bloquea exports canónicos y se repara explícitamente', async ({ page, request }) => {
     const id = 'e2e-b45-orden-vertical';
     const b = { ...modeloCon({ objetos: [['Pedido', ['recibido', 'despachado']]], procesos: ['Atender'], enlaces: [['efecto', 'Pedido', 'Atender']] }), id, nombre: 'E2E B-45 orden vertical' };
-    const m = must(aplicarAcciones(b, [{ op: 'descomponer', args: { opd: b.raiz, proceso: porNombre(b, 'Atender').id, bandas: [['Recibir'], ['Revisar'], ['Despachar']] } }])).modelo;
+    const m = must(aplicarAcciones(b, [{ op: 'descomponer', args: { opd: b.raiz, cosa: porNombre(b, 'Atender').id, bandas: [['Recibir'], ['Revisar'], ['Despachar']] } }])).modelo;
     const hijo = Object.values(m.opds).find((o): o is OpdDescomposicion => o.tipo === 'descomposicion')!;
     const [recibir, , despachar] = hijo.bandas.flat() as [string, string, string];
     const v0 = JSON.parse(exportarV0(m)), apariencias = Object.values(v0.modelo.opds[hijo.id].apariencias as Record<string, { entidadId: string; y: number }>);

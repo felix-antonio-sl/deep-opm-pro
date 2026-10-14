@@ -86,7 +86,7 @@ for (const tipo of ['consumo','resultado','efecto','agente','instrumento','invoc
 for(const bandas of [[['Recibir'],['Validar']], [['Recibir','Validar']], [['Recibir','Validar'],['Archivar']], [['Recibir'],['Validar','Archivar']], [['Recibir','Validar'],['Archivar'],['Enviar','Cobrar']]]) for(const internos of [false,true]) test(`T-192 T-166 CX bandas ${JSON.stringify(bandas)} internos ${internos}`,()=>{
 
  const b=modeloCon({procesos:['Gestionar']}),p=Object.keys(b.cosas)[0]!;
- const r=must(aplicarAcciones(b,[{op:'descomponer',args:{opd:b.raiz,proceso:p,bandas}}])),d=Object.values(r.modelo.opds).find(d=>d.tipo==='descomposicion')!;
+ const r=must(aplicarAcciones(b,[{op:'descomponer',args:{opd:b.raiz,cosa:p,bandas}}])),d=Object.values(r.modelo.opds).find(d=>d.tipo==='descomposicion')!;
  const m=internos?must(aplicarAcciones(r.modelo,[{op:'crearCosa',args:{opd:d.id,tipo:'objeto',nombre:'Registro',x:50,y:60,alcance:'interno'}}])).modelo:r.modelo;
  expect(validarForma(m)).toEqual([]);expect(erroresContexto(m)).toEqual([]);verificar(m,`CX:${JSON.stringify(bandas)}:${internos}`);libro.push({familia:'CX',bandas,internos,admitido:true});
 });

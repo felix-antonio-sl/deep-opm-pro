@@ -19,7 +19,7 @@ function modelo(enlaces: readonly Enlace[] = [], cambios: Partial<Modelo> = {}):
         cosas: Object.fromEntries([objeto('b'), objeto('x'), objeto('y'), ...['p', 's1', 's2', 's3', 'z'].map(proceso)].map(c => [c.id, c])),
         enlaces: Object.fromEntries(enlaces.map(e => [e.id, e])), abanicos: {},
         opds: { raiz: { id: 'raiz', tipo: 'raiz', apariciones: apps('b', 'p', 'y', 'z') },
-            hijo: { id: 'hijo', tipo: 'descomposicion', padre: 'raiz', cosa: 'p', orden: 0, bandas: [['s1'], ['s2'], ['s3']], objetosInternos: ['x'], apariciones: apps('b', 'p', 's1', 's2', 's3', 'x', 'y', 'z') } },
+            hijo: { id: 'hijo', tipo: 'descomposicion', padre: 'raiz', cosa: 'p', orden: 0, bandas: [['s1'], ['s2'], ['s3']], internos: ['x'], apariciones: apps('b', 'p', 's1', 's2', 's3', 'x', 'y', 'z') } },
         ...cambios });
 }
 function procedimental(tipo: EnlaceProcedimental['tipo'], id: Id, proceso: Id, control?: Control): EnlaceProcedimental {
@@ -59,7 +59,7 @@ test('T-086 abstracción recursiva eleva procesos, nunca objetos, estructurales 
         { id: 'etiqueta', tipo: 'etiquetado', origen: 's1', destino: 'z' },
         { id: 'excepcion', tipo: 'excepcionSobretiempo', origen: 's1', destino: 's2' }
     ], { cosas: { ...base.cosas, ss: proceso('ss') }, opds: { ...base.opds,
-        nieto: { id: 'nieto', tipo: 'descomposicion', padre: 'hijo', cosa: 's1', orden: 0, bandas: [['ss']], objetosInternos: [], apariciones: apps('s1', 'ss', 'b') }
+        nieto: { id: 'nieto', tipo: 'descomposicion', padre: 'hijo', cosa: 's1', orden: 0, bandas: [['ss']], internos: [], apariciones: apps('s1', 'ss', 'b') }
     } });
     const v = proyectar(m, 'raiz');
     expect(v.enlaces.map(e => e.enlace)).toEqual([{ id: 'profundo', tipo: 'consumo', objeto: 'b', proceso: 'p' }]);
@@ -244,7 +244,7 @@ for (const profundidad of [16, 32, 64, 128]) {
         for (let i = 1; i <= profundidad; i++) {
             cosas[`p${i}`] = proceso(`p${i}`); cosas[`q${i}`] = proceso(`q${i}`);
             opds[`opd${i}`] = { id: `opd${i}`, tipo: 'descomposicion', padre: i === 1 ? 'raiz' : `opd${i - 1}`, cosa: `p${i - 1}`, orden: 0,
-                bandas: [[`p${i}`], [`q${i}`]], objetosInternos: [], apariciones: apps('b', `p${i - 1}`, `p${i}`, `q${i}`) };
+                bandas: [[`p${i}`], [`q${i}`]], internos: [], apariciones: apps('b', `p${i - 1}`, `p${i}`, `q${i}`) };
             enlaces[`e${i}`] = { id: `e${i}`, tipo: 'efecto', objeto: 'b', proceso: `p${i}`, entrada: 'b0', salida: 'b3' };
         }
         let accesos = 0;
@@ -289,8 +289,8 @@ test('T-085 orden temporal comparte prefijos paralelos y distingue banda exterio
         { id: 'tardio', tipo: 'efecto', objeto: 'b', proceso: 's3', entrada: 'b2', salida: 'b0' }
     ], { cosas: { ...base.cosas, ss1: proceso('ss1'), ss2: proceso('ss2') }, opds: {
         ...base.opds, hijo: { ...hijo, bandas: [['s1', 's2'], ['s3']] },
-        nieto1: { id: 'nieto1', tipo: 'descomposicion', padre: 'hijo', cosa: 's1', orden: 0, bandas: [['ss1']], objetosInternos: [], apariciones: apps('s1', 'ss1', 'b') },
-        nieto2: { id: 'nieto2', tipo: 'descomposicion', padre: 'hijo', cosa: 's2', orden: 1, bandas: [['ss2']], objetosInternos: [], apariciones: apps('s2', 'ss2', 'b') }
+        nieto1: { id: 'nieto1', tipo: 'descomposicion', padre: 'hijo', cosa: 's1', orden: 0, bandas: [['ss1']], internos: [], apariciones: apps('s1', 'ss1', 'b') },
+        nieto2: { id: 'nieto2', tipo: 'descomposicion', padre: 'hijo', cosa: 's2', orden: 1, bandas: [['ss2']], internos: [], apariciones: apps('s2', 'ss2', 'b') }
     } });
     // ss1 y ss2 son simultáneos: decide el orden de los estados (b0 antes que b1), no el del mapa.
     expect(proyectar(m, 'raiz').enlaces[0]?.enlace).toEqual({ id: 'primero-en-mapa', tipo: 'efecto', objeto: 'b', proceso: 'p', entrada: 'b0', salida: 'b0' });
@@ -399,8 +399,8 @@ function cadenaRcp(anidado = false, paralelo = false, rota = false): Modelo {
     if (!anidado) return modelo(enlaces, { opds: { ...base.opds, hijo: { ...hijo, bandas: paralelo ? [['s1', 's2'], ['s3']] : hijo.bandas } } });
     return modelo(enlaces, { cosas: { ...base.cosas, n1: proceso('n1'), n2: proceso('n2') }, opds: { ...base.opds,
         hijo: { ...hijo, bandas: paralelo ? [['s1', 's2'], ['s3']] : hijo.bandas },
-        a: { id: 'a', tipo: 'descomposicion', padre: 'hijo', cosa: 's1', orden: 0, objetosInternos: [], bandas: [['n1']], apariciones: apps('b', 's1', 'n1') },
-        bOpd: { id: 'bOpd', tipo: 'descomposicion', padre: 'hijo', cosa: 's2', orden: 1, objetosInternos: [], bandas: [['n2']], apariciones: apps('b', 's2', 'n2') },
+        a: { id: 'a', tipo: 'descomposicion', padre: 'hijo', cosa: 's1', orden: 0, internos: [], bandas: [['n1']], apariciones: apps('b', 's1', 'n1') },
+        bOpd: { id: 'bOpd', tipo: 'descomposicion', padre: 'hijo', cosa: 's2', orden: 1, internos: [], bandas: [['n2']], apariciones: apps('b', 's2', 'n2') },
     } });
 }
 for (const invertido of [false, true]) {
@@ -481,7 +481,7 @@ for (const profundidad of [16, 32, 64, 128]) {
         const cosas: Record<Id, Cosa> = { p0: proceso('p0') }, enlaces: Record<Id, Enlace> = {}, opds: Record<Id, Opd> = {};
         for (let i = 1; i <= profundidad; i++) {
             cosas[`p${i}`] = proceso(`p${i}`); cosas[`q${i}`] = proceso(`q${i}`); cosas[`o${i}`] = objeto(`o${i}`);
-            opds[`d${i}`] = { id: `d${i}`, tipo: 'descomposicion', padre: i === 1 ? 'raiz' : `d${i - 1}`, cosa: `p${i - 1}`, orden: 0, bandas: [[`p${i}`], [`q${i}`]], objetosInternos: [], apariciones: apps(`p${i - 1}`, `p${i}`, `q${i}`) };
+            opds[`d${i}`] = { id: `d${i}`, tipo: 'descomposicion', padre: i === 1 ? 'raiz' : `d${i - 1}`, cosa: `p${i - 1}`, orden: 0, bandas: [[`p${i}`], [`q${i}`]], internos: [], apariciones: apps(`p${i - 1}`, `p${i}`, `q${i}`) };
             enlaces[`r${i}`] = { id: `r${i}`, tipo: 'resultado', objeto: `o${i}`, proceso: `p${profundidad}`, estado: `o${i}0` };
             enlaces[`c${i}`] = { id: `c${i}`, tipo: 'consumo', objeto: `o${i}`, proceso: 'q1', estado: `o${i}0` };
         }
@@ -533,7 +533,7 @@ for (const n of [64, 128]) {
         for (let i = 0; i < n; i++) {
             for (const id of [`p${i}`, `r${i}`, `c${i}`]) cosas[id] = proceso(id);
             opds[`h${i}`] = { id: `h${i}`, tipo: 'descomposicion', padre: 'raiz', cosa: `p${i}`, orden: i,
-                bandas: [[`r${i}`], [`c${i}`]], objetosInternos: [], apariciones: apps('b', `p${i}`, `r${i}`, `c${i}`) };
+                bandas: [[`r${i}`], [`c${i}`]], internos: [], apariciones: apps('b', `p${i}`, `r${i}`, `c${i}`) };
             enlaces.push({ id: `res${i}`, tipo: 'resultado', objeto: 'b', proceso: `r${i}`, estado: `estado-${i}` },
                 { id: `cons${i}`, tipo: 'consumo', objeto: 'b', proceso: `c${i}`, estado: `estado-${i}` });
         }
@@ -555,8 +555,8 @@ test('T-085 coste A comparte certificado entre vistas y separa nuevas identidade
     const base = modelo(), hijo = base.opds.hijo!; if (hijo.tipo !== 'descomposicion') throw new Error('montaje');
     const registro: Record<Id, Opd> = { ...base.opds,
         hijo: { ...hijo, bandas: [['s1'], ['s2']] },
-        profundo: { id: 'profundo', tipo: 'descomposicion', padre: 'hijo', cosa: 's1', orden: 0, bandas: [['u'], ['v']], objetosInternos: [], apariciones: apps('b', 's1', 'u', 'v') },
-        ajeno: { id: 'ajeno', tipo: 'descomposicion', padre: 'hijo', cosa: 's2', orden: 1, bandas: [['w']], objetosInternos: [], apariciones: apps('b', 's2', 'w') } };
+        profundo: { id: 'profundo', tipo: 'descomposicion', padre: 'hijo', cosa: 's1', orden: 0, bandas: [['u'], ['v']], internos: [], apariciones: apps('b', 's1', 'u', 'v') },
+        ajeno: { id: 'ajeno', tipo: 'descomposicion', padre: 'hijo', cosa: 's2', orden: 1, bandas: [['w']], internos: [], apariciones: apps('b', 's2', 'w') } };
     let lecturas = 0, ajenas = 0;
     const opds = new Proxy(registro, { get(target, key, receiver) {
         if (typeof key === 'string' && Object.hasOwn(target, key)) { lecturas++; if (key === 'ajeno') ajenas++; }
@@ -585,7 +585,7 @@ test('T-085 coste C conserva rangos con huecos y cruce base 256, identidad y pro
         { id: 'e', tipo: 'efecto', objeto: 'b', proceso: 's256', entrada: 'b0', salida: 'b1', control: 'c' },
         { id: 'r', tipo: 'resultado', objeto: 'b', proceso: 's254', estado: 'b0' }], {
         cosas, secuencia: 10000, opds: { raiz: { id: 'raiz', tipo: 'raiz', apariciones: apps('b', 'p') },
-            hijo: { id: 'hijo', tipo: 'descomposicion', padre: 'raiz', cosa: 'p', orden: 0, bandas: ids.map(id => [id]), objetosInternos: [], apariciones: apps('b', 'p', ...ids) } } });
+            hijo: { id: 'hijo', tipo: 'descomposicion', padre: 'raiz', cosa: 'p', orden: 0, bandas: ids.map(id => [id]), internos: [], apariciones: apps('b', 'p', ...ids) } } });
     expect(validarForma(m)).toEqual([]); expect(Object.values(m.enlaces).flatMap(e => violacionesContexto(m, e))).toEqual([]);
     const antes = JSON.stringify(m), v = proyectar(m, 'raiz');
     expect(v.conflictos).toEqual([]); expect(v.enlaces).toHaveLength(1);
@@ -769,8 +769,8 @@ for (const paralelo of [false, true]) for (const tipos of [['consumo', 'efecto']
         const m = modelo([hechoTemporal(tipos[0], 'enlace-u', 'u', true), hechoTemporal(tipos[1], 'enlace-v', 'v', false)], {
             cosas: { ...base.cosas, u: proceso('u'), v: proceso('v') }, opds: { ...base.opds,
                 hijo: { ...h, bandas: paralelo ? [['s1','s2'],['s3']] : h.bandas },
-                d1: { id:'d1', tipo:'descomposicion', padre:'hijo', cosa:'s1', orden:0, bandas:[['u']], objetosInternos:[], apariciones:apps('s1','u','b') },
-                d2: { id:'d2', tipo:'descomposicion', padre:'hijo', cosa:'s2', orden:1, bandas:[['v']], objetosInternos:[], apariciones:apps('s2','v','b') }
+                d1: { id:'d1', tipo:'descomposicion', padre:'hijo', cosa:'s1', orden:0, bandas:[['u']], internos:[], apariciones:apps('s1','u','b') },
+                d2: { id:'d2', tipo:'descomposicion', padre:'hijo', cosa:'s2', orden:1, bandas:[['v']], internos:[], apariciones:apps('s2','v','b') }
             } });
         expect(validarForma(m)).toEqual([]); const v=proyectar(m,'raiz');
         expect(v.conflictos.map(d=>d.codigo)).toEqual(paralelo ? [] : ['precedencia-invalida']);
@@ -837,7 +837,7 @@ for(const n of [32,128,512]){
         const base=modelo(),ids=Array.from({length:n+1},(_,i)=>`sub${i}`),es=ids.map((id,i)=>hechoTemporal(i===n?'resultado':'efecto',`hecho${i}`,id,true));
         let lecturas=0;const enlaces=Object.fromEntries(es.map(e=>[e.id,new Proxy(e,{get(target,key,receiver){if(key==='proceso')lecturas++;return Reflect.get(target,key,receiver);}})]));
         const m=modelo([],{cosas:{...base.cosas,...Object.fromEntries(ids.map(id=>[id,proceso(id)]))},enlaces,
-            opds:{raiz:base.opds.raiz!,hijo:{id:'hijo',tipo:'descomposicion',padre:'raiz',cosa:'p',orden:0,bandas:ids.map(id=>[id]),objetosInternos:[],apariciones:apps('p','b',...ids)}}});
+            opds:{raiz:base.opds.raiz!,hijo:{id:'hijo',tipo:'descomposicion',padre:'raiz',cosa:'p',orden:0,bandas:ids.map(id=>[id]),internos:[],apariciones:apps('p','b',...ids)}}});
         expect(validarForma(m)).toEqual([]);const antes=JSON.stringify(m);indice(m);lecturas=0;
         const v=proyectar(m,'raiz'),coste=lecturas;
         expect(v.conflictos.map(d=>d.codigo)).toEqual(['precedencia-invalida']);expect(v.enlaces.flatMap(e=>e.hechos)).toEqual(es.map(e=>e.id));

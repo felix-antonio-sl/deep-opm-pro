@@ -1890,7 +1890,7 @@ Más (producto, DR-35): `crear-refinamiento` / `fijar-orden` para `se descompone
 
 El cierre DS-20 distingue cada error de contexto por código, regla y referencias ordenadas. Conservar
 un error previo no autoriza añadir otro de distinta regla sobre el mismo enlace; la excepción explícita
-de `moverSubproceso` permanece. La oferta de tipos usa el mismo criterio que las transacciones.
+de `moverEnDescomposicion` permanece. La oferta de tipos usa el mismo criterio que las transacciones.
 
 ### 6.3 Modos de fallo (perfil opl-opforja §17)
 

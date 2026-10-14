@@ -148,7 +148,7 @@ export function proyectar(m: Modelo, opd: Id): Vista {
     }
     const cosas: CosaVista[] = Object.keys(o.apariciones).map(id => {
         const c = m.cosas[id]!;
-        const banda = o.tipo === 'descomposicion' ? idx.subprocesoDe.get(id) : undefined;
+        const banda = o.tipo === 'descomposicion' ? idx.bandaDe.get(id) : undefined;
         const rol: CosaVista['rol'] = o.tipo === 'raiz' ? 'libre' : id === o.cosa ? (o.tipo === 'descomposicion' ? 'contenedor' : 'refinable')
             : banda?.opd === opd ? 'subproceso' : internos.has(id) ? 'interno' : 'externo';
         const propios = c.tipo === 'objeto' ? c.estados : [];
@@ -172,7 +172,7 @@ export function opdsEnPreorden(m: Modelo): readonly Id[] { return indice(m).preo
 
 function alcance(m: Modelo, o: Opd): ReadonlySet<Id> {
     if (o.tipo === 'raiz') return new Set();
-    if (o.tipo === 'descomposicion') return new Set([o.cosa, ...o.objetosInternos, ...o.bandas.flat()]);
+    if (o.tipo === 'descomposicion') return new Set([o.cosa, ...o.internos, ...o.bandas.flat()]);
     const ids = new Set([o.cosa]);
     for (const e of Object.values(m.enlaces)) {
         const r = refinadorPorModo(e, o.modo, o.cosa);
@@ -444,7 +444,7 @@ function ordenOriginal(m: Modelo, idx: Indice): OrdenOriginal {
             const o = m.opds[id]!;
             if (o.tipo === 'descomposicion') bandas.set(o.cosa, o.bandas);
         }
-        const raices = [...bandas.keys()].filter(id => !idx.subprocesoDe.has(id));
+        const raices = [...bandas.keys()].filter(id => !idx.bandaDe.has(id));
         const primero = new Map<Id, number>(), segundo = new Map<Id, number>(), fin = new Map<Id, number>(), componente = new Map<Id, Id>();
         type Paso = { id: Id; raiz: Id; salida: boolean };
         for (const invertir of [false, true]) {

@@ -194,7 +194,7 @@ test('T-124 controles C18 y CFE y FAN4 son una sola oración',()=>{
  for(const control of ['c','e'] as const){const mod=m([{id:'e1',tipo:'efecto',objeto:'o',proceso:'p',control},{id:'e2',tipo:'efecto',objeto:'o',proceso:'q',control}],{abanicos:{f:{id:'f',operador:'XOR',enlaces:['e1','e2']}}});expect(generarBloque(mod,'sd').filter(l=>l.hechos.length).map(l=>l.texto)).toEqual([control==='c'?'Exactamente uno de *Archivar* o *Procesar* ocurre si **Pedido** existe, en cuyo caso afecta **Pedido**, de lo contrario se omite.':'**Pedido** inicia exactamente uno de *Archivar* o *Procesar*, y es afectado por el proceso que ocurre.']);}
 });
 function hijo(bandas:readonly(readonly string[])[],internos:readonly string[]=['a']):Modelo {
- const base=m(),cosas={...base.cosas,r:pro('r','Validar')};const ids=['p',...bandas.flat(),...internos];return m([],{cosas,opds:{sd:{id:'sd',tipo:'raiz',apariciones:{p:ap,o:ap}},h:{id:'h',tipo:'descomposicion',padre:'sd',cosa:'p',orden:0,bandas,objetosInternos:internos,apariciones:Object.fromEntries(ids.map(id=>[id,ap]))}}});
+ const base=m(),cosas={...base.cosas,r:pro('r','Validar')};const ids=['p',...bandas.flat(),...internos];return m([],{cosas,opds:{sd:{id:'sd',tipo:'raiz',apariciones:{p:ap,o:ap}},h:{id:'h',tipo:'descomposicion',padre:'sd',cosa:'p',orden:0,bandas,internos:internos,apariciones:Object.fromEntries(ids.map(id=>[id,ap]))}}});
 }
 test('T-125 CX secuencia, paralelo, mixto e internos se obtienen de bandas reales',()=>{
  const casos:readonly[readonly(readonly string[])[],string][]=[[[['q'],['r']],'*Procesar* se descompone en *Archivar* y *Validar*, en esa secuencia, así como **Cuenta**.'],[[['r','q']],'*Procesar* se descompone en paralelo *Archivar* y *Validar*, así como **Cuenta**.'],[[['q','r'],['o']],'*Procesar* se descompone en paralelo *Archivar* y *Validar*, y **Pedido**, en esa secuencia, así como **Cuenta**.']];
@@ -339,7 +339,7 @@ test('T-133 T-192 ramas escindidas que sólo difieren en su contraparte no forma
  // aunque cada una remita a otra mitad de salida.
  const est=(id:string,nombre:string):Objeto=>({id,nombre,tipo:'objeto',esencia:'fisica',afiliacion:'sistemica',estados:[{id:`${id}-nuevo`,nombre:'nuevo'},{id:`${id}-listo`,nombre:'listo'}]});
  const cosas=[est('o','Pedido'),pro('p','Atender'),pro('a','Recibir'),pro('y','Revisar'),pro('z','Despachar')];
- const dc:Opd={id:'dc',tipo:'descomposicion',padre:'sd',cosa:'p',orden:0,objetosInternos:[],bandas:[['a'],['y','z']],apariciones:{p:{...ap,ancho:420,alto:300},o:{...ap,x:-220},a:{...ap,x:140,y:64},y:{...ap,x:60,y:164},z:{...ap,x:240,y:164}}};
+ const dc:Opd={id:'dc',tipo:'descomposicion',padre:'sd',cosa:'p',orden:0,internos:[],bandas:[['a'],['y','z']],apariciones:{p:{...ap,ancho:420,alto:300},o:{...ap,x:-220},a:{...ap,x:140,y:64},y:{...ap,x:60,y:164},z:{...ap,x:240,y:164}}};
  const enlaces:Enlace[]=[{id:'e-20',tipo:'efecto',objeto:'o',proceso:'a',entrada:'o-nuevo',escision:{par:'e-22',mitad:'entrada'}},{id:'e-21',tipo:'efecto',objeto:'o',proceso:'a',entrada:'o-nuevo',escision:{par:'e-23',mitad:'entrada'}},
   {id:'e-22',tipo:'efecto',objeto:'o',proceso:'y',salida:'o-listo',escision:{par:'e-20',mitad:'salida'}},{id:'e-23',tipo:'efecto',objeto:'o',proceso:'z',salida:'o-listo',escision:{par:'e-21',mitad:'salida'}}];
  const sin=congelar({id:'b58',nombre:'Escindidas',raiz:'sd',secuencia:200,unidadTiempo:'min',cosas:Object.fromEntries(cosas.map(c=>[c.id,c])),enlaces:Object.fromEntries(enlaces.map(e=>[e.id,e])),abanicos:{},opds:{sd:{id:'sd',tipo:'raiz',apariciones:{o:ap,p:{...ap,x:200}}},dc}}) as Modelo;
@@ -388,7 +388,7 @@ test('T-133 T-192 RF1 con dos cantidades de la misma parte vuelve desde vacío y
 test('T-085 T-168 efectos de subprocesos paralelos se abstraen igual sea cual sea su orden de inserción',()=>{
  const reg:Objeto={id:'o',nombre:'Registro',tipo:'objeto',esencia:'informacional',afiliacion:'sistemica',estados:[{id:'s-1',nombre:'uno'},{id:'s-2',nombre:'dos'},{id:'s-3',nombre:'tres'}]};
  const cosas=[reg,pro('p','Procesar registro'),pro('z','Zeta'),pro('a','Alfa')];
- const dc:Opd={id:'dc',tipo:'descomposicion',padre:'sd',cosa:'p',orden:0,objetosInternos:[],bandas:[['z','a']],apariciones:{p:{...ap,ancho:420,alto:300},o:{...ap,x:-220},z:{...ap,x:60,y:64},a:{...ap,x:240,y:64}}};
+ const dc:Opd={id:'dc',tipo:'descomposicion',padre:'sd',cosa:'p',orden:0,internos:[],bandas:[['z','a']],apariciones:{p:{...ap,ancho:420,alto:300},o:{...ap,x:-220},z:{...ap,x:60,y:64},a:{...ap,x:240,y:64}}};
  const zeta:Enlace={id:'e-20',tipo:'efecto',objeto:'o',proceso:'z',entrada:'s-1',salida:'s-2'},alfa:Enlace={id:'e-21',tipo:'efecto',objeto:'o',proceso:'a',entrada:'s-1',salida:'s-3'};
  const montar=(es:readonly Enlace[])=>congelar({id:'paralelo',nombre:'Paralelo',raiz:'sd',secuencia:100,unidadTiempo:'min',cosas:Object.fromEntries(cosas.map(c=>[c.id,c])),enlaces:Object.fromEntries(es.map(e=>[e.id,e])),abanicos:{},opds:{sd:{id:'sd',tipo:'raiz',apariciones:{o:ap,p:{...ap,x:200}}},dc}}) as Modelo;
  const [zPrimero,aPrimero]=[montar([zeta,alfa]),montar([alfa,zeta])],invertidos=montar([{...zeta,id:'e-21'},{...alfa,id:'e-20'}]);
@@ -558,7 +558,7 @@ test('T-115 EX abstraída conserva dos cotas originales distintas, unidades, dir
             t: { ...pro('t', 'Validar'), tipo: 'proceso', duracion: { min: 2, unidad: 'hour' } },
         },
         opds: { sd: { id: 'sd', tipo: 'raiz', apariciones: { p: ap, q: ap } },
-            h: { id: 'h', tipo: 'descomposicion', padre: 'sd', cosa: 'p', orden: 0, bandas: [['r'], ['t']], objetosInternos: [], apariciones: { p: ap, q: ap, r: ap, t: ap } } },
+            h: { id: 'h', tipo: 'descomposicion', padre: 'sd', cosa: 'p', orden: 0, bandas: [['r'], ['t']], internos: [], apariciones: { p: ap, q: ap, r: ap, t: ap } } },
     });
     expect(validarForma(modelo)).toEqual([]);
     for (const e of Object.values(modelo.enlaces)) expect(violacionesContexto(modelo, e)).toEqual([]);
@@ -656,7 +656,7 @@ test('T-185 cabecera derivada conserva nombre tipo referencias padre y metadatos
  const cambio:Modelo={...b,cosas:{...b.cosas,p:{...b.cosas.p!,nombre:'Gestionar'}}};expect(validarForma(cambio)).toEqual([]);const otra=tomar(cambio,'h');expect(otra.texto).toBe('## SD1 · descomposición de *Gestionar* · en SD');expect(tomar({...b},'h')).toEqual(primera);
  const cosas={...b.cosas};delete cosas.p;cosas.t={...b.cosas.p!,id:'t'};const opds=Object.fromEntries(Object.entries(b.opds).map(([id,o])=>{const apariciones={...o.apariciones};if(apariciones.p){apariciones.t=apariciones.p;delete apariciones.p;}return[id,{...o,apariciones,...(o.tipo!=='raiz'&&o.cosa==='p'?{cosa:'t'}:{})}];}));
  const cambiaRef:Modelo={...b,cosas,opds};expect(validarForma(cambiaRef)).toEqual([]);const tercera=tomar(cambiaRef,'h');expect(tercera.texto).toBe(primera.texto);expect(tercera.refs).toEqual([{tipo:'opd',id:'h'},{tipo:'cosa',id:'t'},{tipo:'opd',id:'sd'}]);
- const cambiarPadre:Modelo={...b,raiz:'raiz-otra',opds:{'raiz-otra':{...b.opds.sd!,id:'raiz-otra'},h:{...b.opds.h!,tipo:'descomposicion',padre:'raiz-otra',cosa:'p',orden:0,bandas:[['q'],['r']],objetosInternos:[]}}};expect(validarForma(cambiarPadre)).toEqual([]);const cuarta=tomar(cambiarPadre,'h');expect(cuarta.texto).toBe(primera.texto);expect(cuarta.refs).toEqual([{tipo:'opd',id:'h'},{tipo:'cosa',id:'p'},{tipo:'opd',id:'raiz-otra'}]);
- for(let i=0;i<70;i++){const raiz=`raiz-cabecera-${i}`,modelo:Modelo={...b,raiz,opds:{[raiz]:{...b.opds.sd!,id:raiz},h:{...b.opds.h!,tipo:'descomposicion',padre:raiz,cosa:'p',orden:0,bandas:[['q'],['r']],objetosInternos:[]}}};expect(validarForma(modelo)).toEqual([]);const l=tomar(modelo,'h');expect(l.refs.at(-1)).toEqual({tipo:'opd',id:raiz});expect(l.texto).toBe(primera.texto);}
+ const cambiarPadre:Modelo={...b,raiz:'raiz-otra',opds:{'raiz-otra':{...b.opds.sd!,id:'raiz-otra'},h:{...b.opds.h!,tipo:'descomposicion',padre:'raiz-otra',cosa:'p',orden:0,bandas:[['q'],['r']],internos:[]}}};expect(validarForma(cambiarPadre)).toEqual([]);const cuarta=tomar(cambiarPadre,'h');expect(cuarta.texto).toBe(primera.texto);expect(cuarta.refs).toEqual([{tipo:'opd',id:'h'},{tipo:'cosa',id:'p'},{tipo:'opd',id:'raiz-otra'}]);
+ for(let i=0;i<70;i++){const raiz=`raiz-cabecera-${i}`,modelo:Modelo={...b,raiz,opds:{[raiz]:{...b.opds.sd!,id:raiz},h:{...b.opds.h!,tipo:'descomposicion',padre:raiz,cosa:'p',orden:0,bandas:[['q'],['r']],internos:[]}}};expect(validarForma(modelo)).toEqual([]);const l=tomar(modelo,'h');expect(l.refs.at(-1)).toEqual({tipo:'opd',id:raiz});expect(l.texto).toBe(primera.texto);}
  expect(Object.isFrozen(primera)).toBe(true);for(const xs of [primera.tokens,primera.refs,primera.hechos])expect(Object.isFrozen(xs)).toBe(true);for(const t of primera.tokens)if(t.ref)expect(Object.isFrozen(t.ref)).toBe(true);expect(Reflect.set(primera.refs[0]!,'id','contaminada')).toBe(false);expect(tomar({...b},'h')).toEqual(primera);expect(JSON.stringify(b)).toBe(original);
 });

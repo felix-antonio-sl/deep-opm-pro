@@ -125,7 +125,7 @@ for (const [i, original] of [...muestras, ...Array.from({ length: SEMILLAS }, (_
     for (const n of cantidades) test(`T-040 T-075 B-28 propiedad refinada muestra${i} subprocesos${n}, ambas orientaciones`, () => {
         const padre = Object.values(original.cosas).find(c => c.tipo === 'proceso')!.id;
         const bandas = Array.from({ length: n }, (_, k) => [`Refinar_${i}_${k}`]);
-        const m = congelar(must(descomponer(original, { opd: original.raiz, proceso: padre, bandas })).modelo), antes = JSON.stringify(m);
+        const m = congelar(must(descomponer(original, { opd: original.raiz, cosa: padre, bandas })).modelo), antes = JSON.stringify(m);
         expect(validarForma(m)).toEqual([]); expect(erroresContexto(m)).toEqual([]);
         const discrepancias: unknown[] = [];
         for (const opd of Object.values(m.opds)) {

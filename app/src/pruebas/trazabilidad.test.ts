@@ -16,7 +16,7 @@ import { documento, entidad } from '../codec/pruebas';
 const caja = { x: 0, y: 0, ancho: 400, alto: 300 };
 function dosOpd(): Modelo {
  const b=modeloCon({objetos:[['Pedido',['nuevo','listo']]],procesos:['Procesar','Preparar','Finalizar']});
- return congelar<Modelo>({...b,opds:{...b.opds,'opd-1':{...b.opds['opd-1']!,apariciones:{'o-2':b.opds['opd-1']!.apariciones['o-2']!,'p-5':b.opds['opd-1']!.apariciones['p-5']!}},h:{id:'h',tipo:'descomposicion',padre:'opd-1',cosa:'p-5',orden:0,bandas:[['p-6'],['p-7']],objetosInternos:[],apariciones:{'p-5':caja,'p-6':{x:40,y:75,ancho:135,alto:60},'p-7':{x:40,y:170,ancho:135,alto:60}}}}});
+ return congelar<Modelo>({...b,opds:{...b.opds,'opd-1':{...b.opds['opd-1']!,apariciones:{'o-2':b.opds['opd-1']!.apariciones['o-2']!,'p-5':b.opds['opd-1']!.apariciones['p-5']!}},h:{id:'h',tipo:'descomposicion',padre:'opd-1',cosa:'p-5',orden:0,bandas:[['p-6'],['p-7']],internos:[],apariciones:{'p-5':caja,'p-6':{x:40,y:75,ancho:135,alto:60},'p-7':{x:40,y:170,ancho:135,alto:60}}}}});
 }
 function sano(m:Modelo){expect(validarForma(m)).toEqual([]);expect(erroresContexto(m)).toEqual([]);}
 test('T-010 OPD y OPL expresan la misma identidad nuclear sin mutarla',()=>{

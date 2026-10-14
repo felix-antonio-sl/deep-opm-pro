@@ -93,7 +93,7 @@ function ancestros(m: Modelo, p: Id, idx: Indice): ReadonlySet<Id> {
     const vistos = new Set<Id>();
     while (!vistos.has(p)) {
         vistos.add(p);
-        const padre = idx.subprocesoDe.get(p), o = padre ? opd(m, padre.opd) : undefined;
+        const padre = idx.bandaDe.get(p), o = padre ? opd(m, padre.opd) : undefined;
         if (!o || o.tipo !== 'descomposicion')
             break;
         p = o.cosa;
@@ -116,7 +116,7 @@ function eventoDesdeFuera(m: Modelo, e: Enlace, idx: Indice): boolean {
     let destino: Id | undefined = e.proceso;
     while (destino !== undefined && !visitados.has(destino)) {
         visitados.add(destino);
-        const padre = idx.subprocesoDe.get(destino), o = padre ? opd(m, padre.opd) : undefined;
+        const padre = idx.bandaDe.get(destino), o = padre ? opd(m, padre.opd) : undefined;
         if (!o || o.tipo !== 'descomposicion') break;
         // Ser interno de un contorno ancestro no exime los contornos intermedios.
         if (!interiores.has(o.id)) return true;
@@ -140,7 +140,7 @@ function colision(m: Modelo, e: Enlace, idx: Indice): Enlace | undefined {
 // tener enlaces propios con el mismo objeto; al abstraer prevalece el de mayor fuerza.
 function entreNiveles(m: Modelo, e: Enlace, idx: Indice): readonly { abstracto: EnlaceProcedimental; detalle: EnlaceProcedimental }[] {
     // Sin subprocesos, ningún proceso distinto puede ser ancestro del otro.
-    if (!esProcedimental(e) || idx.subprocesoDe.size === 0)
+    if (!esProcedimental(e) || idx.bandaDe.size === 0)
         return [];
     const pares: { abstracto: EnlaceProcedimental; detalle: EnlaceProcedimental }[] = [], as = ancestros(m, e.proceso, idx), fan = idx.abanicoDeEnlace.get(e.id);
     for (const id of idx.enlacesDeCosa.get(e.objeto) ?? []) {
@@ -171,7 +171,7 @@ function previos(m: Modelo, e: Enlace, idx: Indice): {
 } {
     if (!esProcedimental(e) || control(e) !== 'e')
         return { evento: false, obligatorio: false };
-    const sub = idx.subprocesoDe.get(e.proceso), o = sub ? opd(m, sub.opd) : undefined;
+    const sub = idx.bandaDe.get(e.proceso), o = sub ? opd(m, sub.opd) : undefined;
     if (!sub || sub.banda === 0 || o?.tipo !== 'descomposicion')
         return { evento: false, obligatorio: false };
     const procesos = new Set(o.bandas.slice(0, sub.banda).flat());
@@ -188,14 +188,14 @@ function escisionInvertida(m: Modelo, e: Enlace, idx: Indice): boolean {
     let p: Id = e.proceso;
     while (!vistos.has(p)) {
         vistos.add(p);
-        const sub = idx.subprocesoDe.get(p), o = sub ? m.opds[sub.opd] : undefined;
+        const sub = idx.bandaDe.get(p), o = sub ? m.opds[sub.opd] : undefined;
         if (!sub || o?.tipo !== 'descomposicion') break;
         bandas.set(o.id, sub.banda); p = o.cosa;
     }
     vistos.clear(); p = salida.proceso;
     while (!vistos.has(p)) {
         vistos.add(p);
-        const sub = idx.subprocesoDe.get(p), o = sub ? m.opds[sub.opd] : undefined;
+        const sub = idx.bandaDe.get(p), o = sub ? m.opds[sub.opd] : undefined;
         if (!sub || o?.tipo !== 'descomposicion') break;
         const entrada = bandas.get(o.id);
         if (entrada !== undefined && entrada !== sub.banda) return entrada > sub.banda;
@@ -283,7 +283,7 @@ export const REGLAS_CONTEXTO: readonly ReglaContexto[] = Object.freeze([
     regla({ id: 'R-INV-2D', tipos: ['invocacion'], severidad: 'error', accion: 'Quita el rayo: la secuencia ya invoca la banda siguiente', reparacion: e => ({ op: 'eliminarEnlaces', args: { enlaces: [e.id] } }), viola(_m, e, idx) {
             if (e.tipo !== 'invocacion')
                 return null;
-            const a = idx.subprocesoDe.get(e.origen), b = idx.subprocesoDe.get(e.destino);
+            const a = idx.bandaDe.get(e.origen), b = idx.bandaDe.get(e.destino);
             return a && b && a.opd === b.opd && b.banda === a.banda + 1 ? 'La invocación duplica la transición a la banda siguiente: el perfil la bloquea; el canon la admite como el mismo hecho (R-INV-2B).' : null;
         } }),
 ]);

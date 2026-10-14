@@ -9,7 +9,7 @@ import type { Modelo, OpdDescomposicion, Objeto } from './tipos';
 
 function descompuesta(): Modelo {
     const m = modeloCon({ objetos: [['Externo', []], ['Interno', []]], procesos: ['Procesar', 'Iniciar', 'Terminar'] });
-    const hijo: OpdDescomposicion = { id: 'opd-7', tipo: 'descomposicion', padre: 'opd-1', cosa: 'p-4', orden: 0, bandas: [['p-5'], ['p-6']], objetosInternos: ['o-3'], apariciones: {
+    const hijo: OpdDescomposicion = { id: 'opd-7', tipo: 'descomposicion', padre: 'opd-1', cosa: 'p-4', orden: 0, bandas: [['p-5'], ['p-6']], internos: ['o-3'], apariciones: {
         'p-4': { x: 100, y: 100, ancho: 500, alto: 400 },
         'p-5': { x: 200, y: 164, ancho: 135, alto: 60 },
         'p-6': { x: 220, y: 264, ancho: 135, alto: 60 },
@@ -146,7 +146,7 @@ test('T-081 traer externo dentro del contenedor rebota con traza sin convertirlo
     const r = c.traerCosa(base, { cosa: 'o-2', opd: 'opd-7', x: 250, y: 250 }), n = bien(r);
     const o = n.opds['opd-7'] as OpdDescomposicion, p = o.apariciones['o-2']!;
     expect(p.x + p.ancho <= 100 || p.x >= 600 || p.y + p.alto <= 100 || p.y >= 500).toBe(true);
-    expect(o.objetosInternos).toEqual(['o-3']);
+    expect(o.internos).toEqual(['o-3']);
     if (r.ok) expect(r.trazas.some(t => t.regla === 'T-081')).toBe(true);
 });
 test('T-082 mover contenedor traslada internos una vez, mantiene bandas y externos', () => {
@@ -210,7 +210,7 @@ test('T-080 eliminar cascada de enlaces/estados/apariciones y miembro banda sin 
     const n = bien(c.eliminarCosas(m, { cosas: ['p-5', 'o-3'] }));
     expect(n.cosas).not.toHaveProperty('p-5'); expect(n.cosas).not.toHaveProperty('o-3');
     expect((n.opds['opd-7'] as OpdDescomposicion).bandas).toEqual([['p-6']]);
-    expect((n.opds['opd-7'] as OpdDescomposicion).objetosInternos).toEqual([]);
+    expect((n.opds['opd-7'] as OpdDescomposicion).internos).toEqual([]);
     expect(n.opds['opd-1']!.apariciones).not.toHaveProperty('p-5');
     expect(n.secuencia).toBe(m.secuencia);
 });
@@ -226,7 +226,7 @@ test('T-062 crear internos incorpora bandas/objetos, hereda ambiental y usa geom
     const base = descompuesta(), m = congelar({ ...base, cosas: { ...base.cosas, 'p-4': { ...base.cosas['p-4']!, afiliacion: 'ambiental' as const } } });
     const r = c.crearCosa(m, { opd: 'opd-7', tipo: 'objeto', nombre: 'Dato', x: 250, y: 250 });
     const n = bien(r), o = n.opds['opd-7'] as OpdDescomposicion;
-    expect(o.objetosInternos).toEqual(['o-3', 'o-8']); expect(n.cosas['o-8']?.afiliacion).toBe('ambiental');
+    expect(o.internos).toEqual(['o-3', 'o-8']); expect(n.cosas['o-8']?.afiliacion).toBe('ambiental');
     if (r.ok) expect(r.trazas.some(t => t.regla === 'R-OBJ-6')).toBe(true);
     const q = bien(c.crearCosa(m, { opd: 'opd-7', tipo: 'proceso', nombre: 'Continuar', x: -300, y: 0, alcance: 'interno', banda: { indice: 0, paralelo: true } }));
     expect((q.opds['opd-7'] as OpdDescomposicion).bandas).toEqual([['p-5', 'p-8'], ['p-6']]);
@@ -296,7 +296,7 @@ test('T-063 tipos de miembros internos no cambian a categoría incompatible con 
 test('T-062 alcance externo explícito prevalece sobre punto interno, banda inválida es atómica', () => {
     const m = descompuesta();
     const n = bien(c.crearCosa(m, { opd: 'opd-7', tipo: 'objeto', nombre: 'Dato', x: 250, y: 250, alcance: 'externo' }));
-    expect((n.opds['opd-7'] as OpdDescomposicion).objetosInternos).toEqual(['o-3']);
+    expect((n.opds['opd-7'] as OpdDescomposicion).internos).toEqual(['o-3']);
     expect(proyectar(n, 'opd-7').cosas.find(c => c.cosa === 'o-8')?.rol).toBe('externo');
     rechazo(c.crearCosa(m, { opd: 'opd-7', tipo: 'proceso', nombre: 'Continuar', x: 250, y: 250, banda: { indice: 9, paralelo: true } }), 'forma', 'F-8');
     expect(m.secuencia).toBe(8);

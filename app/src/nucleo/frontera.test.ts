@@ -14,7 +14,7 @@ function ejemplo(tipos: readonly EnlaceProcedimental['tipo'][]): Modelo {
             ...Object.fromEntries(procesos.map(id => [id, { id, tipo: 'proceso', nombre: id, esencia: 'informacional', afiliacion: 'sistemica' }])) },
         enlaces: Object.fromEntries(enlaces.map(e => [e.id, e])), abanicos: {},
         opds: { raiz: { id: 'raiz', tipo: 'raiz', apariciones: { b: caja, p: caja } },
-            hijo: { id: 'hijo', tipo: 'descomposicion', padre: 'raiz', cosa: 'p', orden: 0, objetosInternos: [], bandas: [['primero'], ['ultimo']], apariciones: { b: caja, p: caja, primero: caja, ultimo: caja } } }
+            hijo: { id: 'hijo', tipo: 'descomposicion', padre: 'raiz', cosa: 'p', orden: 0, internos: [], bandas: [['primero'], ['ultimo']], apariciones: { b: caja, p: caja, primero: caja, ultimo: caja } } }
     } as Modelo);
 }
 

@@ -77,7 +77,7 @@ test('T-172 nota única sólo ante ausencia real, no al autorreparse completo',(
 test('T-159 escisión original y EX de fuente elevada no se destruyen al auto-reparsear',()=>{
  const b=vacio(),r=aplicarAcciones(b,[{op:'crearCosa',args:{opd:b.raiz,tipo:'proceso',nombre:'Gestionar',x:0,y:0}},{op:'crearCosa',args:{opd:b.raiz,tipo:'proceso',nombre:'Recuperar',x:700,y:0}}]);expect(r.ok).toBe(true);if(!r.ok)return;
  const parent=Object.values(r.valor.modelo.cosas).find(c=>c.nombre==='Gestionar')!.id,handler=Object.values(r.valor.modelo.cosas).find(c=>c.nombre==='Recuperar')!.id;
- const d=aplicarAcciones(r.valor.modelo,[{op:'fijarDuracion',args:{proceso:parent,duracion:{max:60,min:30,unidad:'min'}}},{op:'descomponer',args:{opd:b.raiz,proceso:parent,bandas:[['Preparar'],['Validar']]}}]);expect(d.ok).toBe(true);if(!d.ok)return;
+ const d=aplicarAcciones(r.valor.modelo,[{op:'fijarDuracion',args:{proceso:parent,duracion:{max:60,min:30,unidad:'min'}}},{op:'descomponer',args:{opd:b.raiz,cosa:parent,bandas:[['Preparar'],['Validar']]}}]);expect(d.ok).toBe(true);if(!d.ok)return;
  const model=d.valor.modelo,child=Object.values(model.opds).find(o=>o.tipo==='descomposicion')!,prep=Object.values(model.cosas).find(c=>c.nombre==='Preparar')!.id,valid=Object.values(model.cosas).find(c=>c.nombre==='Validar')!.id;
  const e=aplicarAcciones(model,[{op:'traerCosa',args:{opd:child.id,cosa:handler,x:600,y:0}},{op:'fijarDuracion',args:{proceso:prep,duracion:{max:5,unidad:'min'}}},{op:'fijarDuracion',args:{proceso:valid,duracion:{min:2,unidad:'hour'}}},{op:'crearEnlace',args:{opd:child.id,candidato:{tipo:'excepcionSobretiempo',origen:prep,destino:handler}}},{op:'crearEnlace',args:{opd:child.id,candidato:{tipo:'excepcionSubtiempo',origen:valid,destino:handler}}}]);expect(e.ok).toBe(true);if(!e.ok)return;
  const m=e.valor.modelo,before=JSON.stringify(m),p=planificar(m,b.raiz,textoCanonico(generarBloque(m,b.raiz)));
@@ -95,7 +95,7 @@ test('T-168 dos EX de mismo campo elevado se resuelven por destino y fuente nucl
  const app=b.opds[b.raiz]!.apariciones;
  const m=congelar<Modelo>({...b,cosas:{...b.cosas,[p!.id]:{...p!,tipo:'proceso',duracion:{max:60,unidad:'min'}},[s1!.id]:{...s1!,tipo:'proceso',duracion:{max:5,unidad:'min'}},[s2!.id]:{...s2!,tipo:'proceso',duracion:{max:2,unidad:'hour'}}},
   enlaces:{uno:{id:'uno',tipo:'excepcionSobretiempo',origen:s1!.id,destino:h1!.id},dos:{id:'dos',tipo:'excepcionSobretiempo',origen:s2!.id,destino:h2!.id}},
-  opds:{[b.raiz]:{id:b.raiz,tipo:'raiz',apariciones:Object.fromEntries([p!,h1!,h2!].map(c=>[c.id,app[c.id]!]))},h:{id:'h',tipo:'descomposicion',padre:b.raiz,cosa:p!.id,orden:0,bandas:[[s1!.id],[s2!.id]],objetosInternos:[],apariciones:app}}});
+  opds:{[b.raiz]:{id:b.raiz,tipo:'raiz',apariciones:Object.fromEntries([p!,h1!,h2!].map(c=>[c.id,app[c.id]!]))},h:{id:'h',tipo:'descomposicion',padre:b.raiz,cosa:p!.id,orden:0,bandas:[[s1!.id],[s2!.id]],internos:[],apariciones:app}}});
  expect(validarForma(m)).toEqual([]);expect(erroresContexto(m)).toEqual([]);
  const t=textoCanonico(generarBloque(m,b.raiz));expect(t).toContain('excede 5 minutos');expect(t).toContain('excede 2 horas');
  const before=JSON.stringify(m),a=planificar(m,b.raiz,t);expect(a.acciones).toEqual([]);expect(a.resumen.noAplicables).toBe(0);
@@ -152,7 +152,7 @@ import {proyectar} from '../nucleo/proyeccion';
 
 
 test('T-167 etiqueta SD1 resuelve ID persistente del hijo al crear en su contexto',()=>{
- const b=modeloCon({procesos:['Gestionar']}),proceso=Object.keys(b.cosas)[0]!,m=must(aplicarAcciones(b,[{op:'descomponer',args:{opd:b.raiz,proceso,bandas:[['Preparar'],['Validar']]}}])).modelo,child=Object.values(m.opds).find(o=>o.tipo==='descomposicion')!;
+ const b=modeloCon({procesos:['Gestionar']}),proceso=Object.keys(b.cosas)[0]!,m=must(aplicarAcciones(b,[{op:'descomponer',args:{opd:b.raiz,cosa: proceso,bandas:[['Preparar'],['Validar']]}}])).modelo,child=Object.values(m.opds).find(o=>o.tipo==='descomposicion')!;
  const antes=JSON.stringify(m),p=planificar(m,'modelo','## SD1\n**Cuenta** es informacional.');expect(p.resumen.noAplicables).toBe(0);expect(p.acciones.find(a=>a.op==='crearCosa')).toMatchObject({args:{opd:child.id,nombre:'Cuenta',tipo:'objeto'}});
  const resultado=must(aplicarPlan(m,p)).modelo,c=Object.values(resultado.cosas).find(c=>c.nombre==='Cuenta')!;expect(resultado.opds[child.id]!.apariciones[c.id]).toBeDefined();expect(resultado.opds[m.raiz]!.apariciones[c.id]).toBeUndefined();expect(JSON.stringify(m)).toBe(antes);
 });

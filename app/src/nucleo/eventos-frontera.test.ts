@@ -7,7 +7,7 @@ import { erroresContexto, tiposLegales, violacionesContexto } from './matriz';
 import { crearEnlace, fijarControl, reanclarExtremo } from './enlaces';
 import { fijarAfiliacion } from './cosas';
 import { fijarControlAbanico } from './abanicos';
-import { agregarSubprocesos, descomponer } from './refinamiento';
+import { agregarEnDescomposicion, descomponer } from './refinamiento';
 import { diagnosticar, gatesExportacion } from './diagnostico';
 import { proyectar } from './proyeccion';
 import { exportarV0 } from '../codec/exportar';
@@ -28,9 +28,9 @@ function jerarquia(afiliacion: Afiliacion = 'sistemica', enlaces: readonly Enlac
         enlaces: Object.fromEntries(enlaces.map(e => [e.id, e])), abanicos: {},
         opds: {
             sd: { id: 'sd', tipo: 'raiz', apariciones: { o: ap(0), p: ap(250), q: ap(500) } },
-            dp: { id: 'dp', tipo: 'descomposicion', padre: 'sd', cosa: 'p', orden: 0, bandas: [['a'], ['z']], objetosInternos: ['ip'],
+            dp: { id: 'dp', tipo: 'descomposicion', padre: 'sd', cosa: 'p', orden: 0, bandas: [['a'], ['z']], internos: ['ip'],
                 apariciones: { p: { x: 100, y: 0, ancho: 480, alto: 480 }, a: ap(240), z: ap(240, 300), ip: ap(390), o: ap(-100), q: ap(650) } },
-            da: { id: 'da', tipo: 'descomposicion', padre: 'dp', cosa: 'a', orden: 0, bandas: [['l'], ['r']], objetosInternos: ['ia'],
+            da: { id: 'da', tipo: 'descomposicion', padre: 'dp', cosa: 'a', orden: 0, bandas: [['l'], ['r']], internos: ['ia'],
                 apariciones: { a: { x: 100, y: 0, ancho: 480, alto: 480 }, l: ap(240), r: ap(240, 300), ia: ap(390), ip: ap(-100, 200), o: ap(-100), q: ap(650) } },
         } });
 }
@@ -176,9 +176,9 @@ for (const candidato of [
     test(`T-073 distribución incompatible ${candidato.tipo} ${'salida' in candidato ? 'TS3' : 'entrada'} rechaza descomposición e inserción completas`, () => {
         const j = jerarquia(), { ip, ia, a, z, l, r, ...cosas } = j.cosas;
         const m: Modelo = congelar({ ...j, cosas, opds: { sd: j.opds.sd! }, enlaces: { e: { ...candidato, id: 'e' } } }); sano(m);
-        rechazado(descomponer(m, { opd: 'sd', proceso: 'p', bandas: [['Recibir'], ['Despachar']] }), m, JSON.stringify(m));
-        const vacio = must(descomponer(m, { opd: 'sd', proceso: 'p' })).modelo; sano(vacio);
-        const antes = JSON.stringify(vacio), resultado = agregarSubprocesos(vacio, { opd: 'opd-100', bandas: [['Recibir']], posicion: 'final' });
+        rechazado(descomponer(m, { opd: 'sd', cosa: 'p', bandas: [['Recibir'], ['Despachar']] }), m, JSON.stringify(m));
+        const vacio = must(descomponer(m, { opd: 'sd', cosa: 'p' })).modelo; sano(vacio);
+        const antes = JSON.stringify(vacio), resultado = agregarEnDescomposicion(vacio, { opd: 'opd-100', bandas: [['Recibir']], posicion: 'final' });
         expect(resultado.ok).toBe(false); if (!resultado.ok) expect(resultado.rechazo.regla).toBe('R-CX-DIST-2');
         expect(JSON.stringify(vacio)).toBe(antes); expect(vacio.secuencia).toBe(101);
     });
@@ -191,11 +191,11 @@ for (const candidato of [
     test(`T-073 distribución ${candidato.tipo} ${'salida' in candidato ? 'TS3' : 'entrada'} de evento ambiental migra al primer subproceso con su control`, () => {
         const j = jerarquia('ambiental'), { ip, ia, a, z, l, r, ...cosas } = j.cosas;
         const m: Modelo = congelar({ ...j, cosas, opds: { sd: j.opds.sd! }, enlaces: { e: { ...candidato, id: 'e' } } }); sano(m);
-        const d = must(descomponer(m, { opd: 'sd', proceso: 'p', bandas: [['Recibir'], ['Despachar']] })).modelo; sano(d);
+        const d = must(descomponer(m, { opd: 'sd', cosa: 'p', bandas: [['Recibir'], ['Despachar']] })).modelo; sano(d);
         expect(d.cosas['p-101']!.nombre).toBe('Recibir');
         expect(d.enlaces).toEqual({ e: { ...candidato, id: 'e', proceso: 'p-101' } });
-        const vacio = must(descomponer(m, { opd: 'sd', proceso: 'p' })).modelo; sano(vacio);
-        const agregado = must(agregarSubprocesos(vacio, { opd: 'opd-100', bandas: [['Recibir']], posicion: 'final' })).modelo; sano(agregado);
+        const vacio = must(descomponer(m, { opd: 'sd', cosa: 'p' })).modelo; sano(vacio);
+        const agregado = must(agregarEnDescomposicion(vacio, { opd: 'opd-100', bandas: [['Recibir']], posicion: 'final' })).modelo; sano(agregado);
         expect(agregado.enlaces).toEqual({ e: { ...candidato, id: 'e', proceso: 'p-101' } });
     });
 

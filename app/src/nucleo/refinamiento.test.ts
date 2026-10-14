@@ -1,7 +1,7 @@
 import { expect, test } from 'bun:test';
 import { esProcedimental } from './tipos';
 import type { Enlace, Modelo, OpdDescomposicion, Objeto } from './tipos';
-import { descomponer, agregarSubprocesos, moverSubproceso, fijarBandas, desplegar, agregarRefinadores, eliminarRefinamiento } from './refinamiento';
+import { descomponer, agregarEnDescomposicion, moverEnDescomposicion, fijarBandas, desplegar, agregarRefinadores, eliminarRefinamiento } from './refinamiento';
 import { crearEnlace, distribuirEnlace, cambiarTipoEnlace, fijarControl, reanclarExtremo as reanclar } from './enlaces';
 import { crearCosa, traerCosa } from './cosas';
 import { validarForma } from './forma';
@@ -20,30 +20,30 @@ function base(e?: Enlace): Modelo {
 }
 function refinado(n: 0 | 1 | 3, e: Enlace): Modelo {
     const m = base(e), ids = ['a', 'z', 'c'].slice(0, n), procesos = Object.fromEntries(ids.map((id, i) => [id, { id, tipo: 'proceso' as const, nombre: ['Recibir', 'Validar', 'Despachar'][i]!, esencia: 'informacional' as const, afiliacion: 'sistemica' as const }]));
-    const dc: OpdDescomposicion = { id: 'dc', tipo: 'descomposicion', padre: 'sd', cosa: 'p', orden: 0, bandas: ids.map(id => [id]), objetosInternos: [], apariciones: { p: { x: 0, y: 0, ancho: 420, alto: 500 }, o: { x: -220, y: 70, ancho: 135, alto: 60 }, b: { x: -220, y: 170, ancho: 135, alto: 60 }, q: { x: 550, y: 170, ancho: 135, alto: 60 }, ...Object.fromEntries(ids.map((id, i) => [id, { x: 140, y: 64 + 100 * i, ancho: 135, alto: 60 }])) } };
+    const dc: OpdDescomposicion = { id: 'dc', tipo: 'descomposicion', padre: 'sd', cosa: 'p', orden: 0, bandas: ids.map(id => [id]), internos: [], apariciones: { p: { x: 0, y: 0, ancho: 420, alto: 500 }, o: { x: -220, y: 70, ancho: 135, alto: 60 }, b: { x: -220, y: 170, ancho: 135, alto: 60 }, q: { x: 550, y: 170, ancho: 135, alto: 60 }, ...Object.fromEntries(ids.map((id, i) => [id, { x: 140, y: 64 + 100 * i, ancho: 135, alto: 60 }])) } };
     return congelar({ ...m, cosas: { ...m.cosas, ...procesos }, opds: { ...m.opds, dc } });
 }
 function conProceso(e: Enlace, proceso: string): Enlace { if (!esProcedimental(e)) throw Error('Se esperaba enlace procedimental del fixture.'); return { ...e, proceso }; }
 function sano(m: Modelo) { expect(validarForma(m)).toEqual([]); expect(erroresContexto(m)).toEqual([]); }
 test('T-070 descomponer copia todos los conectados sin semillas y conserva entrada', () => {
     const m = base({ id: 'e', tipo: 'consumo', objeto: 'o', proceso: 'p' }), antes = JSON.stringify(m); sano(m);
-    const r = must(descomponer(m, { opd: 'sd', proceso: 'p' })), dc = r.modelo.opds[r.creados[0]!]!;
-    expect(dc).toMatchObject({ tipo: 'descomposicion', padre: 'sd', cosa: 'p', bandas: [], objetosInternos: [] });
+    const r = must(descomponer(m, { opd: 'sd', cosa: 'p' })), dc = r.modelo.opds[r.creados[0]!]!;
+    expect(dc).toMatchObject({ tipo: 'descomposicion', padre: 'sd', cosa: 'p', bandas: [], internos: [] });
     expect(Object.keys(dc.apariciones).sort()).toEqual(['o', 'p']); expect(dc.apariciones.p!.ancho).toBeGreaterThan(135);
     expect(r.creados).toEqual(['opd-100']); expect(r.modelo.cosas).toBe(m.cosas); expect(r.modelo.enlaces).toBe(m.enlaces); sano(r.modelo); expect(JSON.stringify(m)).toBe(antes);
 });
 test('T-070 T-075 descomponer bandas en un resultado atómico migra C primero R último', () => {
     const m0 = base({ id: 'e', tipo: 'consumo', objeto: 'o', proceso: 'p' }), m: Modelo = congelar({ ...m0, enlaces: { ...m0.enlaces, r: { id: 'r', tipo: 'resultado', objeto: 'b', proceso: 'p' } } });
-    const r = must(descomponer(m, { opd: 'sd', proceso: 'p', bandas: [['Recibir', 'Revisar'], ['Despachar']] }));
+    const r = must(descomponer(m, { opd: 'sd', cosa: 'p', bandas: [['Recibir', 'Revisar'], ['Despachar']] }));
     const dc = r.modelo.opds['opd-100']! as OpdDescomposicion;
     expect(dc.bandas).toEqual([['p-101', 'p-102'], ['p-103']]); expect(r.modelo.enlaces.e).toMatchObject({ id: 'e', proceso: 'p-101' }); expect(r.modelo.enlaces.r).toMatchObject({ id: 'r', proceso: 'p-103' }); sano(r.modelo);
 });
 for (const [proceso, want] of [['o', 'descomposicion-objeto'], ['ausente', 'no-encontrado']] as const)
-    test(`T-070 rechaza ${want} sin reservar ID`, () => { const m = base(), antes = JSON.stringify(m), r = descomponer(m, { opd: 'sd', proceso }); expect(r.ok).toBe(false); if (!r.ok) expect(r.rechazo.codigo).toBe(want); expect(JSON.stringify(m)).toBe(antes); });
+    test(`T-070 rechaza ${want} sin reservar ID`, () => { const m = base(), antes = JSON.stringify(m), r = descomponer(m, { opd: 'sd', cosa: proceso }); expect(r.ok).toBe(false); if (!r.ok) expect(r.rechazo.codigo).toBe(want); expect(JSON.stringify(m)).toBe(antes); });
 test('T-078 T-079 rechaza ciclo contenedor y externo; refinado existente', () => {
     const m = refinado(1, { id: 'e', tipo: 'instrumento', objeto: 'o', proceso: 'p' });
     for (const [opd, proceso, codigo] of [['dc', 'p', 'ciclo'], ['dc', 'q', 'externo-no-refinable'], ['sd', 'p', 'ya-refinado']] as const) {
-        const r = descomponer(m, { opd, proceso }); expect(r.ok).toBe(false); if (!r.ok) expect(r.rechazo.codigo).toBe(codigo);
+        const r = descomponer(m, { opd, cosa: proceso }); expect(r.ok).toBe(false); if (!r.ok) expect(r.rechazo.codigo).toBe(codigo);
     }
 });
 const filas: readonly [string, Enlace, 'primero' | 'ultimo' | 'escision' | 'contorno' | 'rechazo'][] = [
@@ -86,9 +86,9 @@ for (const [nombre, e, destino] of filas) for (const n of [0, 1, 3] as const)
     });
 test('T-076 primera inserción de todos los nombres distribuye una vez, posteriores no migran', () => {
     const m = refinado(0, { id: 'e', tipo: 'resultado', objeto: 'o', proceso: 'p' });
-    const a = must(agregarSubprocesos(m, { opd: 'dc', bandas: [['Recibir'], ['Despachar']], posicion: 'final' }));
+    const a = must(agregarEnDescomposicion(m, { opd: 'dc', bandas: [['Recibir'], ['Despachar']], posicion: 'final' }));
     expect(a.modelo.enlaces.e).toMatchObject({ proceso: 'p-101' });
-    const b = must(agregarSubprocesos(a.modelo, { opd: 'dc', bandas: [['Archivar']], posicion: 'final' }));
+    const b = must(agregarEnDescomposicion(a.modelo, { opd: 'dc', bandas: [['Archivar']], posicion: 'final' }));
     expect(b.modelo.enlaces.e).toEqual(a.modelo.enlaces.e); sano(b.modelo);
 });
 test('T-076 hook crearCosa interno activa distribución y hereda afiliación', () => {
@@ -98,7 +98,7 @@ test('T-076 hook crearCosa interno activa distribución y hereda afiliación', (
 });
 test('T-075 enlace tardío recursivo conserva ID y externos de cada nivel', () => {
     const m = refinado(3, { id: 'e', tipo: 'instrumento', objeto: 'b', proceso: 'p' });
-    const a = must(descomponer(m, { opd: 'dc', proceso: 'a', bandas: [['Inspeccionar'], ['Aceptar']] })).modelo;
+    const a = must(descomponer(m, { opd: 'dc', cosa: 'a', bandas: [['Inspeccionar'], ['Aceptar']] })).modelo;
     const r = must(crearEnlace(a, { opd: 'sd', candidato: { tipo: 'consumo', objeto: 'o', proceso: 'p', estado: 's0' } }));
     const id = r.creados[0]!; expect(r.modelo.enlaces[id]).toMatchObject({ id, proceso: 'p-101', estado: 's0' });
     expect(r.modelo.opds.dc!.apariciones.o).toBeDefined(); expect(r.modelo.opds['opd-100']!.apariciones.o).toBeDefined(); sano(r.modelo);
@@ -113,7 +113,7 @@ for (const modo of ['agregacion', 'exhibicion', 'generalizacion', 'clasificacion
         expect(nuevo.modelo.cosas['o-101']!.tipo).toBe('objeto'); expect(nuevo.modelo.enlaces['e-102']).toMatchObject({ tipo: modo, refinable: 'o', refinador: 'o-101' }); sano(nuevo.modelo);
     });
 test('T-083 T-080 DS16 eliminar hoja materializa TS3 y conserva externos', () => {
-    const a = base({ id: 'e', tipo: 'efecto', objeto: 'o', proceso: 'p', entrada: 's0', salida: 's1' }), r = must(descomponer(a, { opd: 'sd', proceso: 'p', bandas: [['Recibir'], ['Despachar']] }));
+    const a = base({ id: 'e', tipo: 'efecto', objeto: 'o', proceso: 'p', entrada: 's0', salida: 's1' }), r = must(descomponer(a, { opd: 'sd', cosa: 'p', bandas: [['Recibir'], ['Despachar']] }));
     const out = must(eliminarRefinamiento(r.modelo, { opd: 'opd-100' })).modelo;
     expect(Object.keys(out.opds)).toEqual(['sd']); expect(Object.keys(out.cosas).sort()).toEqual(['b', 'o', 'p', 'q']); expect(out.enlaces.e).toEqual(a.enlaces.e); expect(Object.keys(out.enlaces)).toEqual(['e']); sano(out);
 });
@@ -126,22 +126,22 @@ test('T-074 fijarBandas acepta partición completa, realiza Y y conserva enlaces
     }
 });
 for (const regla of ['AP-27', 'R-INV-2D'] as const)
-    test(`T-082 T-269 moverSubproceso permite ${regla} recuperable; fijarBandas normal rechaza`, () => {
+    test(`T-082 T-269 moverEnDescomposicion permite ${regla} recuperable; fijarBandas normal rechaza`, () => {
         const externo = refinado(3, { id: 'e', tipo: 'agente', objeto: 'o', proceso: 'a', control: 'e' }), dc = externo.opds.dc! as OpdDescomposicion;
         const { o: aparicionExterna, ...aparicionesRaiz } = externo.opds.sd!.apariciones;
         // AP-27 se contrasta con un evento interno legal; el cruce exterior es T-060.
-        const inicial: Modelo = congelar({ ...externo, opds: { ...externo.opds, sd: { ...externo.opds.sd!, apariciones: aparicionesRaiz }, dc: { ...dc, objetosInternos: ['o'] } } });
+        const inicial: Modelo = congelar({ ...externo, opds: { ...externo.opds, sd: { ...externo.opds.sd!, apariciones: aparicionesRaiz }, dc: { ...dc, internos: ['o'] } } });
         const m: Modelo = regla === 'AP-27' ? congelar({ ...inicial, enlaces: { ...inicial.enlaces, r: { id: 'r', tipo: 'consumo', objeto: 'b', proceso: 'z' } } }) : congelar({ ...inicial, enlaces: { e: { id: 'e', tipo: 'invocacion', origen: 'a', destino: 'c' } } });
         const proceso = regla === 'AP-27' ? 'a' : 'c', banda = regla === 'AP-27' ? 2 : 1;
         const particion = regla === 'AP-27' ? [['z'], ['c', 'a']] : [['a'], ['z', 'c']];
         sano(m); const antes = JSON.stringify(m);
         const normal = fijarBandas(m, { opd: 'dc', bandas: particion }); expect(normal.ok).toBe(false); if (!normal.ok) expect(normal.rechazo.codigo).toBe('contexto');
-        const movido = must(moverSubproceso(m, { opd: 'dc', proceso, destino: { banda } })).modelo;
+        const movido = must(moverEnDescomposicion(m, { opd: 'dc', cosa: proceso, destino: { banda } })).modelo;
         expect((movido.opds.dc! as OpdDescomposicion).bandas).toEqual(particion); expect(movido.enlaces).toBe(m.enlaces); expect(erroresContexto(movido).some(v => v.regla === regla)).toBe(true); expect(validarForma(movido)).toEqual([]); expect(JSON.stringify(m)).toBe(antes);
     });
 test('T-082 mover a nueva banda elimina la vacía y nunca migra', () => {
     const m = refinado(3, { id: 'e', tipo: 'consumo', objeto: 'o', proceso: 'a' });
-    const r = must(moverSubproceso(m, { opd: 'dc', proceso: 'a', destino: { nuevaBandaAntesDe: 3 } })).modelo;
+    const r = must(moverEnDescomposicion(m, { opd: 'dc', cosa: 'a', destino: { nuevaBandaAntesDe: 3 } })).modelo;
     expect((r.opds.dc! as OpdDescomposicion).bandas).toEqual([['z'], ['c'], ['a']]); expect(r.enlaces).toBe(m.enlaces); sano(r);
 });
 test('T-074 DS4 abanico TS3 migra entero con operador y IDs en todas las ramas', () => {
@@ -162,14 +162,14 @@ test('T-075 DS20 colisión FINAL rechaza creación tardía, no muta ni reserva I
 test('T-076 nombres ambiguos y léxico inválido rechazan inserción atómica completa', () => {
     const m = refinado(0, { id: 'e', tipo: 'instrumento', objeto: 'o', proceso: 'p' }), antes = JSON.stringify(m);
     for (const [bandas, codigo] of [[[['Recibir'], ['Pedido']], 'referencia-ambigua'], [[['Recibir'], ['incorrecto']], 'lexico']] as const) {
-        const r = agregarSubprocesos(m, { opd: 'dc', bandas, posicion: 'final' }); expect(r.ok).toBe(false); if (!r.ok) expect(r.rechazo.codigo).toBe(codigo); expect(JSON.stringify(m)).toBe(antes);
+        const r = agregarEnDescomposicion(m, { opd: 'dc', bandas, posicion: 'final' }); expect(r.ok).toBe(false); if (!r.ok) expect(r.rechazo.codigo).toBe(codigo); expect(JSON.stringify(m)).toBe(antes);
     }
 });
 test('T-083 rechaza no hoja; al eliminar hermano renumera orden sin alterar IDs', () => {
-    const a = must(descomponer(base(), { opd: 'sd', proceso: 'p', bandas: [['Recibir'], ['Despachar']] })).modelo;
-    const hijo = must(descomponer(a, { opd: 'opd-100', proceso: 'p-101' })).modelo;
+    const a = must(descomponer(base(), { opd: 'sd', cosa: 'p', bandas: [['Recibir'], ['Despachar']] })).modelo;
+    const hijo = must(descomponer(a, { opd: 'opd-100', cosa: 'p-101' })).modelo;
     const no = eliminarRefinamiento(hijo, { opd: 'opd-100' }); expect(no.ok).toBe(false); if (!no.ok) expect(no.rechazo.codigo).toBe('refinamiento-no-hoja');
-    const hermano = must(descomponer(a, { opd: 'sd', proceso: 'q' })).modelo, qid = indice(hermano).refinamientosDe.get('q')!.descomposicion!;
+    const hermano = must(descomponer(a, { opd: 'sd', cosa: 'q' })).modelo, qid = indice(hermano).refinamientosDe.get('q')!.descomposicion!;
     const r = must(eliminarRefinamiento(hermano, { opd: 'opd-100' })).modelo; expect(r.opds[qid]).toMatchObject({ id: qid, orden: 0 }); expect(indice(r).etiqueta.get(qid)).toBe('SD1'); sano(r);
 });
 test('T-020 ensayo compartido no rechaza borrador anterior al retiro final del valor huérfano', () => {
@@ -177,10 +177,10 @@ test('T-020 ensayo compartido no rechaza borrador anterior al retiro final del v
     sano(m); const r = must(cambiarTipoEnlace(m, { enlace: 'e', tipo: 'agregacion' })).modelo; expect(r.cosas.b).not.toHaveProperty('valor'); expect(r.enlaces.e).toEqual({ id: 'e', tipo: 'agregacion', refinable: 'o', refinador: 'b' }); sano(r);
 });
 test('T-077 operaciones permiten placeholder vacío; uno o más hijos cierran (ISO §10.3.1)', () => {
-    const m = base(), vacio = must(descomponer(m, { opd: 'sd', proceso: 'p' })).modelo;
+    const m = base(), vacio = must(descomponer(m, { opd: 'sd', cosa: 'p' })).modelo;
     expect(diagnosticar(vacio).some(d => d.codigo === 'refinamiento-trivial' && d.opd === 'opd-100')).toBe(true); expect(gatesExportacion(vacio, { opd: 'opd-100' }).some(d => d.regla.includes('R-REF-NTRIV'))).toBe(true);
     for (const bandas of [[['Recibir']], [['Recibir'], ['Despachar']]]) {
-        const actual = must(agregarSubprocesos(vacio, { opd: 'opd-100', bandas, posicion: 'final' })).modelo;
+        const actual = must(agregarEnDescomposicion(vacio, { opd: 'opd-100', bandas, posicion: 'final' })).modelo;
         expect(diagnosticar(actual).some(d => d.codigo === 'refinamiento-trivial')).toBe(false); expect(gatesExportacion(actual, { opd: 'opd-100' })).toEqual([]);
     }
 });
@@ -188,7 +188,7 @@ test('T-081 externo traído dentro rebota con aviso y conserva alcance real', ()
     const m = refinado(0, { id: 'e', tipo: 'instrumento', objeto: 'o', proceso: 'p' }), a = m.opds.dc!;
     const limpio: Modelo = congelar({ ...m, opds: { ...m.opds, dc: { ...a, apariciones: { p: a.apariciones.p!, o: a.apariciones.o! } } } });
     const r = traerCosa(limpio, { opd: 'dc', cosa: 'b', x: 120, y: 80 }); expect(r.ok).toBe(true); if (!r.ok) throw Error(r.rechazo.mensaje);
-    const caja = r.valor.modelo.opds.dc!.apariciones.b!; expect(caja.x + caja.ancho <= 0 || caja.x >= 420 || caja.y + caja.alto <= 0 || caja.y >= 500).toBe(true); expect(r.trazas.some(t => t.regla === 'T-081')).toBe(true); expect((r.valor.modelo.opds.dc! as OpdDescomposicion).objetosInternos).toEqual([]); sano(r.valor.modelo);
+    const caja = r.valor.modelo.opds.dc!.apariciones.b!; expect(caja.x + caja.ancho <= 0 || caja.x >= 420 || caja.y + caja.alto <= 0 || caja.y >= 500).toBe(true); expect(r.trazas.some(t => t.regla === 'T-081')).toBe(true); expect((r.valor.modelo.opds.dc! as OpdDescomposicion).internos).toEqual([]); sano(r.valor.modelo);
 });
 test('T-071 T-079 refinador directo del despliegue permite continuar su propio refinamiento', () => {
     const a = base(), m: Modelo = congelar({ ...a, enlaces: { e: { id: 'e', tipo: 'agregacion', refinable: 'o', refinador: 'b' } } });
@@ -265,9 +265,9 @@ for (const operador of ['XOR', 'OR'] as const)
         expect(r.modelo.enlaces.e).toMatchObject({ proceso: 'a' }); expect(r.modelo.enlaces.segundo).toBe(m.enlaces.segundo); expect(r.modelo.abanicos).toBe(m.abanicos); sano(r.modelo);
     });
 test('T-074 T-075 escisión recursiva conserva par en destinos finales y aparición externa', () => {
-    const a = must(descomponer(base(), { opd: 'sd', proceso: 'p', bandas: [['Recibir'], ['Despachar']] })).modelo;
-    const b = must(descomponer(a, { opd: 'opd-100', proceso: 'p-101', bandas: [['Inspeccionar'], ['Aceptar']] })).modelo;
-    const c = must(descomponer(b, { opd: 'opd-100', proceso: 'p-102', bandas: [['Preparar'], ['Entregar']] })).modelo;
+    const a = must(descomponer(base(), { opd: 'sd', cosa: 'p', bandas: [['Recibir'], ['Despachar']] })).modelo;
+    const b = must(descomponer(a, { opd: 'opd-100', cosa: 'p-101', bandas: [['Inspeccionar'], ['Aceptar']] })).modelo;
+    const c = must(descomponer(b, { opd: 'opd-100', cosa: 'p-102', bandas: [['Preparar'], ['Entregar']] })).modelo;
     const r = must(crearEnlace(c, { opd: 'sd', candidato: { tipo: 'efecto', objeto: 'o', proceso: 'p', entrada: 's0', salida: 's1' } }));
     expect(r.creados).toEqual(['e-109', 'e-110']);
     expect(r.modelo.enlaces['e-109']).toEqual({ id: 'e-109', tipo: 'efecto', objeto: 'o', proceso: 'p-104', entrada: 's0', escision: { par: 'e-110', mitad: 'entrada' } });
@@ -310,8 +310,8 @@ for (const tipo of ['efecto', 'agente', 'instrumento'] as const) for (const n of
     });
 for (const sentido of ['directo', 'inverso'] as const)
     test(`T-040 T-074 B-28 consulta/creación efecto anclado recursivo ${sentido} conserva estados/IDs`, () => {
-        const a = must(descomponer(base(), { opd: 'sd', proceso: 'p', bandas: [['Recibir'], ['Despachar']] })).modelo;
-        const b = must(descomponer(a, { opd: 'opd-100', proceso: 'p-101', bandas: [['Inspeccionar'], ['Aceptar']] })).modelo;
+        const a = must(descomponer(base(), { opd: 'sd', cosa: 'p', bandas: [['Recibir'], ['Despachar']] })).modelo;
+        const b = must(descomponer(a, { opd: 'opd-100', cosa: 'p-101', bandas: [['Inspeccionar'], ['Aceptar']] })).modelo;
         const desde = sentido === 'directo' ? { cosa: 'p' } : { cosa: 'o', estado: 's0' }, hacia = sentido === 'directo' ? { cosa: 'o', estado: 's0' } : { cosa: 'p' };
         const opcion = tiposLegales(b, { opd: 'sd', desde, hacia }).find(o => o.tipo === 'efecto' && o.sentido === sentido)!; expect(opcion.legal).toBe(true);
         const candidato = sentido === 'directo' ? { tipo: 'efecto' as const, objeto: 'o', proceso: 'p', salida: 's0' } : { tipo: 'efecto' as const, objeto: 'o', proceso: 'p', entrada: 's0' };
@@ -338,22 +338,22 @@ test('T-020 T-080 cascada conserva valor externo si persiste otra exhibición', 
 });
 
 test('T-083 rechazo de hoja conserva entrada, secuencia y hechos íntegros', () => {
-    const a = must(descomponer(base(), { opd: 'sd', proceso: 'p', bandas: [['Recibir'], ['Despachar']] })).modelo;
-    const m = must(descomponer(a, { opd: 'opd-100', proceso: 'p-101' })).modelo; sano(m);
+    const a = must(descomponer(base(), { opd: 'sd', cosa: 'p', bandas: [['Recibir'], ['Despachar']] })).modelo;
+    const m = must(descomponer(a, { opd: 'opd-100', cosa: 'p-101' })).modelo; sano(m);
     const antes = JSON.stringify(m), r = eliminarRefinamiento(m, { opd: 'opd-100' });
     expect(r.ok).toBe(false); if (!r.ok) expect(r.rechazo.codigo).toBe('refinamiento-no-hoja'); expect(JSON.stringify(m)).toBe(antes); expect(m.secuencia).toBe(104); sano(m);
 });
 
 test('T-072 B-02 operación rechaza descomposición de objeto aun con bandas solicitadas', () => {
     const m = base(), antes = JSON.stringify(m); sano(m);
-    const r = descomponer(m, { opd: 'sd', proceso: 'o', bandas: [['Recibir'], ['Despachar']] });
+    const r = descomponer(m, { opd: 'sd', cosa: 'o', bandas: [['Recibir'], ['Despachar']] });
     expect(r.ok).toBe(false); if (!r.ok) { expect(r.rechazo.codigo).toBe('descomposicion-objeto'); expect(r.rechazo.regla).toBe('R-OPL-CX-4'); }
     expect(JSON.stringify(m)).toBe(antes); expect(m.secuencia).toBe(100);
 });
 test('T-079 despliegue permite propio refinador pero rechaza otro visible externo', () => {
     const a = base({ id: 'e', tipo: 'agregacion', refinable: 'o', refinador: 'b' }), b = must(desplegar(a, { opd: 'sd', cosa: 'o', modo: 'agregacion' })).modelo;
     const hijo = b.opds['opd-100']!, m: Modelo = congelar({ ...b, opds: { ...b.opds, 'opd-100': { ...hijo, apariciones: { ...hijo.apariciones, q: { x: 600, y: 0, ancho: 135, alto: 60 } } } } }); sano(m);
-    const antes = JSON.stringify(m), r = descomponer(m, { opd: 'opd-100', proceso: 'q' });
+    const antes = JSON.stringify(m), r = descomponer(m, { opd: 'opd-100', cosa: 'q' });
     expect(r.ok).toBe(false); if (!r.ok) expect(r.rechazo.codigo).toBe('externo-no-refinable'); expect(JSON.stringify(m)).toBe(antes);
 });
 
@@ -448,7 +448,7 @@ test('T-018 T-074 R2 LF03 colisión final rechaza con rollback de flags, ocultos
 for (const anidado of [false, true]) test(`T-074 T-030 escisión invertida rechaza fijarBandas atómicamente, anidado=${anidado}`, () => {
     const inicial = refinado(3, { id: 'e', tipo: 'efecto', objeto: 'o', proceso: 'p', entrada: 's0', salida: 's1' });
     let modelo = must(distribuirEnlace(inicial, { enlace: 'e' })).modelo;
-    if (anidado) modelo = must(descomponer(modelo, { opd: 'dc', proceso: 'a', bandas: [['Preparar'], ['Recibir Pedido']] })).modelo;
+    if (anidado) modelo = must(descomponer(modelo, { opd: 'dc', cosa: 'a', bandas: [['Preparar'], ['Recibir Pedido']] })).modelo;
     sano(modelo);
     const antes = JSON.stringify(modelo), args = congelar({ opd: 'dc', bandas: [['c'], ['z'], ['a']] });
     const r = fijarBandas(modelo, args);
@@ -463,7 +463,7 @@ for (const anidado of [false, true]) test(`T-074 T-030 escisión invertida recha
     sano(correcto); expect(correcto.enlaces).toEqual(modelo.enlaces); expect(correcto.secuencia).toBe(modelo.secuencia);
     const paralelo = must(fijarBandas(modelo, { opd: 'dc', bandas: [['a', 'c'], ['z']] })).modelo;
     sano(paralelo); expect(paralelo.enlaces).toEqual(modelo.enlaces);
-    const movido = must(moverSubproceso(modelo, { opd: 'dc', proceso: 'a', destino: { nuevaBandaAntesDe: 3 } })).modelo;
+    const movido = must(moverEnDescomposicion(modelo, { opd: 'dc', cosa: 'a', destino: { nuevaBandaAntesDe: 3 } })).modelo;
     expect(erroresContexto(movido).some(v => v.regla === 'R-ESCIND-2')).toBe(true);
     expect(validarForma(movido)).toEqual([]); expect(movido.enlaces).toEqual(modelo.enlaces);
     expect(JSON.stringify(modelo)).toBe(antes);

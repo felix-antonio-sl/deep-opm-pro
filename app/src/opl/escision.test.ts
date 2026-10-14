@@ -14,7 +14,7 @@ function escindido() {
     const b = modeloCon({ objetos: [['Pedido', ['nuevo', 'listo']]], procesos: ['Procesar'] }), o = porNombre(b, 'Pedido');
     if (o.tipo !== 'objeto') throw Error('Objeto esperado.');
     const e = must(crearEnlace(b, { opd: b.raiz, candidato: { tipo: 'efecto', objeto: o.id, proceso: porNombre(b, 'Procesar').id, entrada: o.estados[0]!.id, salida: o.estados[1]!.id } }));
-    const d = must(descomponer(e.modelo, { opd: b.raiz, proceso: porNombre(b, 'Procesar').id, bandas: [['Recibir'], ['Despachar']] }));
+    const d = must(descomponer(e.modelo, { opd: b.raiz, cosa: porNombre(b, 'Procesar').id, bandas: [['Recibir'], ['Despachar']] }));
     const salida = Object.values(d.modelo.enlaces).find(x => x.tipo === 'efecto' && x.escision?.mitad === 'salida')!;
     return { m: d.modelo, hijo: d.creados[0]!, salida: salida.id };
 }

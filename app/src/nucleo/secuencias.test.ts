@@ -24,11 +24,11 @@ for (let semilla = 0; semilla < 200; semilla++) test(`T-064 DS20 secuencia ${sem
     }
 });
 test('T-064 secuencias realmente eligen las ocho operaciones de refinamiento', () => {
-    for (const op of ['descomponer', 'agregarSubprocesos', 'moverSubproceso', 'fijarBandas', 'desplegar', 'agregarRefinadores', 'eliminarRefinamiento', 'distribuirEnlace']) expect(operacionesVistas.has(op), op).toBe(true);
+    for (const op of ['descomponer', 'agregarEnDescomposicion', 'moverEnDescomposicion', 'fijarBandas', 'desplegar', 'agregarRefinadores', 'eliminarRefinamiento', 'distribuirEnlace']) expect(operacionesVistas.has(op), op).toBe(true);
 });
 
 test('T-064 las ocho operaciones de refinamiento son aceptadas en las 8000 acciones sin filtro', () => {
     expect(Object.values(estadisticas).reduce((n, e) => n + e.seleccionadas, 0)).toBe(8000);
-    for (const op of ['descomponer', 'agregarSubprocesos', 'moverSubproceso', 'fijarBandas', 'desplegar', 'agregarRefinadores', 'eliminarRefinamiento', 'distribuirEnlace']) { expect(estadisticas[op]?.aceptadas, op).toBeGreaterThan(0); }
+    for (const op of ['descomponer', 'agregarEnDescomposicion', 'moverEnDescomposicion', 'fijarBandas', 'desplegar', 'agregarRefinadores', 'eliminarRefinamiento', 'distribuirEnlace']) { expect(estadisticas[op]?.aceptadas, op).toBeGreaterThan(0); }
     console.info('WP4r secuencias estadísticas ' + JSON.stringify(estadisticas));
 });

@@ -76,7 +76,7 @@ test('T-066 aparición activa y alcance del interno se validan antes de reservar
     delete apariciones['o-5'];
     const n = congelar({ ...m, opds: { [m.raiz]: { ...m.opds[m.raiz]!, apariciones } } });
     mal(op.crearEnlace(n, { opd: m.raiz, candidato: { tipo: 'consumo', objeto: 'o-5', proceso: 'p-9' } }), 'no-visible');
-    const hijo = { id: 'opd-20', tipo: 'descomposicion' as const, padre: m.raiz, cosa: 'p-9', orden: 0, bandas: [['p-10']], objetosInternos: ['o-2'], apariciones: { 'p-9': { x: 0, y: 0, ancho: 600, alto: 400 }, 'p-10': { x: 100, y: 100, ancho: 135, alto: 60 }, 'o-2': { x: 100, y: 200, ancho: 135, alto: 60 } } };
+    const hijo = { id: 'opd-20', tipo: 'descomposicion' as const, padre: m.raiz, cosa: 'p-9', orden: 0, bandas: [['p-10']], internos: ['o-2'], apariciones: { 'p-9': { x: 0, y: 0, ancho: 600, alto: 400 }, 'p-10': { x: 100, y: 100, ancho: 135, alto: 60 }, 'o-2': { x: 100, y: 200, ancho: 135, alto: 60 } } };
     const raizInterna = { ...m.opds[m.raiz]!.apariciones };
     delete raizInterna['o-2'];
     delete raizInterna['p-10'];
@@ -286,7 +286,7 @@ test('T-064 setter compatible conserva errores previos de contorno sin fingir di
     const b = base(), e: Enlace = { id: 'e-20', tipo: 'consumo', objeto: 'o-2', proceso: 'p-9' };
     const apariciones = { ...b.opds[b.raiz]!.apariciones };
     delete apariciones['p-10'];
-    const hijo = { id: 'opd-21', tipo: 'descomposicion' as const, padre: b.raiz, cosa: 'p-9', orden: 0, bandas: [['p-10']], objetosInternos: [], apariciones: { 'p-9': { x: 0, y: 0, ancho: 600, alto: 400 }, 'p-10': { x: 100, y: 100, ancho: 135, alto: 60 }, 'o-2': b.opds[b.raiz]!.apariciones['o-2']! } };
+    const hijo = { id: 'opd-21', tipo: 'descomposicion' as const, padre: b.raiz, cosa: 'p-9', orden: 0, bandas: [['p-10']], internos: [], apariciones: { 'p-9': { x: 0, y: 0, ancho: 600, alto: 400 }, 'p-10': { x: 100, y: 100, ancho: 135, alto: 60 }, 'o-2': b.opds[b.raiz]!.apariciones['o-2']! } };
     const m = congelar({ ...con(b, e), opds: { [b.raiz]: { ...b.opds[b.raiz]!, apariciones }, [hijo.id]: hijo } });
     expect(validarForma(m)).toEqual([]);
     expect(bien(op.fijarRuta(m, { enlace: e.id, ruta: 'documental' })).enlaces[e.id]).toEqual({ ...e, ruta: 'documental' });
@@ -295,7 +295,7 @@ test('T-066 interno con extremos realmente presentes en hijo crea enlace admitid
     const b = base(), apariciones = { ...b.opds[b.raiz]!.apariciones };
     delete apariciones['o-2'];
     delete apariciones['p-10'];
-    const hijo = { id: 'opd-20', tipo: 'descomposicion' as const, padre: b.raiz, cosa: 'p-9', orden: 0, bandas: [['p-10']], objetosInternos: ['o-2'], apariciones: { 'p-9': { x: 0, y: 0, ancho: 600, alto: 400 }, 'p-10': { x: 100, y: 100, ancho: 135, alto: 60 }, 'o-2': { x: 100, y: 200, ancho: 135, alto: 60 } } };
+    const hijo = { id: 'opd-20', tipo: 'descomposicion' as const, padre: b.raiz, cosa: 'p-9', orden: 0, bandas: [['p-10']], internos: ['o-2'], apariciones: { 'p-9': { x: 0, y: 0, ancho: 600, alto: 400 }, 'p-10': { x: 100, y: 100, ancho: 135, alto: 60 }, 'o-2': { x: 100, y: 200, ancho: 135, alto: 60 } } };
     const m = congelar({ ...b, secuencia: 21, opds: { [b.raiz]: { ...b.opds[b.raiz]!, apariciones }, [hijo.id]: hijo } });
     expect(validarForma(m)).toEqual([]);
     const n = bien(op.crearEnlace(m, { opd: hijo.id, candidato: { tipo: 'consumo', objeto: 'o-2', proceso: 'p-10', estado: 's-3' } }));

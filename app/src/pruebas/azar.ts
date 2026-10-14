@@ -20,7 +20,7 @@ export namespace azar {
         }
         for (const o of Object.values(m.opds)) {
             for (const id of Object.keys(o.apariciones)) {
-                if (m.cosas[id]!.tipo === 'proceso') acciones.push({ op: 'descomponer', args: { opd: o.id, proceso: id } }, { op: 'descomponer', args: { opd: o.id, proceso: id, bandas: [[`Recibir_${m.secuencia}`], [`Entregar_${m.secuencia}`]] } });
+                if (m.cosas[id]!.tipo === 'proceso') acciones.push({ op: 'descomponer', args: { opd: o.id, cosa: id } }, { op: 'descomponer', args: { opd: o.id, cosa: id, bandas: [[`Recibir_${m.secuencia}`], [`Entregar_${m.secuencia}`]] } });
                 for (const modo of ['agregacion', 'exhibicion', 'generalizacion', 'clasificacion'] as const) acciones.push({ op: 'desplegar', args: { opd: o.id, cosa: id, modo } });
             }
             const objetos = Object.keys(o.apariciones).filter(id => m.cosas[id]!.tipo === 'objeto'), procesos = Object.keys(o.apariciones).filter(id => m.cosas[id]!.tipo === 'proceso');
@@ -28,9 +28,9 @@ export namespace azar {
                 for (const tipo of ['consumo', 'resultado', 'efecto', 'instrumento'] as const) acciones.push({ op: 'crearEnlace', args: { opd: o.id, candidato: { tipo, objeto, proceso } } });
             }
             if (o.tipo === 'descomposicion') {
-                acciones.push({ op: 'agregarSubprocesos', args: { opd: o.id, bandas: [[`Refinar_${m.secuencia}`]], posicion: 'final' } }, { op: 'fijarBandas', args: { opd: o.id, bandas: o.bandas } });
+                acciones.push({ op: 'agregarEnDescomposicion', args: { opd: o.id, bandas: [[`Refinar_${m.secuencia}`]], posicion: 'final' } }, { op: 'fijarBandas', args: { opd: o.id, bandas: o.bandas } });
                 // Movimiento dentro de la misma banda: el orden temporal permanece igual.
-                for (const [banda, ids] of o.bandas.entries()) for (const proceso of ids) acciones.push({ op: 'moverSubproceso', args: { opd: o.id, proceso, destino: { banda } } });
+                for (const [banda, ids] of o.bandas.entries()) for (const proceso of ids) acciones.push({ op: 'moverEnDescomposicion', args: { opd: o.id, cosa: proceso, destino: { banda } } });
                 acciones.push({ op: 'crearCosa', args: { opd: o.id, tipo: 'proceso', nombre, x: 140, y: 80, alcance: 'interno' } }, { op: 'crearCosa', args: { opd: o.id, tipo: 'objeto', nombre, x: 140, y: 80, alcance: 'interno' } });
             }
             if (o.tipo === 'despliegue') acciones.push({ op: 'agregarRefinadores', args: { opd: o.id, nombres: [nombre] } });
@@ -61,7 +61,7 @@ function hodom(semilla: number): Modelo {
     let hoja = 0, estados = 0, estructurales = 0;
     for (const [orden, padre] of padres.entries()) {
         const hijo = id('opd'), partes = Array.from({ length: 6 }, proceso);
-        opds[hijo] = { id: hijo, tipo: 'descomposicion', padre: raiz, cosa: padre, orden, bandas: [partes], objetosInternos: [], apariciones: enBandas(apariciones([padre, ...partes]), [partes]) };
+        opds[hijo] = { id: hijo, tipo: 'descomposicion', padre: raiz, cosa: padre, orden, bandas: [partes], internos: [], apariciones: enBandas(apariciones([padre, ...partes]), [partes]) };
         for (const [ordenHoja, parte] of partes.entries()) {
             const opd = id('opd'), procesos = Array.from({ length: 2 }, proceso), objetos: string[] = [];
             for (let i = 0; i < (hoja < 17 ? 6 : 5); i++) {
@@ -77,7 +77,7 @@ function hodom(semilla: number): Modelo {
             for (let i = 1; i < objetos.length && estructurales < 99; i++, estructurales++) {
                 const e = id('e'); enlaces[e] = { id: e, tipo: 'agregacion', refinable: objetos[0]!, refinador: objetos[i]! };
             }
-            opds[opd] = { id: opd, tipo: 'descomposicion', padre: hijo, cosa: parte, orden: ordenHoja, bandas: procesos.map(p => [p]), objetosInternos: objetos, apariciones: enBandas(apariciones([parte, ...procesos, ...objetos]), procesos.map(p => [p])) };
+            opds[opd] = { id: opd, tipo: 'descomposicion', padre: hijo, cosa: parte, orden: ordenHoja, bandas: procesos.map(p => [p]), internos: objetos, apariciones: enBandas(apariciones([parte, ...procesos, ...objetos]), procesos.map(p => [p])) };
             hoja++;
         }
     }

@@ -7,7 +7,7 @@ import {exportarV0} from '../codec/exportar';
 import {crearEditor} from '../editor/estado';
 import {dependencias,configuracion,ciclos} from '../editor/pruebas.test';
 test('T-243 UI-05 referencia de OPD prima sobre la primera aparición y filtra selección incompatible',async()=>{
- const {irRefs}=await import('./ArbolOpd'),d=dependencias(),ed=crearEditor(configuracion(d));const b=d.m,p=porNombre(b,'Preparar'),h=must(descomponer(b,{opd:b.raiz,proceso:p.id,bandas:[['Recibir']]}));d.documento(exportarV0(h.modelo));await ed.abrir(b.id);
+ const {irRefs}=await import('./ArbolOpd'),d=dependencias(),ed=crearEditor(configuracion(d));const b=d.m,p=porNombre(b,'Preparar'),h=must(descomponer(b,{opd:b.raiz,cosa:p.id,bandas:[['Recibir']]}));d.documento(exportarV0(h.modelo));await ed.abrir(b.id);
  const hijo=h.creados[0]!,interno=Object.values(h.modelo.cosas).find(c=>c.nombre==='Recibir')!,antes=ed.obtener().modelo!;
  irRefs(ed,[{tipo:'cosa',id:p.id},{tipo:'cosa',id:interno.id},{tipo:'opd',id:hijo}]);expect(ed.obtener().opd).toBe(hijo);expect(ed.obtener().seleccion.cosas).toEqual([p.id,interno.id]);
  irRefs(ed,[{tipo:'cosa',id:p.id},{tipo:'cosa',id:interno.id}],b.raiz);expect(ed.obtener().opd).toBe(b.raiz);expect(ed.obtener().seleccion.cosas).toEqual([p.id]);expect(ed.obtener().modelo).toBe(antes);expect(ed.obtener().pasado).toEqual([]);ed.cerrar();await ciclos();
@@ -15,7 +15,7 @@ test('T-243 UI-05 referencia de OPD prima sobre la primera aparición y filtra s
 
 test('T-031 árbol conserva preorden e IDs y navega sólo al destino instalado',async()=>{
  const {filasArbol}=await import('./ArbolOpd');
- const m=modeloCon({procesos:['Preparar']}),r=must(descomponer(m,{opd:m.raiz,proceso:porNombre(m,'Preparar').id,bandas:[['Recibir'],['Entregar']]}));
+ const m=modeloCon({procesos:['Preparar']}),r=must(descomponer(m,{opd:m.raiz,cosa:porNombre(m,'Preparar').id,bandas:[['Recibir'],['Entregar']]}));
  const filas=filasArbol(r.modelo);expect(filas.map(f=>f.id)).toEqual([m.raiz,r.creados[0]!]);expect(filas.map(f=>f.profundidad)).toEqual([0,1]);expect(filas[1]!.nombre).toBe('Preparar');
  const {navegarRuta}=await import('./App');const d=dependencias(),ed=crearEditor(configuracion(d));await ed.abrir(d.m.id);ed.ejecutar({op:'renombrarModelo',args:{nombre:'Edición pendiente'}});const base=ed.obtener().modelo!;d.cliente.guardar=async()=>({estado:503,error:'Sin conexión'});expect(await navegarRuta(ed,'inexistente','opd-inexistente')).toBe(false);expect(ed.obtener().modelo).toBe(base);expect(ed.obtener().opd).toBe(base.raiz);ed.cerrar();await ciclos();
 });
@@ -66,10 +66,10 @@ test('T-245 subspan enlazado resuelve SU hecho y no el nombre compartido',async(
  const {refToken}=await import('./PanelOpl');const cosa={tipo:'cosa' as const,id:'o-2'},t={texto:'Pedido',rol:'nombre' as const,ref:cosa,hecho:'e-8'};expect(refToken(t)).toEqual({tipo:'enlace',id:'e-8'});expect(refToken({...t,hecho:'e-9'})).toEqual({tipo:'enlace',id:'e-9'});expect(refToken({texto:'Pedido',rol:'nombre',ref:cosa})).toBe(cosa);expect(refToken({texto:'Pedido',rol:'texto'})).toBeUndefined();
 });
 test('T-241 panel recibe cabeceras y profundidad de los bloques reales sin cambiar el Modelo',async()=>{
- const {generarModelo}=await import('../opl/generar');const b=modeloCon({procesos:['Preparar']}),m=must(descomponer(b,{opd:b.raiz,proceso:porNombre(b,'Preparar').id,bandas:[['Recibir'],['Entregar']]})).modelo,antes=exportarV0(m),ls=generarModelo(m);expect(ls.filter(l=>l.plantilla==='cabecera').map(l=>[l.opd,l.profundidad])).toEqual([[m.raiz,0],[Object.keys(m.opds)[1]!,1]]);expect(exportarV0(m)).toBe(antes);
+ const {generarModelo}=await import('../opl/generar');const b=modeloCon({procesos:['Preparar']}),m=must(descomponer(b,{opd:b.raiz,cosa:porNombre(b,'Preparar').id,bandas:[['Recibir'],['Entregar']]})).modelo,antes=exportarV0(m),ls=generarModelo(m);expect(ls.filter(l=>l.plantilla==='cabecera').map(l=>[l.opd,l.profundidad])).toEqual([[m.raiz,0],[Object.keys(m.opds)[1]!,1]]);expect(exportarV0(m)).toBe(antes);
 });
 test('T-251 pérdida global lista todas apariciones y refinamiento hoja conserva padre/hechos',async()=>{
- const {perdidasAccion}=await import('./Inspector');const b=modeloCon({objetos:[['Pedido',['nuevo']]],procesos:['Preparar'],enlaces:[['consumo','Pedido','Preparar']]}),r=must(descomponer(b,{opd:b.raiz,proceso:porNombre(b,'Preparar').id,bandas:[['Recibir'],['Entregar']]})),m=r.modelo,hijo=r.creados[0]!,o=porNombre(m,'Pedido').id,antes=exportarV0(m),p=perdidasAccion(m,{op:'eliminarCosas',args:{cosas:[o]}});expect(p.r.ok).toBe(true);for(const [id,opd]of Object.entries(m.opds))if(opd.apariciones[o])expect(p.perdidas).toContain(`Aparición de Pedido en ${id}`);
+ const {perdidasAccion}=await import('./Inspector');const b=modeloCon({objetos:[['Pedido',['nuevo']]],procesos:['Preparar'],enlaces:[['consumo','Pedido','Preparar']]}),r=must(descomponer(b,{opd:b.raiz,cosa:porNombre(b,'Preparar').id,bandas:[['Recibir'],['Entregar']]})),m=r.modelo,hijo=r.creados[0]!,o=porNombre(m,'Pedido').id,antes=exportarV0(m),p=perdidasAccion(m,{op:'eliminarCosas',args:{cosas:[o]}});expect(p.r.ok).toBe(true);for(const [id,opd]of Object.entries(m.opds))if(opd.apariciones[o])expect(p.perdidas).toContain(`Aparición de Pedido en ${id}`);
  const q=perdidasAccion(m,{op:'eliminarRefinamiento',args:{opd:hijo}});expect(q.r.ok).toBe(true);expect(q.perdidas).toContain(`OPD ${hijo}`);expect(q.conservados).toContain('Preparar conserva su identidad');expect(exportarV0(m)).toBe(antes);
 });
 
@@ -79,7 +79,7 @@ test('T-216 abanico colineal válido conserva sector cero como límite visual si
 });
 
 test('T-022 ruta conserva selección visible por ID y elimina sólo la ausente en destino',async()=>{
- const {navegarRuta}=await import('./App');const d=dependencias(),b=modeloCon({objetos:[['Pedido',['nuevo']]],procesos:['Preparar'],enlaces:[['consumo','Pedido','Preparar']]}),m=must(descomponer(b,{opd:b.raiz,proceso:porNombre(b,'Preparar').id,bandas:[['Recibir'],['Entregar']]})).modelo,hijo=Object.keys(m.opds).find(id=>id!==m.raiz)!,o=porNombre(m,'Pedido').id,interno=porNombre(m,'Recibir').id;d.documento(exportarV0(m));const ed=crearEditor(configuracion(d));await ed.abrir(m.id);const antes=exportarV0(ed.obtener().modelo!);ed.seleccionar({cosas:[o],estados:[],enlaces:[],abanicos:[]});await navegarRuta(ed,m.id,hijo);expect(ed.obtener().seleccion.cosas).toEqual([o]);ed.seleccionar({cosas:[o,interno],estados:[],enlaces:[],abanicos:[]});await navegarRuta(ed,m.id,m.raiz);expect(ed.obtener().seleccion.cosas).toEqual([o]);expect(exportarV0(ed.obtener().modelo!)).toBe(antes);expect(ed.obtener().pasado).toHaveLength(0);ed.cerrar();await ciclos();
+ const {navegarRuta}=await import('./App');const d=dependencias(),b=modeloCon({objetos:[['Pedido',['nuevo']]],procesos:['Preparar'],enlaces:[['consumo','Pedido','Preparar']]}),m=must(descomponer(b,{opd:b.raiz,cosa:porNombre(b,'Preparar').id,bandas:[['Recibir'],['Entregar']]})).modelo,hijo=Object.keys(m.opds).find(id=>id!==m.raiz)!,o=porNombre(m,'Pedido').id,interno=porNombre(m,'Recibir').id;d.documento(exportarV0(m));const ed=crearEditor(configuracion(d));await ed.abrir(m.id);const antes=exportarV0(ed.obtener().modelo!);ed.seleccionar({cosas:[o],estados:[],enlaces:[],abanicos:[]});await navegarRuta(ed,m.id,hijo);expect(ed.obtener().seleccion.cosas).toEqual([o]);ed.seleccionar({cosas:[o,interno],estados:[],enlaces:[],abanicos:[]});await navegarRuta(ed,m.id,m.raiz);expect(ed.obtener().seleccion.cosas).toEqual([o]);expect(exportarV0(ed.obtener().modelo!)).toBe(antes);expect(ed.obtener().pasado).toHaveLength(0);ed.cerrar();await ciclos();
 });
 
 test('T-242 realce por Ref tipada alcanza sólo la cosa o estado indicados y es efímero',async()=>{
@@ -101,7 +101,7 @@ test('T-242 realce por Ref tipada alcanza sólo la cosa o estado indicados y es 
 });
 test('T-243 clic resuelto por hecho navega y selecciona el ID exacto sin mutar modelo ni historial',async()=>{
  const {refToken}=await import('./PanelOpl'),{irRefs}=await import('./ArbolOpd');
- const d=dependencias(),b=modeloCon({objetos:[['Pedido',['nuevo']]],procesos:['Preparar'],enlaces:[['consumo','Pedido','Preparar']]}),m=must(descomponer(b,{opd:b.raiz,proceso:porNombre(b,'Preparar').id,bandas:[['Recibir'],['Entregar']]})).modelo,hijo=Object.keys(m.opds).find(id=>id!==m.raiz)!;d.documento(exportarV0(m));
+ const d=dependencias(),b=modeloCon({objetos:[['Pedido',['nuevo']]],procesos:['Preparar'],enlaces:[['consumo','Pedido','Preparar']]}),m=must(descomponer(b,{opd:b.raiz,cosa:porNombre(b,'Preparar').id,bandas:[['Recibir'],['Entregar']]})).modelo,hijo=Object.keys(m.opds).find(id=>id!==m.raiz)!;d.documento(exportarV0(m));
  const ed=crearEditor(configuracion(d));await ed.abrir(m.id);const base=ed.obtener().modelo!,antes=exportarV0(base),o=porNombre(base,'Pedido'),e=Object.values(base.enlaces)[0]!;
  const ref=refToken({texto:'Pedido',rol:'nombre',ref:{tipo:'cosa',id:o.id},hecho:e.id})!;expect(ref).toEqual({tipo:'enlace',id:e.id});
  irRefs(ed,[ref],base.raiz);expect(ed.obtener().opd).toBe(base.raiz);expect(ed.obtener().seleccion.enlaces).toEqual([e.id]);expect(ed.obtener().seleccion.cosas).toEqual([]);
@@ -130,7 +130,7 @@ for(const ocultar of ['global','local','parcial'] as const)test(`T-011 T-192 B-3
 });
 test('T-101 B-36 visible enlazado u otro OPD no se avisa ni se revela por error',async()=>{
  const {prepararExportaciones}=await import('./MenuExportar'),{aplicarAcciones}=await import('../nucleo/operaciones'),b=modeloCon({objetos:[['Pedido',['pendiente','completado']]],procesos:['Preparar','Completar'],enlaces:[['consumo','Pedido','Preparar']]}),o=porNombre(b,'Pedido');if(o.tipo!=='objeto')throw Error('Objeto');expect(prepararExportaciones(b,b.raiz).estadosOmitidos).toEqual([]);
- const r=must(descomponer(b,{opd:b.raiz,proceso:porNombre(b,'Preparar').id,bandas:[['Recibir'],['Entregar']]})),hijo=r.creados[0]!,local=must(aplicarAcciones(r.modelo,o.estados.map(s=>({op:'suprimirEstado' as const,args:{estado:s.id,opd:b.raiz,activa:true}})))).modelo,antes=exportarV0(local);expect(local.opds[hijo]!.apariciones[o.id]).toBeTruthy();expect(prepararExportaciones(local,local.raiz).estadosOmitidos).toEqual([]);expect(exportarV0(local)).toBe(antes);
+ const r=must(descomponer(b,{opd:b.raiz,cosa:porNombre(b,'Preparar').id,bandas:[['Recibir'],['Entregar']]})),hijo=r.creados[0]!,local=must(aplicarAcciones(r.modelo,o.estados.map(s=>({op:'suprimirEstado' as const,args:{estado:s.id,opd:b.raiz,activa:true}})))).modelo,antes=exportarV0(local);expect(local.opds[hijo]!.apariciones[o.id]).toBeTruthy();expect(prepararExportaciones(local,local.raiz).estadosOmitidos).toEqual([]);expect(exportarV0(local)).toBe(antes);
  const enlazado=must(aplicarAcciones(b,[{op:'crearEnlace',args:{opd:b.raiz,candidato:{tipo:'consumo',objeto:o.id,proceso:porNombre(b,'Completar').id,estado:o.estados[0]!.id}}},{op:'suprimirEstado',args:{estado:o.estados[1]!.id,opd:b.raiz,activa:true}}])).modelo;expect(prepararExportaciones(enlazado,enlazado.raiz).estadosOmitidos).toEqual([{objeto:o.id,estado:o.estados[1]!.id,opds:[b.raiz]}]);
 });
 test('T-011 B-36 elección recalcula el Modelo vigente tras cambio con el menú abierto',async()=>{

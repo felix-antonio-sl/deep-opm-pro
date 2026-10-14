@@ -750,7 +750,7 @@ export function datosContexto(m: Modelo, opd: string): HechoGenerable | null {
         if (d.bandas.flat().length < 1)
             return null;
         const bandas = d.bandas.map(b => [...b].sort(cmp));
-        const h: Record<string, ValorHueco> = { P: cosa(m, d.cosa), O: [...d.objetosInternos].sort(cmp).map(id => cosa(m, id)) };
+        const h: Record<string, ValorHueco> = { P: cosa(m, d.cosa), O: [...d.internos].sort(cmp).map(id => cosa(m, id)) };
         let id = bandas.every(b => b.length === 1) ? 'CX1' : bandas.length === 1 ? 'CX2' : 'CXM';
         if (id === 'CXM') {
             const tokens: TokenOpl[] = [];

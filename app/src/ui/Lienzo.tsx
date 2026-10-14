@@ -121,7 +121,7 @@ export function Lienzo(p: DatosRanura) {
         aplicar(r);
     }
     function cancelar() {cambiar({k:'reposo'});editar(null);busqueda(null);contextual(null);desplegar(null);confirmarEliminar(false);borrarEstado(null);cambiarEnlace(null);mostrarOcultos(null);p.editor.solicitar(null);if(p.editor.obtener().modo==='gestion-modal')p.editor.fijarModo('edicion');host.current?.focus();}
-    function contexto():ContextoComando {const s=p.editor.obtener().seleccion;if(s.estados.length)return'estado';if(s.abanicos.length)return'abanico';if(s.simbolo)return'simbolo';if(s.enlaces.length>1)return'multiple';if(s.enlaces.length)return'enlace';const c=m.cosas[s.cosas[0]??''];if(!c)return'lienzo';return idx.subprocesoDe.has(c.id)?'subproceso':e.nodos.find(n=>n.ref.id===c.id)?.contenedor?'contenedor':c.tipo==='objeto'?'objeto':'proceso';}
+    function contexto():ContextoComando {const s=p.editor.obtener().seleccion;if(s.estados.length)return'estado';if(s.abanicos.length)return'abanico';if(s.simbolo)return'simbolo';if(s.enlaces.length>1)return'multiple';if(s.enlaces.length)return'enlace';const c=m.cosas[s.cosas[0]??''];if(!c)return'lienzo';return idx.bandaDe.has(c.id)?'subproceso':e.nodos.find(n=>n.ref.id===c.id)?.contenedor?'contenedor':c.tipo==='objeto'?'objeto':'proceso';}
     function banda(y:number):{banda:number}|{nuevaBandaAntesDe:number}|null {
         if(contenedor.tipo!=='descomposicion')return null;
         const filas=contenedor.bandas.map((b,i)=>({i,y:e.nodos.find(n=>b.includes(n.ref.id))?.caja.y??0}));
@@ -179,7 +179,7 @@ export function Lienzo(p: DatosRanura) {
         else if(target?.closest('[data-ref]')?.getAttribute('data-ref')?.startsWith('simbolo:')){p.editor.seleccionar({...VACIA(),simbolo:target.closest('[data-ref]')!.getAttribute('data-ref')!});}
         else if(p.estado.modo==='edicion'&&ref?.tipo==='cosa'&&e.nodos.some(n=>n.ref.id===ref.id&&n.chipOcultos&&pt.x>=n.chipOcultos.caja.x&&pt.x<=n.chipOcultos.caja.x+n.chipOcultos.caja.ancho&&pt.y>=n.chipOcultos.caja.y&&pt.y<=n.chipOcultos.caja.y+n.chipOcultos.caja.alto)){mostrarOcultos(ref.id);return;}
         else {const s=p.editor.obtener().seleccion;const conservar=ref?.tipo==='cosa'&&s.cosas.includes(ref.id)&&!ev.shiftKey;p.editor.seleccionar(conservar?s:seleccionarRef(s,ref,ev.shiftKey));
-            if(ref?.tipo==='cosa'&&p.estado.modo==='edicion'&&!ev.shiftKey){if(idx.subprocesoDe.has(ref.id)){bandaDrag.current={desde:pt,x:contenedor.apariciones[ref.id]!.x};cambiar({k:'banda',proceso:ref.id,destino:null});}else cambiar({k:'arrastrando',cosas:conservar?s.cosas:[ref.id],desde:pt,delta:{x:0,y:0}});}}
+            if(ref?.tipo==='cosa'&&p.estado.modo==='edicion'&&!ev.shiftKey){if(idx.bandaDe.has(ref.id)){bandaDrag.current={desde:pt,x:contenedor.apariciones[ref.id]!.x};cambiar({k:'banda',proceso:ref.id,destino:null});}else cambiar({k:'arrastrando',cosas:conservar?s.cosas:[ref.id],desde:pt,delta:{x:0,y:0}});}}
         if(ev.button===0||ev.button===1){captura.current=ev.pointerId;host.current?.setPointerCapture(ev.pointerId);}ev.preventDefault();
     }
     function mover(ev:PointerEvent) {
@@ -196,7 +196,7 @@ export function Lienzo(p: DatosRanura) {
     function arriba(ev:PointerEvent) {
         if(dedos.current.delete(ev.pointerId)&&pellizco.current){pellizco.current=null;captura.current=null;return;}
         const g=actual.current;if(g.k==='reposo'){captura.current=null;if(host.current?.hasPointerCapture(ev.pointerId))host.current.releasePointerCapture(ev.pointerId);return;}const target=document.elementFromPoint(ev.clientX,ev.clientY),ref=refCercana(target),pt=puntoModelo(local(ev),p.estado.camara);
-        if(g.k==='banda'&&bandaDrag.current&&g.destino){const origen=bandaDrag.current;p.editor.ejecutarVarias([{op:'moverSubproceso',args:{opd,proceso:g.proceso,destino:g.destino}},{op:'moverApariciones',args:{opd,mover:[{cosa:g.proceso,x:origen.x+pt.x-origen.desde.x,y:contenedor.apariciones[g.proceso]!.y}]}}],'Mover subproceso');bandaDrag.current=null;cambiar({k:'reposo'});}
+        if(g.k==='banda'&&bandaDrag.current&&g.destino){const origen=bandaDrag.current;p.editor.ejecutarVarias([{op:'moverEnDescomposicion',args:{opd,cosa:g.proceso,destino:g.destino}},{op:'moverApariciones',args:{opd,mover:[{cosa:g.proceso,x:origen.x+pt.x-origen.desde.x,y:contenedor.apariciones[g.proceso]!.y}]}}],'Mover subproceso');bandaDrag.current=null;cambiar({k:'reposo'});}
         else if(g.k==='conectando'||g.k==='reanclando'||g.k==='arrastrando'||g.k==='banda'||g.k==='redimensionando'||g.k==='desplazando')evento({k:'arriba',punto:pt,mayus:ev.shiftKey,...(ref?{sobre:`${ref.tipo}:${ref.id}`}:{})});
         captura.current=null;if(host.current?.hasPointerCapture(ev.pointerId))host.current.releasePointerCapture(ev.pointerId);
     }

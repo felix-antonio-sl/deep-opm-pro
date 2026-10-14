@@ -55,7 +55,7 @@ export function exportarV0(m: Modelo): string {
     }
     for(const [id,o] of Object.entries(ordenar(m.opds))) {
         const apariencias:Record<string,Registro>=Object.create(null), aparienciasEnlace:Record<string,Registro>=Object.create(null);
-        const internos=o.tipo==='descomposicion'?new Set([...o.bandas.flat(),...o.objetosInternos]):new Set<string>();
+        const internos=o.tipo==='descomposicion'?new Set([...o.bandas.flat(),...o.internos]):new Set<string>();
         for(const [c,a] of Object.entries(ordenar(o.apariciones))) {
             const aid=`a-${id}-${c}`;
             apariencias[aid]={id:aid,entidadId:c,opdId:id,x:Math.round(a.x),y:Math.round(a.y),width:Math.round(a.ancho),height:Math.round(a.alto),

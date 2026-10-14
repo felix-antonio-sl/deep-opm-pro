@@ -489,7 +489,7 @@ export const quitarDeOpd:      Operacion<{ opd: Id; cosas: readonly Id[] }>;
 export const eliminarCosas:    Operacion<{ cosas: readonly Id[] }>;
   // 'tiene-refinamiento' si alguna tiene descomposición o despliegue (DS-5, T-083).
   // Cascada declarada: estados, enlaces incidentes (a la cosa o a sus estados), ramas de abanico (<2 ⇒ disuelve),
-  // apariciones, miembros de bandas y objetosInternos (banda vacía ⇒ se retira). Sin re-migración.
+  // apariciones, miembros de bandas e internos (banda vacía ⇒ se retira). Sin re-migración.
 
 // estados.ts
 export const agregarEstado:  Operacion<{ objeto: Id; nombre: string; indice?: number }>;   // creados[0] = id
@@ -552,10 +552,10 @@ export const disolverAbanico:     Operacion<{ abanico: Id }>;
 export const fijarControlAbanico: Operacion<{ abanico: Id; control: Control | null }>;   // todas las ramas (R-FAN-3)
 
 // refinamiento.ts
-export const descomponer:        Operacion<{ opd: Id; proceso: Id; bandas?: readonly (readonly string[])[] }>;   // creados[0] = OPD hijo
-export const agregarSubprocesos: Operacion<{ opd: Id; bandas: readonly (readonly string[])[];
+export const descomponer:        Operacion<{ opd: Id; cosa: Id; bandas?: readonly (readonly string[])[] }>;   // creados[0] = OPD hijo
+export const agregarEnDescomposicion: Operacion<{ opd: Id; bandas: readonly (readonly string[])[];
                                              posicion: 'final' | { antesDeBanda: number } | { enBanda: number } }>;
-export const moverSubproceso:    Operacion<{ opd: Id; proceso: Id; destino: { banda: number } | { nuevaBandaAntesDe: number } }>;
+export const moverEnDescomposicion:   Operacion<{ opd: Id; cosa: Id; destino: { banda: number } | { nuevaBandaAntesDe: number } }>;
 export const fijarBandas:        Operacion<{ opd: Id; bandas: readonly (readonly Id[])[] }>;   // partición del MISMO conjunto; sin migración
 export const desplegar:          Operacion<{ opd: Id; cosa: Id; modo: ModoDespliegue; refinadores?: readonly string[] }>;  // creados[0] = OPD hijo
 export const agregarRefinadores: Operacion<{ opd: Id; nombres: readonly string[]; tipo?: TipoCosa }>;
@@ -591,7 +591,7 @@ export const OPERACIONES = { renombrarModelo, fijarUnidadTiempo, fijarDescripcio
   traerCosa, moverApariciones, redimensionar, quitarDeOpd, eliminarCosas, agregarEstado, renombrarEstado, moverEstado,
   eliminarEstado, designar, suprimirEstado, crearEnlace, cambiarTipoEnlace, fijarEstados, fijarControl, fijarEtiqueta,
   fijarRuta, fijarMultiplicidad, reanclarExtremo, distribuirEnlace, eliminarEnlaces, formarAbanico, fijarOperador,
-  agregarRama, quitarRama, disolverAbanico, fijarControlAbanico, descomponer, agregarSubprocesos, moverSubproceso,
+  agregarRama, quitarRama, disolverAbanico, fijarControlAbanico, descomponer, agregarEnDescomposicion, moverEnDescomposicion,
   fijarBandas, desplegar, agregarRefinadores, eliminarRefinamiento } as const;
 export type NombreOperacion = keyof typeof OPERACIONES;
 export type ArgsDe<K extends NombreOperacion> = Parameters<(typeof OPERACIONES)[K]>[1];
@@ -615,7 +615,7 @@ export interface Indice {
   readonly preorden: readonly Id[];
   readonly etiqueta: ReadonlyMap<Id, string>;
   readonly internoDe: ReadonlyMap<Id, Id>;                     // cosa interna → OPD de descomposición
-  readonly subprocesoDe: ReadonlyMap<Id, { readonly opd: Id; readonly banda: number }>;
+  readonly bandaDe: ReadonlyMap<Id, { readonly opd: Id; readonly banda: number }>;   // subproceso → banda
   readonly porClaveNombre: ReadonlyMap<string, readonly Id[]>; // ≥2 ⇒ nombre duplicado
 }
 export function claveNombre(nombre: string): string;          // NFC, espacios colapsados, recorte, toLocaleLowerCase('es')

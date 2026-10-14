@@ -16,7 +16,7 @@ for (const afiliacion of ['sistemica', 'ambiental'] as const)
     test(`T-060 T-192 T-196 evento al proceso completo e interno ${afiliacion}: OPL auténtico y punto fijo JSON`, () => {
         const base = modeloCon({ objetos: [['Pedido', ['nuevo', 'listo']]], procesos: ['Procesar'] });
         const b = { ...base, cosas: Object.fromEntries(Object.entries(base.cosas).map(([id, c]) => [id, { ...c, afiliacion }])) };
-        const d = must(descomponer(b, { opd: b.raiz, proceso: porNombre(b, 'Procesar').id, bandas: [['Inspeccionar'], ['Aceptar']] }));
+        const d = must(descomponer(b, { opd: b.raiz, cosa: porNombre(b, 'Procesar').id, bandas: [['Inspeccionar'], ['Aceptar']] }));
         const c = must(crearCosa(d.modelo, { opd: d.creados[0]!, tipo: 'objeto', nombre: 'Aviso', x: 240, y: 170, alcance: 'interno' }));
         const entero = must(crearEnlace(c.modelo, { opd: b.raiz, candidato: { tipo: 'instrumento', objeto: porNombre(b, 'Pedido').id, proceso: porNombre(b, 'Procesar').id, control: 'e' } }));
         const interno = must(crearEnlace(entero.modelo, { opd: d.creados[0]!, candidato: { tipo: 'instrumento', objeto: c.creados[0]!, proceso: porNombre(c.modelo, 'Inspeccionar').id, control: 'e' } }));
@@ -40,7 +40,7 @@ function eventoReanclado(afiliacion: 'sistemica' | 'ambiental') {
     const b = modeloCon({ objetos: [['Pedido', []]], procesos: ['Procesar'] });
     const base = { ...b, cosas: Object.fromEntries(Object.entries(b.cosas).map(([id, c]) => [id, { ...c, afiliacion }])) };
     const e = must(crearEnlace(base, { opd: base.raiz, candidato: { tipo: 'instrumento', objeto: porNombre(base, 'Pedido').id, proceso: porNombre(base, 'Procesar').id, control: 'c' } }));
-    const d = must(descomponer(e.modelo, { opd: base.raiz, proceso: porNombre(base, 'Procesar').id, bandas: [['Inspeccionar'], ['Aceptar']] }));
+    const d = must(descomponer(e.modelo, { opd: base.raiz, cosa: porNombre(base, 'Procesar').id, bandas: [['Inspeccionar'], ['Aceptar']] }));
     return { m: must(reanclarExtremo(d.modelo, { opd: d.creados[0]!, enlace: e.creados[0]!, extremo: 'destino', hacia: { cosa: porNombre(d.modelo, 'Inspeccionar').id } })).modelo, enlace: e.creados[0]! };
 }
 const condicion = '*Inspeccionar* ocurre si **Pedido** existe, de lo contrario *Inspeccionar* se omite.';

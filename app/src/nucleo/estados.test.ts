@@ -165,7 +165,7 @@ test('T-015 retiro solo destino recíproco conserva origen; especialización pie
 function abstracto(): Modelo {
     const m = modeloCon({ objetos: [['Pedido', ['nuevo', 'listo']]], procesos: ['Procesar', 'Iniciar', 'Terminar'] });
     const root = m.opds['opd-1']!;
-    const o: OpdDescomposicion = { id: 'opd-8', tipo: 'descomposicion', padre: 'opd-1', cosa: 'p-5', orden: 0, bandas: [['p-6'], ['p-7']], objetosInternos: [], apariciones: {
+    const o: OpdDescomposicion = { id: 'opd-8', tipo: 'descomposicion', padre: 'opd-1', cosa: 'p-5', orden: 0, bandas: [['p-6'], ['p-7']], internos: [], apariciones: {
         'o-2': { x: -200, y: 0, ancho: 135, alto: 60 }, 'p-5': { x: 0, y: 0, ancho: 420, alto: 288 }, 'p-6': { x: 100, y: 64, ancho: 135, alto: 60 }, 'p-7': { x: 100, y: 164, ancho: 135, alto: 60 },
     } };
     return congelar({ ...m, opds: { 'opd-1': { ...root, apariciones: { 'o-2': root.apariciones['o-2']!, 'p-5': root.apariciones['p-5']! } }, 'opd-8': o }, enlaces: {

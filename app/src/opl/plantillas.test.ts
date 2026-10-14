@@ -106,7 +106,7 @@ test('T-117 RH1 conjunción sigue artículo pronunciado, no nombre aislado', () 
 
 test('T-127 CXM y/e lee la frase emitida, conserva comas, bandas y tokens',()=>{
  const m={id:'m',nombre:'Modelo',raiz:'sd',unidadTiempo:'min' as const,secuencia:10,cosas:Object.fromEntries(['P','Alfa','Beta','Índice','Isla'].map(id=>[id,{id,tipo:'proceso' as const,nombre:id,esencia:'informacional' as const,afiliacion:'sistemica' as const}])),enlaces:{},abanicos:{},opds:{}};
- const d:import('../nucleo/tipos').OpdDescomposicion={id:'h',tipo:'descomposicion',cosa:'P',padre:'sd',orden:0,bandas:[['Alfa','Beta'],['Índice']],objetosInternos:[],apariciones:{}};
+ const d:import('../nucleo/tipos').OpdDescomposicion={id:'h',tipo:'descomposicion',cosa:'P',padre:'sd',orden:0,bandas:[['Alfa','Beta'],['Índice']],internos:[],apariciones:{}};
  const p=tabla.PLANTILLAS.find(p=>p.id==='CXM')!,h=tabla.datosContexto({...m,opds:{h:d}},'h')!.huecos;
  expect(tabla.tokensPlantilla('CXM',h).map(t=>t.texto).join('')).toBe('P se descompone en paralelo Alfa y Beta, e Índice, en esa secuencia.');
  expect(p.hacia(h)).toEqual([{k:'descomposicion',proceso:'P',bandas:[['Alfa','Beta'],['Índice']],internos:[]}]);
@@ -151,7 +151,7 @@ test('T-127 colación de contexto conserva Unicode, equivalencias y desempata po
             cosas: { p: {id:'p', tipo:'proceso', nombre:'Procesar', esencia:'informacional', afiliacion:'sistemica'},
                 'p-2': {id:'p-2', tipo:'proceso', nombre:a, esencia:'informacional', afiliacion:'sistemica'},
                 'p-10': {id:'p-10', tipo:'proceso', nombre:b, esencia:'informacional', afiliacion:'sistemica'} }, enlaces:{}, abanicos:{},
-            opds:{sd:{id:'sd', tipo:'raiz', apariciones:{}}, h:{id:'h', tipo:'descomposicion', padre:'sd', cosa:'p', orden:0, bandas:[['p-2','p-10']], objetosInternos:[], apariciones:{}}} };
+            opds:{sd:{id:'sd', tipo:'raiz', apariciones:{}}, h:{id:'h', tipo:'descomposicion', padre:'sd', cosa:'p', orden:0, bandas:[['p-2','p-10']], internos:[], apariciones:{}}} };
         const antes = JSON.stringify(m), h = tabla.datosContexto(m, 'h')!;
         // Expresión independiente: colación base, escritura exacta y, sólo con la misma escritura, ID (B-57).
         const esperado = ['p-2','p-10'].sort((x,y) => { const a = m.cosas[x]!.nombre, b = m.cosas[y]!.nombre; return a.localeCompare(b, 'es', {sensitivity:'base'}) || (a < b ? -1 : a > b ? 1 : 0) || x.localeCompare(y); });
@@ -163,7 +163,7 @@ test('T-127 colación de contexto conserva Unicode, equivalencias y desempata po
 test('T-127 colación local nunca altera bandas, entradas ni conjunción observable', () => {
     const m: import('../nucleo/tipos').Modelo = {id:'m-bandas', nombre:'Bandas', raiz:'sd', unidadTiempo:'min', secuencia:10,
         cosas:Object.fromEntries([['p','Procesar'],['a','Índice'],['b','Arbol'],['c','Árbol'],['d','Isla']].map(([id,nombre]) => [id!,{id:id!,tipo:'proceso' as const,nombre:nombre!,esencia:'informacional' as const,afiliacion:'sistemica' as const}])), enlaces:{}, abanicos:{},
-        opds:{sd:{id:'sd',tipo:'raiz',apariciones:{}},h:{id:'h',tipo:'descomposicion',cosa:'p',padre:'sd',orden:0,bandas:[['c','b'],['d','a']],objetosInternos:[],apariciones:{}}}};
+        opds:{sd:{id:'sd',tipo:'raiz',apariciones:{}},h:{id:'h',tipo:'descomposicion',cosa:'p',padre:'sd',orden:0,bandas:[['c','b'],['d','a']],internos:[],apariciones:{}}}};
     const antes=JSON.stringify(m), h=tabla.datosContexto(m,'h')!;
     expect(h.plantilla).toBe('CXM'); expect(tabla.PLANTILLAS.find(p=>p.id==='CXM')!.hacia(h.huecos)).toEqual([{k:'descomposicion', proceso:'Procesar', bandas:[['Arbol','Árbol'],['Índice','Isla']], internos:[]}]);
     expect(tabla.tokensPlantilla(h.plantilla,h.huecos).map(t=>t.texto).join('')).toBe('Procesar se descompone en paralelo Arbol y Árbol, y paralelo Índice e Isla, en esa secuencia.');

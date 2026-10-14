@@ -241,7 +241,7 @@ for (const tipo of ['consumo', 'resultado', 'efecto', 'agente', 'instrumento'] a
             proceso: porNombre(base, 'Operar').id, mult, ...(tipo === 'efecto'
                 ? { entrada: o.estados[0]!.id, salida: o.estados[1]!.id } : { estado: o.estados[0]!.id }) } }));
         const antes = exportarV0(r.modelo), id = r.creados[0]!;
-        const refinado = must(descomponer(r.modelo, { opd: r.modelo.raiz, proceso: porNombre(r.modelo, 'Operar').id,
+        const refinado = must(descomponer(r.modelo, { opd: r.modelo.raiz, cosa: porNombre(r.modelo, 'Operar').id,
             bandas: [['Preparar'], ['Entregar']] })).modelo;
         expect(validarForma(refinado)).toEqual([]); expect(erroresContexto(refinado)).toEqual([]);
         expect(refinado.enlaces[id]).toBeDefined();

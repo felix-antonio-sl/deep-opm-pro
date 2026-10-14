@@ -9,7 +9,7 @@ import { exportarV0 } from '../codec/exportar';
 
 test('T-060 T-011 evento exterior rechazado conserva selección, modelo e historial; condición legal tiene un solo deshacer', async () => {
     const d = dependencias();
-    const refinado = must(descomponer(d.m, { opd: d.m.raiz, proceso: 'p-5', bandas: [['Inspeccionar'], ['Aceptar']] }));
+    const refinado = must(descomponer(d.m, { opd: d.m.raiz, cosa: 'p-5', bandas: [['Inspeccionar'], ['Aceptar']] }));
     const hijo = refinado.creados[0]!, interno = porNombre(refinado.modelo, 'Inspeccionar').id;
     const visible = must(traerCosa(refinado.modelo, { opd: hijo, cosa: 'o-2', x: -220, y: 70 }));
     const creado = must(crearEnlace(visible.modelo, { opd: hijo, candidato: { tipo: 'instrumento', objeto: 'o-2', proceso: interno } }));

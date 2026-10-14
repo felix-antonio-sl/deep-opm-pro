@@ -195,7 +195,7 @@ export function diagnosticar(m: Modelo): readonly Diagnostico[] {
         if (c.tipo === 'proceso') {
             if (!transforma(c.id))
                 añadir('proceso-sin-transformacion', [ref('cosa', c.id)], `«${c.nombre}» no consume, crea ni afecta un objeto, directa o indirectamente.`);
-            if (idx.subprocesoDe.has(c.id) && !tienePropio(c.id))
+            if (idx.bandaDe.has(c.id) && !tienePropio(c.id))
                 añadir('subproceso-sin-transformado', [ref('cosa', c.id)], `El subproceso «${c.nombre}» no tiene un transformador propio o heredado.`);
             const ps = palabras(c.nombre), primera = ps[0] ?? '';
             if (ps.length < 2 || ps.length > 4)

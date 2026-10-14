@@ -14,7 +14,7 @@ import { generarDocumentoOpl } from '../opl/documento';
 // B-45, R-INV-2/2A, R-IDP-0A: la altura del punto superior de cada subproceso realiza sus bandas declaradas.
 const caja = (y: number): Aparicion => ({ x: 0, y, ancho: 135, alto: 60 });
 const opd = (bandas: string[][], ys: Record<string, number>): OpdDescomposicion =>
-    ({ id: 'h', tipo: 'descomposicion', padre: 'sd', cosa: 'p', orden: 0, bandas, objetosInternos: [], apariciones: Object.fromEntries(Object.entries(ys).map(([id, y]) => [id, caja(y)])) });
+    ({ id: 'h', tipo: 'descomposicion', padre: 'sd', cosa: 'p', orden: 0, bandas, internos: [], apariciones: Object.fromEntries(Object.entries(ys).map(([id, y]) => [id, caja(y)])) });
 
 test('T-030 B-45 la altura realiza las bandas con la tolerancia admisible y nada más', () => {
     expect(TOLERANCIA_ALTURA).toBe(4);
@@ -31,7 +31,7 @@ test('T-030 B-45 la altura realiza las bandas con la tolerancia admisible y nada
 
 function proceso(): Modelo {
     const b = modeloCon({ objetos: [['Pedido', ['recibido', 'despachado']]], procesos: ['Atender'], enlaces: [['efecto', 'Pedido', 'Atender']] });
-    return must(aplicarAcciones(b, [{ op: 'descomponer', args: { opd: b.raiz, proceso: porNombre(b, 'Atender').id, bandas: [['Recibir'], ['Revisar', 'Cobrar'], ['Despachar']] } }])).modelo;
+    return must(aplicarAcciones(b, [{ op: 'descomponer', args: { opd: b.raiz, cosa: porNombre(b, 'Atender').id, bandas: [['Recibir'], ['Revisar', 'Cobrar'], ['Despachar']] } }])).modelo;
 }
 const hijoDe = (m: Modelo) => Object.values(m.opds).find((o): o is OpdDescomposicion => o.tipo === 'descomposicion')!;
 const contradicciones = (m: Modelo) => diagnosticar(m).filter(d => d.codigo === 'orden-vertical-contradictorio');
@@ -44,9 +44,9 @@ test('T-030 T-221 B-45 las operaciones de edición conservan la realización de 
         { op: 'moverApariciones', args: { opd: h.id, mover: [{ cosa: revisar, x: 400, y: 900 }] } },
         { op: 'moverApariciones', args: { opd: h.id, mover: [{ cosa: h.cosa, x: 300, y: -200 }] } },
         { op: 'redimensionar', args: { opd: h.id, cosa: recibir, ancho: 200, alto: 140 } },
-        { op: 'moverSubproceso', args: { opd: h.id, proceso: despachar, destino: { nuevaBandaAntesDe: 0 } } },
+        { op: 'moverEnDescomposicion', args: { opd: h.id, cosa: despachar, destino: { nuevaBandaAntesDe: 0 } } },
         { op: 'fijarBandas', args: { opd: h.id, bandas: [[recibir, revisar], [cobrar], [despachar]] } },
-        { op: 'agregarSubprocesos', args: { opd: h.id, bandas: [['Archivar']], posicion: 'final' } },
+        { op: 'agregarEnDescomposicion', args: { opd: h.id, bandas: [['Archivar']], posicion: 'final' } },
         { op: 'eliminarCosas', args: { cosas: [cobrar] } },
     ];
     for (const a of pasos) {
@@ -123,7 +123,7 @@ test('T-030 B-45 v0 sin orden declarado deriva bandas con la misma tolerancia y 
 test('T-030 B-45 una contradicción originada al editar también se diagnostica, bloquea y se repara', () => {
     // Reducir el contenedor y mover después un subproceso lo confina más arriba (R-OPD-UI-3): la edición no la impide.
     const b = modeloCon({ objetos: [['Pedido', ['recibido', 'despachado']]], procesos: ['Atender'], enlaces: [['efecto', 'Pedido', 'Atender']] });
-    const m = must(aplicarAcciones(b, [{ op: 'descomponer', args: { opd: b.raiz, proceso: porNombre(b, 'Atender').id, bandas: [['Recibir'], ['Despachar']] } }])).modelo;
+    const m = must(aplicarAcciones(b, [{ op: 'descomponer', args: { opd: b.raiz, cosa: porNombre(b, 'Atender').id, bandas: [['Recibir'], ['Despachar']] } }])).modelo;
     const h = hijoDe(m), [recibir, despachar] = h.bandas.flat() as [string, string];
     const n = must(aplicarAcciones(m, [
         { op: 'redimensionar', args: { opd: h.id, cosa: h.cosa, ancho: h.apariciones[h.cosa]!.ancho, alto: 100 } },

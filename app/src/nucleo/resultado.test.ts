@@ -86,4 +86,4 @@ caso('T-004 descripción nula quita metadato sin alterar hechos', () => {
     }
     expect(con.descripcion).toBe('Texto');
 });
-caso('T-011 etiqueta del historial expresa la operación en español', () => { const m = modeloCon({ procesos: ['Cocinar'] }); const proceso = Object.values(m.cosas)[0]!.id; expect(etiquetaAccion(m, { op: 'descomponer', args: { opd: m.raiz, proceso } })).toBe('Descomponer *Cocinar*'); expect(etiquetaAccion(m, { op: 'renombrarModelo', args: { nombre: 'Nuevo' } })).toBe('Renombrar modelo'); });
+caso('T-011 etiqueta del historial expresa la operación en español', () => { const m = modeloCon({ procesos: ['Cocinar'] }); const proceso = Object.values(m.cosas)[0]!.id; expect(etiquetaAccion(m, { op: 'descomponer', args: { opd: m.raiz, cosa: proceso } })).toBe('Descomponer *Cocinar*'); expect(etiquetaAccion(m, { op: 'renombrarModelo', args: { nombre: 'Nuevo' } })).toBe('Renombrar modelo'); });

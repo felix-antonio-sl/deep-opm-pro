@@ -21,7 +21,7 @@ function poner(m: Modelo, ...es: Enlace[]): Modelo { return congelar({ ...m, enl
 function sano(m: Modelo): Modelo { validos.push(m); return m; }
 function refinar(m: Modelo, bandas: readonly (readonly string[])[] = [[ids(m)[4]!], [ids(m)[5]!]]): Modelo {
     const p = ids(m)[3]!, internos = bandas.flat(), root = m.opds[m.raiz]!;
-    return congelar({ ...m, secuencia: 200, opds: { [m.raiz]: { ...root, apariciones: Object.fromEntries(Object.entries(root.apariciones).filter(([id]) => !internos.includes(id))) }, 'opd-100': { id: 'opd-100', tipo: 'descomposicion', padre: m.raiz, cosa: p, orden: 0, bandas, objetosInternos: [], apariciones: root.apariciones } } });
+    return congelar({ ...m, secuencia: 200, opds: { [m.raiz]: { ...root, apariciones: Object.fromEntries(Object.entries(root.apariciones).filter(([id]) => !internos.includes(id))) }, 'opd-100': { id: 'opd-100', tipo: 'descomposicion', padre: m.raiz, cosa: p, orden: 0, bandas, internos: [], apariciones: root.apariciones } } });
 }
 function enlace(m: Modelo, tipo: TipoEnlace, id = 'e-101'): Enlace {
     const [a, b, , p, q] = ids(m);
@@ -643,7 +643,7 @@ test('T-053 DEC33 incidencia por proceso, RROL1/RROL3 entre niveles, orden de di
     function ascendientes(m: Modelo, p: string): Set<string> {
         const idx = indice(m), vistos = new Set<string>();
         while (!vistos.has(p)) {
-            vistos.add(p); const padre = idx.subprocesoDe.get(p), o = padre ? m.opds[padre.opd] : undefined;
+            vistos.add(p); const padre = idx.bandaDe.get(p), o = padre ? m.opds[padre.opd] : undefined;
             if (o?.tipo !== 'descomposicion') break;
             p = o.cosa;
         }

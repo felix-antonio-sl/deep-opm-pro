@@ -124,7 +124,7 @@ export function reducirGesto(m: Modelo, opd: Id, g: Gesto, ev: EventoLienzo): {
         if (ev.k === 'mover') return salida({ ...g, delta: { x: ev.punto.x - g.desde.x, y: ev.punto.y - g.desde.y } });
         if (ev.k === 'arriba') {
             const o = m.opds[opd]!;
-            const mover = g.cosas.flatMap(cosa => { const a = o.apariciones[cosa]; if (!a) return []; const subproceso = indice(m).subprocesoDe.has(cosa),x=Math.round(a.x+g.delta.x),y=Math.round(a.y+(subproceso?0:g.delta.y)); return x===a.x&&y===a.y?[]:[{cosa,x,y}]; });
+            const mover = g.cosas.flatMap(cosa => { const a = o.apariciones[cosa]; if (!a) return []; const subproceso = indice(m).bandaDe.has(cosa),x=Math.round(a.x+g.delta.x),y=Math.round(a.y+(subproceso?0:g.delta.y)); return x===a.x&&y===a.y?[]:[{cosa,x,y}]; });
             return salida(reposo, mover.length ? [{ op: 'moverApariciones', args: { opd, mover } }] : []);
         }
     }
@@ -169,7 +169,7 @@ export function reducirGesto(m: Modelo, opd: Id, g: Gesto, ev: EventoLienzo): {
         if (ev.k === 'mover') return salida({ ...g, punto: ev.punto });
         if (ev.k === 'arriba') { const hacia = extremo(ev.sobre); return hacia ? salida(reposo, [{ op: 'reanclarExtremo', args: { opd, enlace: g.enlace, extremo: g.extremo, hacia } }]) : salida(g); }
     }
-    if (g.k === 'banda' && (ev.k === 'arriba' || tecla === 'Enter')) return g.destino ? salida(reposo, [{ op: 'moverSubproceso', args: { opd, proceso: g.proceso, destino: g.destino } }]) : salida(reposo);
+    if (g.k === 'banda' && (ev.k === 'arriba' || tecla === 'Enter')) return g.destino ? salida(reposo, [{ op: 'moverEnDescomposicion', args: { opd, cosa: g.proceso, destino: g.destino } }]) : salida(reposo);
     if (g.k === 'encadenando') {
         if (ev.k === 'nombre') return salida({ ...g, actual: ev.nombre });
         if (tecla === 'Enter') {
@@ -189,6 +189,6 @@ export function reducirGesto(m: Modelo, opd: Id, g: Gesto, ev: EventoLienzo): {
         const bandas = cadena.bandas.map(b => [...b]);
         if (cadena.actual && !validarNombreCosa(cadena.actual)) bandas.push([cadena.actual]);
         if (!bandas.length) return salida(reposo);
-        return cadena.modo === 'subprocesos' ? salida(reposo, [{ op: 'agregarSubprocesos', args: { opd: cadena.opd, bandas, posicion: 'final' } }]) : salida(reposo, [{ op: 'agregarRefinadores', args: { opd: cadena.opd, nombres: bandas.flat() } }]);
+        return cadena.modo === 'subprocesos' ? salida(reposo, [{ op: 'agregarEnDescomposicion', args: { opd: cadena.opd, bandas, posicion: 'final' } }]) : salida(reposo, [{ op: 'agregarRefinadores', args: { opd: cadena.opd, nombres: bandas.flat() } }]);
     }
 }

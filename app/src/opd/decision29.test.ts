@@ -10,6 +10,7 @@ import { PLANTILLAS } from '../opl/plantillas';
 import { escena } from './escena';
 import { exportarDiagrama, exportarDocumento } from './exportar';
 import { readFileSync } from 'node:fs';
+import { modeloArchivado } from '../pruebas/constructores';
 
 function base(tipo: 'consumo' | 'resultado' | 'agente' | 'instrumento', operador: 'XOR' | 'OR', estado: 'uniforme' | 'distinto' | 'ausente'): Modelo {
     const o: Objeto = { id: 'o', nombre: 'Pedido', tipo: 'objeto', esencia: tipo === 'agente' ? 'fisica' : 'informacional', afiliacion: 'sistemica', estados: [{ id: 's1', nombre: 'pendiente' }, { id: 's2', nombre: 'pagado' }] };
@@ -107,7 +108,7 @@ const archivados = [
 ] as readonly { id: string; opd?: string; jsonOriginal: string }[];
 for (const archivo of archivados)
     test(`T-287 T-216 DEC29 modelo archivado ${archivo.id} preserva todos los enlaces en import/export`, () => {
-        const original = JSON.parse(archivo.jsonOriginal) as Modelo, antes = JSON.stringify(original);
+        const original = modeloArchivado(archivo.jsonOriginal), antes = JSON.stringify(original);
         const r = importarV0(exportarV0(original));
         expect(r.ok).toBe(true);
         if (!r.ok) throw new Error('Importación');

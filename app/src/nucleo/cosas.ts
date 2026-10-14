@@ -91,11 +91,11 @@ export const crearCosa: Operacion<{
     tx.poner('cosas', a.tipo === 'objeto' ? { ...base, tipo: 'objeto', estados: [] } : { ...base, tipo: 'proceso' });
     const app = { x: Math.round(a.x), y: Math.round(a.y), ancho: 135, alto: 60 };
     if (interno && o.tipo === 'descomposicion') {
-        const bandas = o.bandas.map(b => [...b]), objetosInternos = [...o.objetosInternos];
-        if (a.tipo === 'objeto') objetosInternos.push(id);
+        const bandas = o.bandas.map(b => [...b]), internos = [...o.internos];
+        if (a.tipo === 'objeto') internos.push(id);
         else if (a.banda?.paralelo && bandas[a.banda.indice]) bandas[a.banda.indice]!.push(id);
         else bandas.splice(a.banda?.indice ?? bandas.length, 0, [id]);
-        const nuevo = { ...o, bandas, objetosInternos, apariciones: { ...o.apariciones, [id]: app } };
+        const nuevo = { ...o, bandas, internos, apariciones: { ...o.apariciones, [id]: app } };
         tx.poner('opds', { ...nuevo, apariciones: colocarDescomposicion(tx.m, nuevo) });
         if (a.tipo === 'proceso' && o.bandas.length === 0) distribuirContornoTx(tx, o.id);
         if (afiliacion === 'ambiental') tx.traza({ regla: 'R-OBJ-6', mensaje: `**${a.nombre}** heredó la afiliación ambiental del contenedor.`, refs: [ref(id), ref(o.cosa)] });
@@ -236,21 +236,21 @@ export const moverApariciones: Operacion<{
         const p = movimientos.get(o.cosa)!, anterior = cajas[o.cosa]!, x = Math.round(p.x), y = Math.round(p.y);
         const dx = x - anterior.x, dy = y - anterior.y;
         cajas[o.cosa] = { ...anterior, x, y };
-        for (const id of [...o.bandas.flat(), ...o.objetosInternos]) { const app = cajas[id]!; cajas[id] = { ...app, x: app.x + dx, y: app.y + dy }; }
+        for (const id of [...o.bandas.flat(), ...o.internos]) { const app = cajas[id]!; cajas[id] = { ...app, x: app.x + dx, y: app.y + dy }; }
     }
     for (const p of movimientos.values()) {
         if (o.tipo === 'descomposicion' && p.cosa === o.cosa) continue;
         const previo = cajas[p.cosa]!;
         let app = { ...previo, x: Math.round(p.x), y: Math.round(p.y) };
         if (o.tipo === 'descomposicion') {
-            const subproceso = o.bandas.some(b => b.includes(p.cosa)), interno = subproceso || o.objetosInternos.includes(p.cosa);
+            const subproceso = o.bandas.some(b => b.includes(p.cosa)), interno = subproceso || o.internos.includes(p.cosa);
             if (subproceso) app = { ...app, y: previo.y };
             app = interno ? confinar(app, cajas[o.cosa]!) : externo(tx, app, cajas[o.cosa]!, p.cosa, o.id);
         }
         cajas[p.cosa] = app;
     }
     if (o.tipo === 'descomposicion' && movimientos.has(o.cosa)) {
-        const internos = new Set([o.cosa, ...o.bandas.flat(), ...o.objetosInternos]);
+        const internos = new Set([o.cosa, ...o.bandas.flat(), ...o.internos]);
         for (const id of Object.keys(cajas)) if (!internos.has(id)) cajas[id] = externo(tx, cajas[id]!, cajas[o.cosa]!, id, o.id);
     }
     tx.poner('opds', { ...o, apariciones: cajas });
@@ -274,7 +274,7 @@ export const quitarDeOpd: Operacion<{
     for (const id of ids) {
         aparicion(tx, o, id);
         if (o.tipo !== 'raiz' && o.cosa === id) negar(tx, 'es-contenedor', 'R-VIS-APP-1', 'El contenedor o refinable no se quita de su propio OPD hijo.', [ref(id), { tipo: 'opd', id: o.id }]);
-        if (o.tipo === 'descomposicion' && (o.objetosInternos.includes(id) || o.bandas.some(b => b.includes(id)))) negar(tx, 'es-interno', 'R-VIS-APP-1', 'Es interno: elimínalo del modelo.', [ref(id), { tipo: 'opd', id: o.id }]);
+        if (o.tipo === 'descomposicion' && (o.internos.includes(id) || o.bandas.some(b => b.includes(id)))) negar(tx, 'es-interno', 'R-VIS-APP-1', 'Es interno: elimínalo del modelo.', [ref(id), { tipo: 'opd', id: o.id }]);
     }
     const apariciones = { ...o.apariciones }; for (const id of ids) delete apariciones[id];
     tx.poner('opds', { ...o, apariciones });
@@ -307,7 +307,7 @@ export const eliminarCosas: Operacion<{
     for (const id of ids) tx.quitar('cosas', id);
     for (const o of Object.values(m.opds)) {
         const apariciones = { ...o.apariciones }; for (const id of ids) delete apariciones[id];
-        tx.poner('opds', o.tipo === 'descomposicion' ? { ...o, apariciones, bandas: o.bandas.map(b => b.filter(id => !ids.has(id))).filter(b => b.length), objetosInternos: o.objetosInternos.filter(id => !ids.has(id)) } : { ...o, apariciones });
+        tx.poner('opds', o.tipo === 'descomposicion' ? { ...o, apariciones, bandas: o.bandas.map(b => b.filter(id => !ids.has(id))).filter(b => b.length), internos: o.internos.filter(id => !ids.has(id)) } : { ...o, apariciones });
     }
     const atributos = new Set(Object.values(tx.m.enlaces).flatMap(e => e.tipo === 'exhibicion' ? [e.refinador] : []));
     for (const c of Object.values(tx.m.cosas)) if (c.tipo === 'objeto' && c.valor !== undefined && !atributos.has(c.id)) {

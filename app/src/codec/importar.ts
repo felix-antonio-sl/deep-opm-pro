@@ -436,7 +436,7 @@ function construirOpds(data:Record<Col,Record<string,Registro>>, apps:Map<string
       else if(s.modo===undefined) l.norm(`${s.ruta}.modo`,'Modo de despliegue → agregacion.','T-029');
       else if(modo!==s.modo) l.perder(`${s.ruta}.modo`,s.modo,'T-029');
       opds[id]={id,tipo:'despliegue',cosa:s.cosa,padre:padres.get(id)??raiz,orden:0,modo,apariciones};
-    } else opds[id]={id,tipo:'descomposicion',cosa:s.cosa,padre:padres.get(id)??raiz,orden:0,bandas:[],objetosInternos:[],apariciones};
+    } else opds[id]={id,tipo:'descomposicion',cosa:s.cosa,padre:padres.get(id)??raiz,orden:0,bandas:[],internos:[],apariciones};
   }
   // Recolgar hijos de OPDs descartados; si no hay aparición superviviente, se retira el OPD.
   for(let vuelta=0;vuelta<=Object.keys(data.opds).length;vuelta++) {
@@ -487,7 +487,7 @@ function construirOpds(data:Record<Col,Record<string,Registro>>, apps:Map<string
       for(const c of candidatos.sort((a,b)=>o.apariciones[a]!.y-o.apariciones[b]!.y||natural(a,b))) { const ultima=bandas.at(-1); if(ultima&&Math.abs(o.apariciones[c]!.y-o.apariciones[ultima[0]!]!.y)<=TOLERANCIA_ALTURA)ultima.push(c);else bandas.push([c]); }
       l.norm(`opds.${id}.ordenInzoom`,'Bandas derivadas de geometría (tolerancia 4 px).','T-030');
     }
-    opds[id]={...o,bandas,objetosInternos:objetoIds};
+    opds[id]={...o,bandas,internos:objetoIds};
   }
 }
 

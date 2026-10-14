@@ -1,4 +1,4 @@
-import type { Modelo, Cosa, Enlace, TipoEnlace, Id } from '../nucleo/tipos';
+import type { Modelo, Cosa, Enlace, TipoEnlace, Id, Opd } from '../nucleo/tipos';
 import type { Respuesta } from '../nucleo/resultado';
 export function congelar<T>(valor: T): T {
     if (valor && typeof valor === 'object' && !Object.isFrozen(valor)) {
@@ -7,6 +7,14 @@ export function congelar<T>(valor: T): T {
             congelar(x);
     }
     return valor;
+}
+/** Modelo archivado, protegido por hash, anterior al in-zoom de objeto: `objetosInternos` se llama hoy `internos`. */
+export function modeloArchivado(json: string): Modelo {
+    const m = JSON.parse(json) as Modelo;
+    return { ...m, opds: Object.fromEntries(Object.entries(m.opds).map(([id, o]) => {
+        const { objetosInternos, ...resto } = o as Opd & { objetosInternos?: readonly Id[] };
+        return [id, objetosInternos ? { ...resto, internos: objetosInternos } as Opd : o];
+    })) };
 }
 export function must<T>(r: Respuesta<T>): T {
     if (!r.ok)

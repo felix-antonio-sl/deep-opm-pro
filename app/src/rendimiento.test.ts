@@ -55,10 +55,10 @@ test('WP-10 DESIGN §2.4 operación nuclear efectiva incluye cierre DS20 <9ms', 
     });
 });
 test('WP-10 DESIGN §2.4 proyectar OPD real <9ms', () => {
-    medir('proyectar', 9, () => { const m = azar(SEMILLA_HODOM, 'hodom'), opd = Object.values(m.opds).find(o => o.tipo === 'descomposicion' && o.objetosInternos.length)!; return () => proyectar(m, opd.id); }, r => { expect(r.cosas.length).toBe(9); expect(r.enlaces.length).toBeGreaterThan(0); });
+    medir('proyectar', 9, () => { const m = azar(SEMILLA_HODOM, 'hodom'), opd = Object.values(m.opds).find(o => o.tipo === 'descomposicion' && o.internos.length)!; return () => proyectar(m, opd.id); }, r => { expect(r.cosas.length).toBe(9); expect(r.enlaces.length).toBeGreaterThan(0); });
 });
 test('WP-10 DESIGN §2.4 escena y dibujo OPD≤25 en modelo completo <15ms', () => {
-    medir('escena+dibujar', 15, () => { const m = azar(SEMILLA_HODOM, 'hodom'), opd = Object.values(m.opds).find(o => o.tipo === 'descomposicion' && o.objetosInternos.length)!; expect(Object.keys(opd.apariciones).length).toBe(9); return () => dibujar(escena(m, opd.id), 'canon'); }, r => { expect(r.t).toBe('g'); expect(r.h!.length).toBeGreaterThan(0); });
+    medir('escena+dibujar', 15, () => { const m = azar(SEMILLA_HODOM, 'hodom'), opd = Object.values(m.opds).find(o => o.tipo === 'descomposicion' && o.internos.length)!; expect(Object.keys(opd.apariciones).length).toBe(9); return () => dibujar(escena(m, opd.id), 'canon'); }, r => { expect(r.t).toBe('g'); expect(r.h!.length).toBeGreaterThan(0); });
 });
 test('WP-10 DESIGN §2.4 generarModelo36 bloques <75ms', () => {
     medir('generarModelo', 75, () => { const m = azar(SEMILLA_HODOM, 'hodom'); return () => generarModelo(m); }, r => { expect(new Set(r.map(l => l.opd)).size).toBe(36); });

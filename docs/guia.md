@@ -255,10 +255,10 @@ canónica (P7), y toda acción se deshace en un paso.
     2. Se escribe `Recibir ↵ Validar ⇧↵ Verificar ↵ Despachar ⎋`: ↵ pasa a la banda siguiente
        (secuencia) y ⇧↵ queda en la misma banda (paralelo). Cada nombre confirmado queda como
        fantasma con su nombre real, nunca como placeholder.
-    3. ⎋, o ↵ con el campo vacío, ejecuta **una** `agregarSubprocesos` con todos los nombres. Eso
+    3. ⎋, o ↵ con el campo vacío, ejecuta **una** `agregarEnDescomposicion` con todos los nombres. Eso
        dispara la distribución 0→n y la escisión (DS-3, DS-4). La franja informa «consumo →
        *Recibir* · resultado → *Despachar* · TS3 escindido».
-    4. `descomponer` y ese `agregarSubprocesos` comparten `gesto`, así que se deshacen en **un**
+    4. `descomponer` y ese `agregarEnDescomposicion` comparten `gesto`, así que se deshacen en **un**
        paso (SYNTHESIS §8-10).
     5. Si se pulsa ⎋ sin nombres, la descomposición queda vacía: `refinamiento-trivial` advierte
        hasta que haya al menos un subproceso (DEC50, B-43), y el gate bloquea el export.

@@ -13,7 +13,7 @@ function modelo(cosas: readonly Cosa[], enlaces: readonly Enlace[] = [], dc?: Op
     const internos = new Set(dc?.bandas.flat() ?? []);
     return congelar({ id: 'repair', nombre: 'Reparar', raiz: 'sd', secuencia: 100, unidadTiempo: 'min', cosas: Object.fromEntries(cosas.map(c => [c.id, c])), enlaces: Object.fromEntries(enlaces.map(e => [e.id, e])), abanicos: {}, opds: { sd: { id: 'sd', tipo: 'raiz', apariciones: Object.fromEntries(cosas.filter(c => !internos.has(c.id)).map(c => [c.id, app])) }, ...(dc ? { dc } : {}) } });
 }
-const dc: OpdDescomposicion = { id: 'dc', tipo: 'descomposicion', padre: 'sd', cosa: 'p', orden: 0, objetosInternos: [], bandas: [['a'], ['z']], apariciones: { p: { ...app, ancho: 420, alto: 300 }, o: { ...app, x: -220 }, a: { ...app, x: 140, y: 64 }, z: { ...app, x: 140, y: 164 } } };
+const dc: OpdDescomposicion = { id: 'dc', tipo: 'descomposicion', padre: 'sd', cosa: 'p', orden: 0, internos: [], bandas: [['a'], ['z']], apariciones: { p: { ...app, ancho: 420, alto: 300 }, o: { ...app, x: -220 }, a: { ...app, x: 140, y: 64 }, z: { ...app, x: 140, y: 164 } } };
 const refined = (e: Enlace) => modelo([o, p, proc('a', 'Recibir Pedido'), proc('z', 'Entregar Pedido')], [e], dc);
 const casos: readonly [string, string, () => Modelo][] = [
     ['T-024', 'nombre-duplicado', () => modelo([o, obj('b', 'Pedido')])],

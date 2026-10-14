@@ -62,10 +62,10 @@ export function colocarDescomposicion(m: Modelo, o: OpdDescomposicion): Readonly
     const origen = o.apariciones[o.cosa] ?? { x: 0, y: 0, ancho: 420, alto: 188 };
     const anchoFila = (ids: readonly Id[]) => ids.reduce((n, id) => n + (cajas[id]?.ancho ?? 135), 0) + Math.max(0, ids.length - 1) * 40;
     const altoFila = (ids: readonly Id[]) => Math.max(0, ...ids.map(id => cajas[id]?.alto ?? 60));
-    const ancho = Math.max(420, ...o.bandas.map(b => anchoFila(b) + 80), anchoFila(o.objetosInternos) + 80);
+    const ancho = Math.max(420, ...o.bandas.map(b => anchoFila(b) + 80), anchoFila(o.internos) + 80);
     const pasos = o.bandas.map(b => Math.max(100, altoFila(b) + 40));
     const totalPasos = pasos.reduce((total, paso) => total + paso, 0);
-    const reservaInternos = o.objetosInternos.length ? Math.max(100, altoFila(o.objetosInternos) + 40) : 0;
+    const reservaInternos = o.internos.length ? Math.max(100, altoFila(o.internos) + 40) : 0;
     const alto = 64 + totalPasos + reservaInternos + 24;
     cajas[o.cosa] = { ...origen, ancho, alto };
     const fila = (ids: readonly Id[], y: number) => {
@@ -82,8 +82,8 @@ export function colocarDescomposicion(m: Modelo, o: OpdDescomposicion): Readonly
         fila(b, yBanda);
         yBanda += pasos[k]!;
     });
-    fila(o.objetosInternos, origen.y + 64 + totalPasos);
-    const internos = new Set([o.cosa, ...o.bandas.flat(), ...o.objetosInternos]);
+    fila(o.internos, origen.y + 64 + totalPasos);
+    const internos = new Set([o.cosa, ...o.bandas.flat(), ...o.internos]);
     const grupos = new Map<string, Id[]>();
     for (const id of Object.keys(cajas)) {
         if (internos.has(id))

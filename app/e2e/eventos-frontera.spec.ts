@@ -11,7 +11,7 @@ async function sembrarCondicion(request: APIRequestContext, afiliacion: 'sistemi
     const id = `e2e-b44-${afiliacion}`, b = modeloCon({ objetos: [['Pedido', []]], procesos: ['Procesar'] });
     const base = { ...b, id, nombre: `E2E ${id}`, cosas: Object.fromEntries(Object.entries(b.cosas).map(([k, c]) => [k, { ...c, afiliacion }])) };
     const enlace = must(crearEnlace(base, { opd: base.raiz, candidato: { tipo: 'instrumento', objeto: porNombre(base, 'Pedido').id, proceso: porNombre(base, 'Procesar').id, control: 'c' } }));
-    const d = must(descomponer(enlace.modelo, { opd: base.raiz, proceso: porNombre(base, 'Procesar').id, bandas: [['Inspeccionar'], ['Aceptar']] }));
+    const d = must(descomponer(enlace.modelo, { opd: base.raiz, cosa: porNombre(base, 'Procesar').id, bandas: [['Inspeccionar'], ['Aceptar']] }));
     const e = enlace.creados[0]!, m = must(reanclarExtremo(d.modelo, { opd: d.creados[0]!, enlace: e, extremo: 'destino', hacia: { cosa: porNombre(d.modelo, 'Inspeccionar').id } })).modelo;
     const r = await request.post('/api/modelos', { headers: { Authorization: `Bearer ${TOKEN}`, 'Content-Type': 'application/json' }, data: exportarV0(m) });
     expect(r.status(), await r.text()).toBe(201);
