@@ -24,7 +24,6 @@ function nombre(tx: Tx, n: string, ambiguo = false): void {
 function precondicion(tx: Tx, oid: Id, cid: Id, tipo: 'descomposicion' | 'despliegue'): Opd {
     const o = obtenerOpd(tx, oid), c = Object.hasOwn(tx.m.cosas, cid) ? tx.m.cosas[cid] : undefined;
     if (!c) negar(tx, 'no-encontrado', 'producto', 'La cosa ya no existe.', [ref(cid)]);
-    if (tipo === 'descomposicion' && c.tipo !== 'proceso') negar(tx, 'descomposicion-objeto', 'R-OPL-CX-4', 'La descomposición de objeto no está disponible (DR-23).', [ref(cid)]);
     if (!Object.hasOwn(o.apariciones, cid)) negar(tx, 'no-visible', 'R-EDIT-1', 'La cosa debe aparecer en este OPD.', [ref(cid), ro(oid)]);
     for (let actual = o; actual.tipo !== 'raiz'; actual = tx.m.opds[actual.padre]!) {
         if (actual.cosa === cid) negar(tx, 'ciclo', 'R-REF-1', 'No se refina una cosa dentro de su propio árbol.', [ref(cid), ro(oid)]);
@@ -35,6 +34,10 @@ function precondicion(tx: Tx, oid: Id, cid: Id, tipo: 'descomposicion' | 'despli
     return o;
 }
 function layout(tx: Tx, o: OpdDescomposicion): void { tx.poner('opds', { ...o, apariciones: colocarDescomposicion(tx.m, o) }); }
+// R-OPD-REF-2: las partes de un objeto descompuesto tienen orden espacial o lógico, no tiempo: sin paralelo.
+function sinParalelo(tx: Tx, o: OpdDescomposicion, paralelo: boolean): void {
+    if (paralelo && tx.m.cosas[o.cosa]?.tipo === 'objeto') negar(tx, 'forma', 'R-OPD-REF-2', 'Cada parte de un objeto descompuesto ocupa su propia posición: no hay partes en paralelo.', [ro(o.id)]);
+}
 
 // Ensayo puro: nunca cierra DS-20 contra el borrador que ya contiene el enlace.
 // Los consumidores cierran contra su original real mediante transaccion.
@@ -105,14 +108,17 @@ function agregarEnTx(tx: Tx, a: { opd: Id; bandas: readonly (readonly string[])[
     if (a.bandas.some(b => !b.length)) negar(tx, 'forma', 'F-8', 'Una banda no puede estar vacía.', [ro(o.id)]);
     const destino = a.posicion === 'final' ? bandas.length : 'antesDeBanda' in a.posicion ? a.posicion.antesDeBanda : a.posicion.enBanda;
     if (!Number.isInteger(destino) || destino < 0 || destino > bandas.length || a.posicion !== 'final' && 'enBanda' in a.posicion && destino === bandas.length) negar(tx, 'forma', 'F-8', 'La banda de inserción no existe.', [ro(o.id)]);
+    sinParalelo(tx, o, a.bandas.some(b => b.length > 1) || a.posicion !== 'final' && 'enBanda' in a.posicion);
+    const tipo = tx.m.cosas[o.cosa]!.tipo, miembro = tipo === 'proceso' ? 'El subproceso' : 'La parte';
     const nuevas: Id[][] = [], apps = { ...o.apariciones };
     for (const b of a.bandas) {
         const ids: Id[] = [];
         for (const n of b) {
             const existente = indice(tx.m).porClaveNombre.get(claveNombre(n))?.[0];
-            if (existente && o.bandas.flat().includes(existente)) { negar(tx, 'ya-existe', 'F-8', 'El subproceso ya pertenece a esta descomposición.', [ref(existente)]); }
-            nombre(tx, n, true); const id = tx.nuevoId('p'), afiliacion = tx.m.cosas[o.cosa]!.afiliacion;
-            tx.poner('cosas', { id, tipo: 'proceso', nombre: n, esencia: 'informacional', afiliacion }); ids.push(id); apps[id] = { x: 0, y: 0, ancho: 135, alto: 60 };
+            if (existente && o.bandas.flat().includes(existente)) { negar(tx, 'ya-existe', 'F-8', `${miembro} ya pertenece a esta descomposición.`, [ref(existente)]); }
+            nombre(tx, n, true); const id = tx.nuevoId(tipo === 'objeto' ? 'o' : 'p'), afiliacion = tx.m.cosas[o.cosa]!.afiliacion;
+            const dato = { id, nombre: n, esencia: 'informacional' as const, afiliacion };
+            tx.poner('cosas', tipo === 'objeto' ? { ...dato, tipo, estados: [] } : { ...dato, tipo }); ids.push(id); apps[id] = { x: 0, y: 0, ancho: 135, alto: 60 };
             if (afiliacion === 'ambiental') tx.traza({ regla: 'R-OBJ-6', mensaje: `**${n}** heredó la afiliación ambiental del contenedor.`, refs: [ref(id), ref(o.cosa)] });
         }
         nuevas.push(ids);
@@ -121,8 +127,11 @@ function agregarEnTx(tx: Tx, a: { opd: Id; bandas: readonly (readonly string[])[
         bandas[destino]!.push(...(nuevas.shift() ?? [])); bandas.splice(destino + 1, 0, ...nuevas);
     } else bandas.splice(destino, 0, ...nuevas);
     layout(tx, { ...o, bandas, apariciones: apps });
-    if (antes === 0 && bandas.length) distribuirContornoTx(tx, o.id);
+    // La distribución del contorno sólo existe en la descomposición de proceso (R-OPD-REF-11).
+    if (tipo === 'proceso' && antes === 0 && bandas.length) distribuirContornoTx(tx, o.id);
 }
+// In-zoom de proceso u objeto (R-OPL-CX-4): el hijo agranda la cosa como contenedor y trae como externos
+// las cosas conectadas a ella.
 export const descomponer: Operacion<{ opd: Id; cosa: Id; bandas?: readonly (readonly string[])[] }> = (m, a) => transaccion(m, tx => {
     precondicion(tx, a.opd, a.cosa, 'descomposicion'); const id = tx.nuevoId('opd');
     const conectados = new Set<Id>(); for (const e of Object.values(m.enlaces)) { const ex = extremos(e); if (ex.origen === a.cosa) conectados.add(ex.destino); if (ex.destino === a.cosa) conectados.add(ex.origen); }
@@ -133,13 +142,13 @@ export const descomponer: Operacion<{ opd: Id; cosa: Id; bandas?: readonly (read
 export const agregarEnDescomposicion: Operacion<{ opd: Id; bandas: readonly (readonly string[])[]; posicion: 'final' | { antesDeBanda: number } | { enBanda: number } }> = (m, a) => transaccion(m, tx => { agregarEnTx(tx, a); formaFinal(tx); });
 function particion(tx: Tx, oid: Id, bandas: readonly (readonly Id[])[]): void {
     const o = descomp(tx, oid), actual = o.bandas.flat(), nuevos = bandas.flat();
-    if (bandas.some(b => !b.length) || nuevos.length !== actual.length || new Set(nuevos).size !== nuevos.length || nuevos.some(id => !actual.includes(id))) negar(tx, 'forma', 'F-8', 'Las bandas deben particionar todos los subprocesos exactamente una vez.', [ro(oid)]);
-    layout(tx, { ...o, bandas }); formaFinal(tx);
+    if (bandas.some(b => !b.length) || nuevos.length !== actual.length || new Set(nuevos).size !== nuevos.length || nuevos.some(id => !actual.includes(id))) negar(tx, 'forma', 'F-8', 'Las bandas deben particionar todos los miembros de la descomposición exactamente una vez.', [ro(oid)]);
+    sinParalelo(tx, o, bandas.some(b => b.length > 1)); layout(tx, { ...o, bandas }); formaFinal(tx);
 }
 export const fijarBandas: Operacion<{ opd: Id; bandas: readonly (readonly Id[])[] }> = (m, a) => transaccion(m, tx => particion(tx, a.opd, a.bandas));
 export const moverEnDescomposicion: Operacion<{ opd: Id; cosa: Id; destino: { banda: number } | { nuevaBandaAntesDe: number } }> = (m, a) => transaccion(m, tx => {
     const o = descomp(tx, a.opd), bandas = o.bandas.map(b => [...b]), origen = bandas.findIndex(b => b.includes(a.cosa));
-    if (origen < 0) negar(tx, 'no-encontrado', 'T-082', 'El proceso no es un subproceso de este OPD.', [ref(a.cosa), ro(o.id)]);
+    if (origen < 0) negar(tx, 'no-encontrado', 'T-082', 'La cosa no es un subproceso ni una parte de este OPD.', [ref(a.cosa), ro(o.id)]);
     const k = 'banda' in a.destino ? a.destino.banda : a.destino.nuevaBandaAntesDe;
     if (!Number.isInteger(k) || k < 0 || k > bandas.length || 'banda' in a.destino && k === bandas.length) negar(tx, 'forma', 'F-8', 'La banda destino no existe.', [ro(o.id)]);
     bandas[origen] = bandas[origen]!.filter(id => id !== a.cosa);
@@ -172,7 +181,8 @@ export const eliminarRefinamiento: Operacion<{ opd: Id }> = (m, a) => transaccio
     if (indice(m).hijosDe.get(o.id)?.length) negar(tx, 'refinamiento-no-hoja', 'R-REF-3', 'Elimina primero los refinamientos hijos.', [ro(o.id)]);
     const internos = new Set(o.tipo === 'descomposicion' ? [...o.bandas.flat(), ...o.internos] : Object.keys(o.apariciones).filter(id => id !== o.cosa && indice(m).aparicionesDe.get(id)?.length === 1));
     const materializados = new Set<Id>();
-    if (o.tipo === 'descomposicion') {
+    // Sólo el in-zoom de proceso abstrae enlaces hacia el padre (DR-13); el de objeto no tiene vista abstraída.
+    if (o.tipo === 'descomposicion' && m.cosas[o.cosa]?.tipo === 'proceso') {
         const vista = proyectar(m, o.padre);
         for (const v of vista.enlaces) {
             if (!v.abstraido || !v.hechos.some(id => { const e = m.enlaces[id]!; const ex = extremos(e); return internos.has(ex.origen) || internos.has(ex.destino); })) continue;

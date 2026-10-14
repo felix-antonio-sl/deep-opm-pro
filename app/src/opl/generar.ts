@@ -96,8 +96,9 @@ function construirBloque(m: Modelo, opd: Id, o?: OpcionesOpl): readonly LineaOpl
     const vista = proyectar(m, opd), idx = indice(m), d = m.opds[opd]!;
     const orden = vista.cosas.map(v => m.cosas[v.cosa]!).sort((a, b) => {
         const av = vista.cosas.find(v => v.cosa === a.id)!, bv = vista.cosas.find(v => v.cosa === b.id)!;
-        const rango = (c: Cosa, v: typeof av) => v.rol === 'contenedor' || v.rol === 'refinable' ? 0 : v.rol === 'subproceso' ? 1 : c.tipo === 'proceso' ? 2 : 3;
-        return rango(a, av) - rango(b, bv) || (av.rol === 'subproceso' && bv.rol === 'subproceso' ? (av.banda ?? 0) - (bv.banda ?? 0) : 0) || cmp(a, b);
+        const miembro = (v: typeof av) => v.rol === 'subproceso' || v.rol === 'parte';
+        const rango = (c: Cosa, v: typeof av) => v.rol === 'contenedor' || v.rol === 'refinable' ? 0 : miembro(v) ? 1 : c.tipo === 'proceso' ? 2 : 3;
+        return rango(a, av) - rango(b, bv) || (miembro(av) && miembro(bv) ? (av.banda ?? 0) - (bv.banda ?? 0) : 0) || cmp(a, b);
     });
     const contexto: LineaOpl[] = [], cosas: LineaOpl[] = [], enlaces: LineaOpl[] = [];
     const cx = datosContexto(m, opd);

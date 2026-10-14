@@ -88,7 +88,8 @@ export function colocarDescomposicion(m: Modelo, o: OpdDescomposicion): Readonly
     for (const id of Object.keys(cajas)) {
         if (internos.has(id))
             continue;
-        let grupo = m.cosas[id]?.tipo === 'proceso' ? 'procesos' : 'estructurales';
+        // Los procesos externos que transforman un objeto descompuesto van a su derecha, a la altura de sus partes.
+        let grupo = m.cosas[id]?.tipo === 'proceso' ? (m.cosas[o.cosa]?.tipo === 'objeto' ? 'salidas' : 'procesos') : 'estructurales';
         for (const e of Object.values(m.enlaces))
             if ('objeto' in e && e.objeto === id && internos.has(e.proceso)) {
                 grupo = e.tipo === 'resultado' ? 'salidas' : e.tipo === 'agente' || e.tipo === 'instrumento' ? 'habilitadores' : 'entradas';

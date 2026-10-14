@@ -248,12 +248,13 @@ export function escena(m: Modelo, opd: Id): Escena {
     // Una forma que debe expandirse crece hacia donde no pisa a otra (DEC34): siempre contiene la
     // caja persistida y, a igual solape, conserva su esquina. Dos pasadas sobre las cajas ya medidas.
     const medidos = vista.cosas.map(v => medirNodo(v)), cajas = medidos.map(n => n.caja);
-    const dentro = (i: number) => vista.cosas[i]!.rol === 'subproceso' || vista.cosas[i]!.rol === 'interno';
-    // R-OPD-INV-2: el punto superior de un subproceso denota su orden y conserva la altura de su banda, así
+    const ordenado = (i: number) => vista.cosas[i]!.rol === 'subproceso' || vista.cosas[i]!.rol === 'parte';
+    const dentro = (i: number) => ordenado(i) || vista.cosas[i]!.rol === 'interno';
+    // R-OPD-INV-2, R-OPD-REF-2: el punto superior de un subproceso o de una parte denota su orden y conserva la altura de su banda, así
     // que sólo crece hacia abajo. Ningún interno sale del contenedor por arriba ni por la izquierda, hacia
     // donde el contenedor no crece (R-OPD-REF-1); lo que ya estaba fuera en lo persistido no se agrava.
     const limite = vista.cosas.find(v => v.rol === 'contenedor'), borde = limite && o.apariciones[limite.cosa];
-    const admisible = (i: number, r: Rect, a: Rect) => !dentro(i) || ((vista.cosas[i]!.rol !== 'subproceso' || r.y === a.y)
+    const admisible = (i: number, r: Rect, a: Rect) => !dentro(i) || ((!ordenado(i) || r.y === a.y)
         && (!borde || (r.x >= Math.min(a.x, borde.x) && r.y >= Math.min(a.y, borde.y))));
     for (let pasada = 0; pasada < 2; pasada++)
         for (let i = 0; i < medidos.length; i++) {
@@ -279,7 +280,7 @@ export function escena(m: Modelo, opd: Id): Escena {
         }
     const nodos: NodoCosa[] = vista.cosas.map((v, i) => cajas[i] === medidos[i]!.caja ? medidos[i]! : medirNodo(v, cajas[i]));
     // Un contenedor debe cubrir la expansión calculada de sus internos, sin moverlos.
-    const internos = new Set(vista.cosas.filter(v => v.rol === 'subproceso' || v.rol === 'interno').map(v => v.cosa));
+    const internos = new Set(vista.cosas.filter(v => v.rol === 'subproceso' || v.rol === 'parte' || v.rol === 'interno').map(v => v.cosa));
     const ci = nodos.findIndex(n => n.contenedor);
     if (ci >= 0) {
         const n = nodos[ci]!, ins = nodos.filter(x => internos.has(x.ref.id));

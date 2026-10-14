@@ -81,8 +81,11 @@ export const crearCosa: Operacion<{
     coordenadas(tx, a.x, a.y, [{ tipo: 'opd', id: o.id }]);
     const contenedor = o.tipo === 'descomposicion' ? o.apariciones[o.cosa]! : undefined;
     const interno = o.tipo === 'descomposicion' && (a.alcance === 'interno' || a.alcance === undefined && dentro(a, contenedor!));
-    if (interno && a.tipo === 'proceso' && o.tipo === 'descomposicion') {
+    // Del mismo tipo que el contenedor es un miembro ordenado (subproceso o parte); del otro, un interno.
+    const miembro = interno && o.tipo === 'descomposicion' && a.tipo === m.cosas[o.cosa]!.tipo;
+    if (miembro && o.tipo === 'descomposicion') {
         if (a.banda && (!Number.isInteger(a.banda.indice) || a.banda.indice < 0 || a.banda.indice > o.bandas.length)) negar(tx, 'forma', 'F-8', 'La banda está fuera de la descomposición.', [{ tipo: 'opd', id: o.id }]);
+        if (a.banda?.paralelo && a.tipo === 'objeto') negar(tx, 'forma', 'R-OPD-REF-2', 'Cada parte de un objeto descompuesto ocupa su propia posición: no hay partes en paralelo.', [{ tipo: 'opd', id: o.id }]);
 
     }
     const id = tx.nuevoId(a.tipo === 'objeto' ? 'o' : 'p');
@@ -92,12 +95,12 @@ export const crearCosa: Operacion<{
     const app = { x: Math.round(a.x), y: Math.round(a.y), ancho: 135, alto: 60 };
     if (interno && o.tipo === 'descomposicion') {
         const bandas = o.bandas.map(b => [...b]), internos = [...o.internos];
-        if (a.tipo === 'objeto') internos.push(id);
+        if (!miembro) internos.push(id);
         else if (a.banda?.paralelo && bandas[a.banda.indice]) bandas[a.banda.indice]!.push(id);
         else bandas.splice(a.banda?.indice ?? bandas.length, 0, [id]);
         const nuevo = { ...o, bandas, internos, apariciones: { ...o.apariciones, [id]: app } };
         tx.poner('opds', { ...nuevo, apariciones: colocarDescomposicion(tx.m, nuevo) });
-        if (a.tipo === 'proceso' && o.bandas.length === 0) distribuirContornoTx(tx, o.id);
+        if (miembro && a.tipo === 'proceso' && o.bandas.length === 0) distribuirContornoTx(tx, o.id);
         if (afiliacion === 'ambiental') tx.traza({ regla: 'R-OBJ-6', mensaje: `**${a.nombre}** heredó la afiliación ambiental del contenedor.`, refs: [ref(id), ref(o.cosa)] });
     } else tx.poner('opds', { ...o, apariciones: { ...o.apariciones, [id]: contenedor ? externo(tx, app, contenedor, id, o.id) : app } });
     formaCajas(tx, o.id);

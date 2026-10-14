@@ -1,7 +1,7 @@
 import { afterEach, expect, test } from 'bun:test';
 import * as matriz from './matriz';
 import type { DatosEtiquetas } from './matriz';
-import { MATRIZ, REGLAS_CONTEXTO, NO_OFRECIDO, noOfrecido, noOfrecidoDescomposicion, violacionesForma, violacionesContexto, violacionesAbanico, tiposLegales, erroresContexto } from './matriz';
+import { MATRIZ, REGLAS_CONTEXTO, NO_OFRECIDO, noOfrecido, violacionesForma, violacionesContexto, violacionesAbanico, tiposLegales, erroresContexto } from './matriz';
 import { EXPECTATIVAS_MATRIZ, EXPECTATIVAS_REGLAS } from '../pruebas/expectativas-matriz';
 import { modeloCon, congelar } from '../pruebas/constructores';
 import { importarV0 } from '../codec/importar';
@@ -244,10 +244,9 @@ test('T-040 F2/F5 reales y 200 semillas sin mocks', () => {
     expect(validarForma(poner(m, { tipo: 'consumo', id: 'e-101', objeto: ids(m)[0]!, proceso: ids(m)[3]!, mult: '+', control: 'c' })).map(v => v.codigo)).toContain('F-5');
     const n = fan(m, 'instrumento', 'proceso', 'c');
     expect(validarForma(n).map(v => v.codigo)).toContain('F-5');
-    expect(NO_OFRECIDO.map(x => x.registro).sort()).toEqual(['B-02', 'B-04', 'B-05', 'B-06', 'B-06', 'B-08']);
+    expect(NO_OFRECIDO.map(x => x.registro).sort()).toEqual(['B-04', 'B-05', 'B-06', 'B-06', 'B-08']);
 });
 test('T-268 manejador sistémico legal, diagnóstico posterior advertirá', () => { const m = base(), e = enlace(m, 'excepcionSobretiempo'); expect(violacionesForma(m, e)).toEqual([]); expect(violacionesContexto(m, e)).toEqual([]); expect(opciones(m, ids(m)[3]!, ids(m)[4]!).find(x => x.tipo === 'excepcionSobretiempo' && x.sentido === 'directo')?.legal).toBe(true); });
-test('T-072 descomposición de objeto no ofrecida como consulta sin enlace artificial', () => { const m = base(); expect(noOfrecidoDescomposicion(m, ids(m)[0]!)?.registro).toBe('B-02'); expect(noOfrecidoDescomposicion(m, ids(m)[3]!)).toBeNull(); });
 test('T-054 ramas distintas semánticamente y ausencia de común se rechazan', () => { const m = base(), e: Enlace = { tipo: 'consumo', id: 'e-101', objeto: ids(m)[0]!, proceso: ids(m)[3]! }, f: Abanico = { id: 'f-110', operador: 'OR', enlaces: ['e-101', 'e-102'] }; expect(violacionesAbanico(poner(m, e, { ...e, id: 'e-102' }), f).length).toBeGreaterThan(0); expect(violacionesAbanico(poner(m, e, { ...e, id: 'e-102', objeto: ids(m)[1]!, proceso: ids(m)[4]! }), f).length).toBeGreaterThan(0); });
 test('T-053 B-58 ramas de un abanico que sólo difieren en cantidad o ruta repiten el rol y ninguna operación las forma', () => {
     const m = base(), [a, , , p] = ids(m), f: Abanico = { id: 'f-110', operador: 'XOR', enlaces: ['e-101', 'e-102'] };

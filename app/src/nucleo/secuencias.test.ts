@@ -7,6 +7,8 @@ import { erroresContexto } from './matriz';
 import type { Violacion } from './resultado';
 const operacionesVistas = new Set<string>();
 const estadisticas: Record<string, { seleccionadas: number; aceptadas: number; rechazadas: number; cambios: number }> = {};
+// B-02: también se recorren descomposiciones de objeto y operaciones sobre ellas.
+const deObjeto: Record<string, number> = {};
 const clave = (v: Violacion) => JSON.stringify([v.codigo, v.regla, v.refs.map(r => `${r.tipo}:${r.id}`).sort()]);
 for (let semilla = 0; semilla < 200; semilla++) test(`T-064 DS20 secuencia ${semilla}: 40 acciones sin reintentos y entrada inmutable`, () => {
     let m = azar(semilla, 'completo'), estado = (semilla + 1) >>> 0;
@@ -18,7 +20,11 @@ for (let semilla = 0; semilla < 200; semilla++) test(`T-064 DS20 secuencia ${sem
         const r = aplicarAccion(m, accion); expect(JSON.stringify(m)).toBe(antes);
         const cuenta = estadisticas[accion.op] ??= { seleccionadas: 0, aceptadas: 0, rechazadas: 0, cambios: 0 }; cuenta.seleccionadas++;
         if (r.ok) { cuenta.aceptadas++; if (JSON.stringify(r.valor.modelo) !== antes) cuenta.cambios++; } else cuenta.rechazadas++;
-        if (r.ok) m = r.valor.modelo;
+        if (r.ok) {
+            const o = 'opd' in accion.args && typeof accion.args.opd === 'string' ? m.opds[accion.args.opd] : undefined, contenedor = accion.op === 'descomponer' ? accion.args.cosa : o?.tipo === 'descomposicion' ? o.cosa : undefined;
+            if (contenedor && m.cosas[contenedor]?.tipo === 'objeto' && JSON.stringify(r.valor.modelo) !== antes) deObjeto[accion.op] = (deObjeto[accion.op] ?? 0) + 1;
+            m = r.valor.modelo;
+        }
         expect(validarForma(m), JSON.stringify({ semilla, paso, accion, respuesta: r.ok ? 'ok' : r.rechazo })).toEqual([]);
         expect(erroresContexto(m).filter(v => !previos.has(clave(v)))).toEqual([]);
     }
@@ -31,4 +37,6 @@ test('T-064 las ocho operaciones de refinamiento son aceptadas en las 8000 accio
     expect(Object.values(estadisticas).reduce((n, e) => n + e.seleccionadas, 0)).toBe(8000);
     for (const op of ['descomponer', 'agregarEnDescomposicion', 'moverEnDescomposicion', 'fijarBandas', 'desplegar', 'agregarRefinadores', 'eliminarRefinamiento', 'distribuirEnlace']) { expect(estadisticas[op]?.aceptadas, op).toBeGreaterThan(0); }
     console.info('WP4r secuencias estadísticas ' + JSON.stringify(estadisticas));
+    console.info('B-02 cambios sobre descomposiciones de objeto ' + JSON.stringify(deObjeto));
+    for (const op of ['descomponer', 'agregarEnDescomposicion', 'crearCosa', 'eliminarRefinamiento']) expect(deObjeto[op] ?? 0, `${op} de objeto`).toBeGreaterThan(0);
 });

@@ -38,7 +38,7 @@ test('T-070 T-075 descomponer bandas en un resultado atómico migra C primero R 
     const dc = r.modelo.opds['opd-100']! as OpdDescomposicion;
     expect(dc.bandas).toEqual([['p-101', 'p-102'], ['p-103']]); expect(r.modelo.enlaces.e).toMatchObject({ id: 'e', proceso: 'p-101' }); expect(r.modelo.enlaces.r).toMatchObject({ id: 'r', proceso: 'p-103' }); sano(r.modelo);
 });
-for (const [proceso, want] of [['o', 'descomposicion-objeto'], ['ausente', 'no-encontrado']] as const)
+for (const [proceso, want] of [['ausente', 'no-encontrado']] as const)
     test(`T-070 rechaza ${want} sin reservar ID`, () => { const m = base(), antes = JSON.stringify(m), r = descomponer(m, { opd: 'sd', cosa: proceso }); expect(r.ok).toBe(false); if (!r.ok) expect(r.rechazo.codigo).toBe(want); expect(JSON.stringify(m)).toBe(antes); });
 test('T-078 T-079 rechaza ciclo contenedor y externo; refinado existente', () => {
     const m = refinado(1, { id: 'e', tipo: 'instrumento', objeto: 'o', proceso: 'p' });
@@ -344,11 +344,46 @@ test('T-083 rechazo de hoja conserva entrada, secuencia y hechos íntegros', () 
     expect(r.ok).toBe(false); if (!r.ok) expect(r.rechazo.codigo).toBe('refinamiento-no-hoja'); expect(JSON.stringify(m)).toBe(antes); expect(m.secuencia).toBe(104); sano(m);
 });
 
-test('T-072 B-02 operación rechaza descomposición de objeto aun con bandas solicitadas', () => {
-    const m = base(), antes = JSON.stringify(m); sano(m);
-    const r = descomponer(m, { opd: 'sd', cosa: 'o', bandas: [['Recibir'], ['Despachar']] });
-    expect(r.ok).toBe(false); if (!r.ok) { expect(r.rechazo.codigo).toBe('descomposicion-objeto'); expect(r.rechazo.regla).toBe('R-OPL-CX-4'); }
-    expect(JSON.stringify(m)).toBe(antes); expect(m.secuencia).toBe(100);
+test('T-072 B-02 descompone un objeto: partes ordenadas, contorno sin distribución y sin hechos nuevos', () => {
+    const m = base({ id: 'e', tipo: 'consumo', objeto: 'o', proceso: 'p' }), antes = JSON.stringify(m); sano(m);
+    const r = must(descomponer(m, { opd: 'sd', cosa: 'o', bandas: [['Cabecera'], ['Detalle']] })), dc = r.modelo.opds['opd-100']! as OpdDescomposicion;
+    expect(dc).toMatchObject({ tipo: 'descomposicion', padre: 'sd', cosa: 'o', bandas: [['o-101'], ['o-102']], internos: [] });
+    for (const id of ['o-101', 'o-102']) expect(r.modelo.cosas[id]).toMatchObject({ tipo: 'objeto', estados: [], afiliacion: 'sistemica' });
+    // R-OPD-REF-11: la distribución sólo aplica al proceso; el consumo sigue en el contorno del objeto.
+    expect(r.modelo.enlaces.e).toEqual(m.enlaces.e!); expect(Object.keys(r.modelo.enlaces)).toEqual(['e']);
+    const caja = dc.apariciones.o!, [a, b] = [dc.apariciones['o-101']!, dc.apariciones['o-102']!];
+    for (const x of [a, b]) { expect(x.x).toBeGreaterThanOrEqual(caja.x); expect(x.y + x.alto).toBeLessThanOrEqual(caja.y + caja.alto); }
+    expect(a.y).toBeLessThan(b.y); expect(indice(r.modelo).bandaDe.get('o-102')).toEqual({ opd: 'opd-100', banda: 1 });
+    expect(proyectar(r.modelo, 'opd-100').cosas.filter(v => v.rol === 'parte').map(v => [v.cosa, v.banda])).toEqual([['o-101', 0], ['o-102', 1]]);
+    sano(r.modelo); expect(JSON.stringify(m)).toBe(antes);
+});
+test('T-072 R-OPD-REF-2 las partes no van en paralelo, en ninguna operación', () => {
+    const m = base(), antes = JSON.stringify(m);
+    for (const r of [descomponer(m, { opd: 'sd', cosa: 'o', bandas: [['Cabecera', 'Detalle']] })]) { expect(r.ok).toBe(false); if (!r.ok) expect(r.rechazo.regla).toBe('R-OPD-REF-2'); }
+    expect(JSON.stringify(m)).toBe(antes);
+    const d = must(descomponer(m, { opd: 'sd', cosa: 'o', bandas: [['Cabecera'], ['Detalle']] })).modelo;
+    for (const r of [agregarEnDescomposicion(d, { opd: 'opd-100', bandas: [['Pie']], posicion: { enBanda: 0 } }), agregarEnDescomposicion(d, { opd: 'opd-100', bandas: [['Pie', 'Firma']], posicion: 'final' }),
+        moverEnDescomposicion(d, { opd: 'opd-100', cosa: 'o-102', destino: { banda: 0 } }), fijarBandas(d, { opd: 'opd-100', bandas: [['o-101', 'o-102']] }),
+        crearCosa(d, { opd: 'opd-100', tipo: 'objeto', nombre: 'Pie', x: 0, y: 0, alcance: 'interno', banda: { indice: 0, paralelo: true } })]) {
+        expect(r.ok).toBe(false); if (!r.ok) expect(['R-OPD-REF-2', 'F-8']).toContain(r.rechazo.regla);
+    }
+    const reordenado = must(moverEnDescomposicion(d, { opd: 'opd-100', cosa: 'o-102', destino: { nuevaBandaAntesDe: 0 } })).modelo;
+    expect((reordenado.opds['opd-100'] as OpdDescomposicion).bandas).toEqual([['o-102'], ['o-101']]); sano(reordenado);
+    const pie = must(agregarEnDescomposicion(d, { opd: 'opd-100', bandas: [['Pie']], posicion: { antesDeBanda: 1 } })).modelo;
+    expect((pie.opds['opd-100'] as OpdDescomposicion).bandas).toEqual([['o-101'], ['o-103'], ['o-102']]); sano(pie);
+});
+test('T-072 A3.3a un objeto descompuesto contiene partes y procesos internos; eliminarlo no materializa vista', () => {
+    const d = must(descomponer(base({ id: 'e', tipo: 'efecto', objeto: 'o', proceso: 'p' }), { opd: 'sd', cosa: 'o', bandas: [['Cabecera']] })).modelo;
+    const conProc = must(crearCosa(d, { opd: 'opd-100', tipo: 'proceso', nombre: 'Validar Pedido', x: 0, y: 0, alcance: 'interno' })).modelo;
+    const conParte = must(crearCosa(conProc, { opd: 'opd-100', tipo: 'objeto', nombre: 'Detalle', x: 0, y: 0, alcance: 'interno' })).modelo;
+    const dc = conParte.opds['opd-100'] as OpdDescomposicion;
+    expect(dc.bandas).toEqual([['o-101'], ['o-103']]); expect(dc.internos).toEqual(['p-102']);
+    const conEnlace = must(crearEnlace(conParte, { opd: 'opd-100', candidato: { tipo: 'consumo', objeto: 'o-101', proceso: 'p-102' } })).modelo; sano(conEnlace);
+    // DR-13: sólo el in-zoom de proceso abstrae; en el padre no aparece ni el proceso interno ni un hecho objeto-objeto.
+    const sd = proyectar(conEnlace, 'sd');
+    expect(sd.enlaces.map(v => v.enlace.id)).toEqual(['e']); expect(sd.enlaces.every(v => !v.abstraido)).toBe(true);
+    const fuera = must(eliminarRefinamiento(conEnlace, { opd: 'opd-100' })).modelo;
+    expect(Object.keys(fuera.cosas).sort()).toEqual(['b', 'o', 'p', 'q']); expect(Object.keys(fuera.enlaces)).toEqual(['e']); sano(fuera);
 });
 test('T-079 despliegue permite propio refinador pero rechaza otro visible externo', () => {
     const a = base({ id: 'e', tipo: 'agregacion', refinable: 'o', refinador: 'b' }), b = must(desplegar(a, { opd: 'sd', cosa: 'o', modo: 'agregacion' })).modelo;

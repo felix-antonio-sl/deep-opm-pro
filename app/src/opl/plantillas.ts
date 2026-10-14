@@ -88,7 +88,7 @@ const filas: readonly [
     ['FAN5s', '{P} cambia {O} a {Q} {Lo:s}.', 'abanico'], ['FAN5e', '{P} cambia {O} de {Q} {Lo:s}.', 'abanico'], ['FAN5A', '{P} cambia {O} de {e} a {Q} {Lo:s}.', 'abanico'],
     ['FAN5s-cantidades', '{P} cambia {Q} {Lo:salidas}.', 'abanico'], ['FAN5e-cantidades', '{P} cambia {Q} {Lo:entradas}.', 'abanico'], ['FAN5A-cantidades', '{P} cambia {Q} {Lo:cambios}.', 'abanico'],
     ['FAN4', '{O} inicia {Q} {Lo:Plista}, y es afectado por el proceso que ocurre.', 'abanico'], ['CFE', '{Q^} {Lo:Plista} ocurre si {O} existe, en cuyo caso afecta {O}, de lo contrario se omite.', 'abanico'], ['C18', '{P} ocurre si {Q} {Lo:Olista} existe, en cuyo caso {P} consume {Q} {Lo:Olista}, de lo contrario {P} se omite.', 'abanico'],
-    ['CX1', '{P} se descompone en {Ly:Plista}, en esa secuencia[, así como {Ly:O}].', 'contexto'], ['CX2', '{P} se descompone en paralelo {Ly:Plista}[, así como {Ly:O}].', 'contexto'], ['CXM', '{P} se descompone en {SEC}, en esa secuencia[, así como {Ly:O}].', 'contexto'], ['CXI', '{P} se descompone en {Ly:Plista}, así como {Ly:O}.', 'contexto', 'P'], ['CXN', '{P} desde {padre} se descompone en {opd} en {SEC}, en esa secuencia.', 'contexto', 'P'], ['CX3', '{vertice} se despliega en {opd} en {Ly:C}[, así como {Ly:otro}].', 'contexto'], ['CX3s', '{vertice} se despliega en {Ly:C}.', 'contexto', 'P'], ['CX10', '{vertice} desde {padre} se despliega por {relacion} en {opd} en {Ly:C}[, así como {Ly:otro}].', 'contexto']
+    ['CX1', '{P} se descompone en {Ly:Plista}, en esa secuencia[, así como {Ly:O}].', 'contexto'], ['CX2', '{P} se descompone en paralelo {Ly:Plista}[, así como {Ly:O}].', 'contexto'], ['CXM', '{P} se descompone en {SEC}, en esa secuencia[, así como {Ly:O}].', 'contexto'], ['CXI', '{P} se descompone en {Ly:Plista}, así como {Ly:O}.', 'contexto', 'P'], ['CXN', '{P} desde {padre} se descompone en {opd} en {SEC}, en esa secuencia.', 'contexto', 'P'], ['CX13', '{O} se descompone en {Ly:Olista}, en esa secuencia[, así como {Ly:P}].', 'contexto'], ['CX13N', '{O} desde {padre} se descompone en {opd} en {Ly:Olista}, en esa secuencia[, así como {Ly:P}].', 'contexto', 'P'], ['CX3', '{vertice} se despliega en {opd} en {Ly:C}[, así como {Ly:otro}].', 'contexto'], ['CX3s', '{vertice} se despliega en {Ly:C}.', 'contexto', 'P'], ['CX10', '{vertice} desde {padre} se despliega por {relacion} en {opd} en {Ly:C}[, así como {Ly:otro}].', 'contexto']
 ];
 const fans: readonly [
     string,
@@ -695,9 +695,13 @@ function reconocer(id: string, h: Huecos): readonly HechoTexto[] {
     if (id.startsWith('CX')) {
         if (id === 'CX3' || id === 'CX3s' || id === 'CX10')
             return [{ k: 'despliegue', cosa: nombre('vertice'), ...(h.opd ? { opdHijo: x('opd').texto } : {}), ...(h.padre ? { opdPadre: x('padre').texto } : {}), ...(h.relacion ? { modo: MODO_DE_PALABRA[x('relacion').texto]! } : {}), refinadores: [...lista(h, 'C'), ...lista(h, 'otro')].map(v => ({ nombre: v.texto, tipo: v.marca === 'proceso' ? 'proceso' : 'objeto' })) }];
+        const opds = { ...(h.opd ? { opdHijo: x('opd').texto } : {}), ...(h.padre ? { opdPadre: x('padre').texto } : {}) };
+        // CX13: las partes en su orden espacial o lógico, una por banda; «así como» nombra los procesos internos.
+        if (id === 'CX13' || id === 'CX13N')
+            return [{ k: 'descomposicion', cosa: { nombre: x('O').texto, tipo: 'objeto' }, bandas: lista(h, 'Olista').map(o => [o.texto]), internos: lista(h, 'P').map(p => p.texto), ...opds }];
         const ps = lista(h, 'Plista');
         const bandas = id === 'CX2' ? [ps.map(p => p.texto)] : h.SEC ? x('SEC').bandas?.map(b => b.map(p => p.texto)) ?? [] : ps.map(p => [p.texto]);
-        return [{ k: 'descomposicion', proceso: x('P').texto, bandas, internos: lista(h, 'O').map(o => o.texto), ...(h.opd ? { opdHijo: x('opd').texto } : {}), ...(h.padre ? { opdPadre: x('padre').texto } : {}) }];
+        return [{ k: 'descomposicion', cosa: { nombre: x('P').texto, tipo: 'proceso' }, bandas, internos: lista(h, 'O').map(o => o.texto), ...opds }];
     }
     // El artículo de RH1 sólo marca género, como en RF3b: la generalización no lleva multiplicidad.
     if (id === 'RH1')
@@ -749,6 +753,8 @@ export function datosContexto(m: Modelo, opd: string): HechoGenerable | null {
     if (d.tipo === 'descomposicion') {
         if (d.bandas.flat().length < 1)
             return null;
+        if (m.cosas[d.cosa]!.tipo === 'objeto')
+            return { plantilla: 'CX13', huecos: { O: cosa(m, d.cosa), Olista: d.bandas.flat().map(id => cosa(m, id)), P: [...d.internos].sort(cmp).map(id => cosa(m, id)) } };
         const bandas = d.bandas.map(b => [...b].sort(cmp));
         const h: Record<string, ValorHueco> = { P: cosa(m, d.cosa), O: [...d.internos].sort(cmp).map(id => cosa(m, id)) };
         let id = bandas.every(b => b.length === 1) ? 'CX1' : bandas.length === 1 ? 'CX2' : 'CXM';

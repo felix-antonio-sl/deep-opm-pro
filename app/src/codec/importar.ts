@@ -394,8 +394,7 @@ function construirOpds(data:Record<Col,Record<string,Registro>>, apps:Map<string
   const brutoPorCosa=new Map<string,Map<string,Registro>>();
   for(const [id,o] of Object.entries(data.opds)) {
     const s=asignados.get(id), ruta=`opds.${id}`;
-    const objetoDescomp=s?.tipo==='descomposicion'&&cosas[s.cosa]?.tipo==='objeto';
-    if(id!==raiz&&(!s||o.padreId===null||o.vista!==undefined||objetoDescomp&&porCosa.has(`${s.cosa}:despliegue`))) { l.perder(ruta,{apariciones:count(o.apariencias??o.apariciones)},'F-7','OPD boceto/huérfano/vista o descomposición no representable'); continue; }
+    if(id!==raiz&&(!s||o.padreId===null||o.vista!==undefined)) { l.perder(ruta,{apariciones:count(o.apariencias??o.apariciones)},'F-7','OPD boceto/huérfano o vista no representable'); continue; }
     const apariciones:Record<string,Aparicion>=Object.create(null), elegidas=new Map<string,Registro>();
     for(const a of [...(apps.get(id)??[])].sort((a,b)=>natural(str(a.id),str(b.id)))) {
       const c=str(a.entidadId), ar=`${ruta}.apariencias.${a.__key}`;
@@ -425,15 +424,10 @@ function construirOpds(data:Record<Col,Record<string,Registro>>, apps:Map<string
     l.desconocidos(o,ruta,['id','nombre','padreId','ordenLocal','ordenInzoom','apariencias','apariciones','enlaces','preguntaGuia','vista']);
     if(id===raiz) { opds[id]={id,tipo:'raiz',apariciones}; continue; }
     if(!s) continue;
-    if(s.tipo==='despliegue'||objetoDescomp) {
+    if(s.tipo==='despliegue') {
       // Un modo presente de otro tipo no es ausencia: se declara perdido con su valor, no se normaliza.
       const modo=typeof s.modo==='string'&&['agregacion','exhibicion','generalizacion','clasificacion'].includes(s.modo)?s.modo as 'agregacion':'agregacion';
-      if(objetoDescomp) {
-        const partes=new Set(Object.values(data.enlaces).filter(e=>e.tipo==='agregacion'&&registro(e.origenId).id===s.cosa).map(e=>str(registro(e.destinoId).id)));
-        const sinParte=Object.keys(apariciones).filter(c=>c!==s.cosa&&cosas[c]?.tipo==='objeto'&&!partes.has(c)).sort(natural);
-        l.norm(s.ruta,`Descomposición de objeto → despliegue agregación; no se creó ningún enlace. Objetos sin parte por agregación: ${JSON.stringify(sinParte)}; revisar si son partes.`,'DR-23');
-      }
-      else if(s.modo===undefined) l.norm(`${s.ruta}.modo`,'Modo de despliegue → agregacion.','T-029');
+      if(s.modo===undefined) l.norm(`${s.ruta}.modo`,'Modo de despliegue → agregacion.','T-029');
       else if(modo!==s.modo) l.perder(`${s.ruta}.modo`,s.modo,'T-029');
       opds[id]={id,tipo:'despliegue',cosa:s.cosa,padre:padres.get(id)??raiz,orden:0,modo,apariciones};
     } else opds[id]={id,tipo:'descomposicion',cosa:s.cosa,padre:padres.get(id)??raiz,orden:0,bandas:[],internos:[],apariciones};
@@ -468,7 +462,8 @@ function construirOpds(data:Record<Col,Record<string,Registro>>, apps:Map<string
   const subarbol=(id:string,otro:string):boolean=> { let p=opds[otro];const vistos=new Set<string>();while(p&&!vistos.has(p.id)){if(p.id===id)return true;vistos.add(p.id);p=p.tipo==='raiz'?undefined:opds[p.padre];}return false; };
   for(const id of indice(modelo()).preorden) {
     const o=opds[id]; if(o?.tipo!=='descomposicion') continue;
-    const candidatos:string[]=[], objetoIds:string[]=[];
+    // Miembros ordenados del tipo del contenedor (subprocesos o partes); los del otro tipo son internos.
+    const tipo=cosas[o.cosa]?.tipo, candidatos:string[]=[], otros:string[]=[];
     for(const [c,a] of brutoPorCosa.get(id)??[]) {
       if(c===o.cosa) continue;
       const ctx=registro(a.contextoRefinamiento), contorno=o.apariciones[o.cosa], caja=o.apariciones[c]!;
@@ -476,18 +471,18 @@ function construirOpds(data:Record<Col,Record<string,Registro>>, apps:Map<string
       if(ctx.rol===undefined) { interno=!!contorno&&caja.x>=contorno.x&&caja.y>=contorno.y&&caja.x+caja.ancho<=contorno.x+contorno.ancho&&caja.y+caja.alto<=contorno.y+contorno.alto&&!Object.hasOwn(opds[o.padre]!.apariciones,c); l.norm(`opds.${id}.apariencias.${a.__key}.contextoRefinamiento`,'Alcance derivado de geometría y padre.','T-033'); }
       if(interno&&Object.values(opds).some(p=>Object.hasOwn(p.apariciones,c)&&!subarbol(id,p.id))) { interno=false;l.norm(`opds.${id}.apariencias.${a.__key}.contextoRefinamiento`,'Interno con aparición fuera del subárbol → externo.','T-033'); }
       if(interno&&internosAsignados.has(c)) { interno=false;l.norm(`opds.${id}.apariencias.${a.__key}.contextoRefinamiento`,'Interno ya perteneciente a otro OPD → externo.','F-8'); }
-      if(interno) { internosAsignados.add(c); (cosas[c]?.tipo==='proceso'?candidatos:objetoIds).push(c); }
+      if(interno) { internosAsignados.add(c); (cosas[c]?.tipo===tipo?candidatos:otros).push(c); }
     }
     const orden=data.opds[id]!.ordenInzoom, bandas:string[][]=[], usados=new Set<string>();
     if(Array.isArray(orden)) {
-      for(const b of orden as unknown[][]) { const nuevos=b.filter((p):p is string=>typeof p==='string'&&candidatos.includes(p)&&!usados.has(p)); const unicos=[...new Set(nuevos)]; unicos.forEach(p=>usados.add(p)); if(unicos.length)bandas.push(unicos); }
+      for(const b of orden as unknown[][]) { const nuevos=(Array.isArray(b)?b:[]).filter((p):p is string=>typeof p==='string'&&candidatos.includes(p)&&!usados.has(p)); const unicos=[...new Set(nuevos)]; unicos.forEach(p=>usados.add(p)); if(tipo==='objeto')unicos.forEach(p=>bandas.push([p]));else if(unicos.length)bandas.push(unicos); }
       const faltantes=candidatos.filter(p=>!usados.has(p)).sort((a,b)=>o.apariciones[a]!.y-o.apariciones[b]!.y||natural(a,b)); faltantes.forEach(p=>bandas.push([p]));
       if(JSON.stringify(bandas)!==JSON.stringify(orden))l.norm(`opds.${id}.ordenInzoom`,'Bandas filtradas y completadas con internos.','T-030');
     } else {
-      for(const c of candidatos.sort((a,b)=>o.apariciones[a]!.y-o.apariciones[b]!.y||natural(a,b))) { const ultima=bandas.at(-1); if(ultima&&Math.abs(o.apariciones[c]!.y-o.apariciones[ultima[0]!]!.y)<=TOLERANCIA_ALTURA)ultima.push(c);else bandas.push([c]); }
+      for(const c of candidatos.sort((a,b)=>o.apariciones[a]!.y-o.apariciones[b]!.y||natural(a,b))) { const ultima=bandas.at(-1); if(tipo==='proceso'&&ultima&&Math.abs(o.apariciones[c]!.y-o.apariciones[ultima[0]!]!.y)<=TOLERANCIA_ALTURA)ultima.push(c);else bandas.push([c]); }
       l.norm(`opds.${id}.ordenInzoom`,'Bandas derivadas de geometría (tolerancia 4 px).','T-030');
     }
-    opds[id]={...o,bandas,internos:objetoIds};
+    opds[id]={...o,bandas,internos:otros};
   }
 }
 

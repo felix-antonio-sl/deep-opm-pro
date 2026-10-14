@@ -355,11 +355,8 @@ export const NO_OFRECIDO: readonly FilaNoOfrecido[] = Object.freeze([
     Object.freeze({ id: 'nf-abanico-estado-comun', regla: 'R-FAN-EST-1', motivo: 'El extremo común del abanico debe estar en el borde de una cosa, no en un estado (DEC 29).', registro: 'B-06' as const }),
     Object.freeze({ id: 'nf-abanico-efecto-mixto', regla: 'R-FAN-5/5A', motivo: 'El abanico de efecto requiere T3 puro, FAN5s/FAN5e o TS3 con entrada común (FAN5A).', registro: 'B-06' as const }),
     Object.freeze({ id: 'nf-abanico-control', regla: 'T-056', motivo: 'Esta combinación de abanico y control es canónica pero carece de plantilla literal.', registro: 'B-08' as const }),
-    Object.freeze({ id: 'nf-descomposicion-objeto', regla: 'R-OPL-CX-4', motivo: 'La descomposición de objeto no se ofrece (DR-23).', registro: 'B-02' as const }),
 ]);
 const no = (id: string): FilaNoOfrecido => NO_OFRECIDO.find(r => r.id === id)!;
-// Descomponer no es un enlace. El dueño de la operación consultará esta misma fila.
-export function noOfrecidoDescomposicion(m: Modelo, id: Id): FilaNoOfrecido | null { return cosa(m, id)?.tipo === 'objeto' ? no('nf-descomposicion-objeto') : null; }
 export function noOfrecido(m: Modelo, e: Enlace | EnlaceNuevo, abanico?: Abanico): FilaNoOfrecido | null {
     const mult = ('mult' in e && e.mult !== undefined) || ('multOrigen' in e && e.multOrigen !== undefined) || ('multDestino' in e && e.multDestino !== undefined);
     if (mult && control(e) === 'c')

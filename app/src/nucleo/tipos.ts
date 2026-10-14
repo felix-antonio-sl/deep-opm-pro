@@ -210,10 +210,12 @@ export interface OpdRaiz extends OpdBase {
 export interface OpdDescomposicion extends OpdBase {
     readonly tipo: 'descomposicion';
     readonly padre: Id;
-    readonly cosa: Id; // cosa: un proceso (descomposición de objeto diferida, DR-23)
+    readonly cosa: Id; // proceso u objeto descompuesto (in-zoom, R-OPL-CX-4)
     readonly orden: number; // orden entre hermanos (etiqueta SDx.y, DR-4)
-    readonly bandas: readonly (readonly Id[])[]; // subprocesos; banda = paralelo; fuente de verdad del tiempo (T-030)
-    readonly internos: readonly Id[]; // objetos internos; alcance persistido (T-033)
+    // Refinados del mismo tipo que la cosa, en orden. Proceso: subprocesos; banda = paralelo; fuente de verdad
+    // del tiempo (T-030). Objeto: partes, una por banda; orden espacial o lógico, nunca tiempo (R-OPD-REF-2, DR-23).
+    readonly bandas: readonly (readonly Id[])[];
+    readonly internos: readonly Id[]; // internos del otro tipo: objetos de un proceso, procesos de un objeto (T-033)
 }
 export interface OpdDespliegue extends OpdBase {
     readonly tipo: 'despliegue';

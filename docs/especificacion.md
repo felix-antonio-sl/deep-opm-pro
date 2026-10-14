@@ -381,7 +381,7 @@ Secuencia (R-VIS-INZOOM-1, R-OPD-REF-3, R-OPD-OP-1, método A3.1): Mostrar conte
 | R-INV-2/2A/2C/2D, R-IDP-0A, R-OPD-REF-2 | Orden temporal = **bandas declaradas** (fuente de verdad); la coordenada Y las realiza (arriba → abajo); misma banda = paralelo; el último del grupo paralelo en terminar invoca la banda siguiente. El layout NO reordena bandas (R-LAY-4). Si la Y no las realiza (datos importados o una edición, como confinar un subproceso en un contenedor reducido), `orden-vertical-contradictorio` (error) bloquea los exports canónicos y ofrece recolocar según las bandas; nunca se reordenan por la Y ni se recoloca al importar (B-45, DR-47). El autoajuste del rótulo no mueve el punto superior dibujado de un subproceso: lo agranda hacia abajo y sin salir del contenedor. Descomposición de objeto: la posición NO es tiempo. | DEBE |
 | R-INV-2B, R-INV-2D, R-OPD-INV-9 | La invocación implícita no se dibuja. Un rayo entre hermanos que repite una transición de banda adyacente es «doble vara»: el canon lo admite como el mismo hecho (R-INV-2B, «no es inválido»), y el perfil lo bloquea (R-INV-2D, endurecimiento declarado en B-60) ⇒ impedir con la regla `R-INV-2D`. Salto fuera de orden, bucle, cross-OPD: rayo explícito legal. | NO DEBE (perfil) |
 | R-REF-NTRIV-1/3, AP-13, R-CX-0 | Al menos un subproceso para cerrar (ISO §10.3.1; DEC50); sin subprocesos: se permite en edición (placeholder), se advierte, se bloquea el export canónico y no se emite la oración de descomposición. | DEBE / NO DEBE / PUEDE |
-| R-OPL-CX-4 | OPL-ES soporta descomposición de procesos y de objetos. Descomposición de objeto: DEBE, escalonable (DR-23). | DEBE |
+| R-OPL-CX-4 | OPL-ES soporta descomposición de procesos y de objetos. Descomposición de objeto: CX13, §3.2a (DR-23). | DEBE |
 
 Distribución de enlaces al descomponer (reglas §8.5 = spec-OPL §7.6 = spec-OPD §10.2, textual):
 
@@ -404,6 +404,18 @@ Realización mínima conforme (DR-13/DR-14):
 - Invocación y excepción hacia/desde el proceso descompuesto: permanecen en el contorno (GAP no cubierto por la tabla; DR-14).
 - La exterioridad se decide por el OPD dueño del objeto origen y sus ancestros, no por sus apariciones; ser interno de un contorno ancestro no exime los intermedios. La afiliación sólo decide si el cruce está prohibido (sistémico) o admitido (ambiental). La invocación entre procesos no está sujeta al cruce (DEC49). Eventos internos y condiciones conservan las demás reglas, incluidas AP-27 y R-INV-2B.
 - R-OPD-EDIT-5: al insertar subprocesos, los enlaces del padre migran automáticamente; el modelador reasigna al subproceso real (reanclaje).
+
+### 3.2a Descomposición (in-zoom) de objeto (B-02)
+
+La misma operación y el mismo OPD hijo que en §3.2, con el objeto como contenedor rectangular agrandado.
+
+| ID | Regla | Oblig. |
+|---|---|---|
+| R-OPD-REF-1, A3.3a | El contenedor muestra sus **partes** (objetos) y, si las hay, sus **procesos internos** (operaciones del objeto); externos e internos siguen §3.2. | DEBE |
+| R-OPD-REF-2, A3.3b | Las partes tienen orden espacial o lógico, nunca tiempo: una por banda, sin paralelo; el producto lo realiza de arriba abajo y `orden-vertical-contradictorio` lo vigila como en §3.2. | DEBE / NO DEBE |
+| R-OPD-REF-11 | Sin distribución: un enlace en el contorno del objeto queda allí. | — |
+| DR-13, válvula §0.5 | Sin vista abstraída: el padre no muestra los hechos de partes ni de procesos internos (el canon no la define para objetos). | — |
+| CX13, R-CX-DESP-2 | `**Objeto** se descompone en **O1** y **O2**, en esa secuencia[, así como *P*].`, emitida en el bloque del hijo; P acepta también la forma de diagrama nuevo (`desde SD … en SD1 en …`). Otra lectura de «**A** se descompone en …» es no canónica. | DEBE |
 
 ### 3.3 Despliegue (unfold) de cosa
 
@@ -2126,7 +2138,7 @@ Los ★ con obligación PUEDE o inferida son soportes necesarios de un DEBE ★ 
 |---|---|---|---|---|---|
 | T-070 | Descomponer proceso (in-zoom) como operación atómica: crea OPD hijo con la cosa como contenedor agrandado y copia como externos todas las cosas conectadas al padre. | DEBE | ope | R-HIJO-1/3, R-OPD-REF-1/4, R-OPD-OP-1/3, R-VIS-INZOOM-1, R-ANID-1 | ★ |
 | T-071 | Desplegar cosa por un modo (agregación/exhibición/generalización/clasificación) en OPD hijo, copiando solo los hijos estructurales directos de ese modo. | DEBE | ope | R-REF-MEC-1, R-HIJO-4, R-CX-DESP-1 | ★ |
-| T-072 | Descomposición de objeto (in-zoom de objeto, posición no temporal). | DEBE | ope | R-OPL-CX-4, R-OPD-REF-1/2, DR-23 | |
+| T-072 | Descomposición de objeto (in-zoom de objeto, posición no temporal): partes una por banda, sin paralelo ni distribución; procesos internos; CX13 (§3.2a). | DEBE | ope | R-OPL-CX-4, R-OPD-REF-1/2, DR-23 | ★ |
 | T-073 | Distribución al descomponer: consumo → primero, resultado → último; efecto sin estado, agente e instrumento quedan en contorno con lectura distributiva; estructurales en contenedor. Evento al proceso completo permanece allí; distribución que introduce un cruce exterior se rechaza atómicamente. | DEBE / inf. | ope | R-DIST-1/1A, reglas §8.5, R-OPD-REF-11, R-OPD-EDIT-5, DR-13 | ★ |
 | T-074 | Escisión: TS3 al descomponer (≥2 subprocesos) ⇒ TS4 en el temprano + TS5 en el tardío, par acoplado; la mitad de entrada sin `e`/`c`. Reanclar una mitad sobre el subproceso de su par une el cambio completo (DEC50). | DEBE | ope | R-ESCIND-1..3, R-ESC-1/1A, AP-07/08, R-OPD-TR-7 | ★ |
 | T-075 | Toda migración conserva el id del enlace. | DEBE | ope | R-OPD-OP-4, R-CX-DIST (efecto OPL) | ★ |
@@ -2390,7 +2402,7 @@ Criterio de resolución: (1) precedencia del canon (§0.3); (2) si el canon no d
 | DR-20 | Valores de atributo: plantilla propia `**Atributo** de **Objeto** puede estar …` y D5 genérico. | reglas §4.13 vs D5 | Generador usa D5 (el atributo es un objeto); parser acepta ambas (la forma «de **Objeto**» crea la exhibición si falta). |
 | DR-21 | La superficie de cardinalidad anterior usaba prefijos opcionales y no ofrecía parámetros. | canon §6.7/spec-OPL §10; DEC35/43/53/54 | B-42 emite opcional pospuesto, opcionales, muchos y parámetro simple global delimitado (§4.4.11); P conserva legacy unívoco. DEC55 completa rangos, aritmética, restricciones y nombres citados (§4.4.11a); exhibición no tiene cantidad. DEC56 realiza plural/identificación explícitos (§4.4.11b); no se crean bindings. |
 | DR-22 | Unicidad nominal vs `referencia-ambigua` («más de una entidad con ese nombre») y «homónimos → cosas separadas». | método A5.15, R-OPL-FALLO-4, R-OPD-ROT-5 | Nombre único en todo el modelo (objetos y procesos); la ambigüedad es imposible; un cambio de tipo por OPL cae en R-IMPORT-7. |
-| DR-23 | Descomposición de objeto: DEBE (R-OPL-CX-4) pero la EBNF le exige `, en esa secuencia`, contra «la posición NO es tiempo». | EBNF A.10 vs R-OPD-REF-2, R-CX-DESP-2, método A3.3 | Escalonable: se declara en el registro (las partes se modelan por despliegue de agregación). Si se implementa, sin marca temporal (corrige la EBNF). |
+| DR-23 | Descomposición de objeto: DEBE (R-OPL-CX-4); la EBNF le exige `, en esa secuencia`, contra «la posición NO es tiempo». | EBNF A.10 vs R-OPD-REF-2, R-CX-DESP-2, método A3.3 | El canon 2.3 (CX13, R-CX-DESP-2) lee esa marca como orden espacial o lógico. Se ofrece (B-02, 2026-10-14) con el mismo OPD de descomposición: partes una por banda, sin paralelo; procesos internos; sin distribución ni vista abstraída en el padre, que el canon no define (válvula §0.5); orden realizado de arriba abajo (§3.2a). |
 | DR-24 | CX1 (sin OPDs) es plantilla-gate, pero R-OPL-CX-2/3 exigen declarar OPD padre/hijo en refinamiento en OPD nuevo; CX3 lleva etiqueta; spec-OPL distingue el despliegue en el diagrama original del despliegue en un hijo nuevo. | reglas §4.11, 9.2, R-OPL-CX-2/3, spec-OPL §7.2, ISO §14.2.1.2/A.4.7.1 | Refinamiento siempre en OPD nuevo. Descomposición: CX1/CX2/mixta dentro del bloque del hijo. Despliegue: CX3 con etiqueta y las relaciones fundamentales agrupadas elegibles, conservando el modo y las referencias por miembro (B-41); CX10 (`desde SDp se despliega por {relación} en SDh en …`) cuando la relación no determina el modo (B-11). El parser acepta además `se despliega en` sin etiqueta, y con CX3 o CX10 trae y une por el modo los refinados enumerados que falten en el hijo. |
 | DR-25 | Cosa duplicada en el mismo OPD (silueta) sin soporte en v0. | reglas §3.10, GAP-OPD-DUPLICADO | No se ofrece: ≤1 apariencia por (cosa, OPD). |
 | DR-26 | Alternancia `e/u`: «e ante `i-` o `hi-`» aplicado literal da «e hielo»; «condición fonética». | R-OPL-KW-2, GAP-07 | Regla fonética: `e` ante sonido /i/ (`i-`, `hi-` + consonante; no `hie-`, `hia-`), `u` ante /o/ (`o-`, `ho-`). |
@@ -2459,7 +2471,7 @@ Criterio de resolución: (1) precedencia del canon (§0.3); (2) si el canon no d
 ### 10.3 Decisiones pendientes del dueño (bloquean solo lo diferido)
 
 1. Dirección y semántica de la especialización XOR (RX1/RX2) — DR-10.
-2. Si la descomposición de objeto entra en la primera versión — DR-23.
+2. Si la descomposición de objeto entra en la primera versión — DR-23. Resuelta el 2026-10-14: se ofrece (B-02).
 3. Si se desea un dato explícito «humano» en lugar del proxy «físico» para agentes — DR-5.
 4. Mapeo exacto de unidades de tiempo a palabras es-CL en OPL (singular/plural) — DR-18 (menor; hay mapeo por defecto).
 

@@ -143,8 +143,9 @@ canónica (P7), y toda acción se deshace en un paso.
    4. Si el nombre existe, la bandeja dice «Ya existe **Pedido** (objeto, en SD y SD2). ↵ Traer esa
       misma cosa aquí · Tab cambiar nombre · ⎋ descartar». Si el existente es de otro tipo, solo se
       puede cambiar el nombre o descartar (T-065, método §9.15).
-   5. Dentro de un contenedor de descomposición, un proceso nuevo entra como subproceso en la banda
-      bajo el cursor y un objeto como interno.
+   5. Dentro de un contenedor de descomposición, una cosa del tipo del contenedor entra como miembro
+      (subproceso en la banda bajo el cursor, o parte en la posición bajo el cursor) y la del otro
+      tipo, como interna.
 5. **Esencia y afiliación.**
    - Con la cosa seleccionada, `Mayús+F` alterna física/informacional y `Mayús+A`,
      sistémica/ambiental. También están los conmutadores de Propiedades y el menú contextual.
@@ -280,6 +281,16 @@ canónica (P7), y toda acción se deshace en un paso.
     8. Si el primer o el último subproceso cambian después, los enlaces no se mueven (T-076). La
        franja lo recuerda una vez: «Los enlaces siguen donde estaban; arrastra su extremo para
        reasignarlos».
+    9. **In-zoom de objeto** (B-02). Con un objeto seleccionado, `D` crea su OPD hijo con el
+       rectángulo agrandado y abre el campo de nombre: cada nombre es una **parte**, en orden
+       espacial o lógico de arriba abajo. Las partes no van en paralelo: ⇧↵ también pasa a la
+       posición siguiente.
+       - Un proceso creado dentro del objeto es un **proceso interno** (una operación del objeto).
+       - Los enlaces del objeto quedan en su contorno: no hay distribución, y el SD no abstrae los
+         hechos de las partes ni de los procesos internos.
+       - `[` y `]` suben o bajan una parte una posición; el arrastre vertical la lleva entre otras dos.
+       - El OPL del hijo dice: «**Pedido** se descompone en **Cabecera** y **Detalle**, en esa
+         secuencia, así como *Validar Detalle*.» Esa oración también crea o reordena las partes.
 12. **Desplegar (unfold) por modo.**
     1. `U` (o «Desplegar (unfold)» en el menú o en Propiedades; el diálogo ofrece «Agregación: partes ·
        Exhibición: rasgos · Generalización: especializaciones · Clasificación: instancias», con las
@@ -427,7 +438,7 @@ desplaza; `Ctrl`+rueda o pellizcar hace zoom multiplicativo de 10 %, anclado al 
 | cosa | `Mayús+F` · `Mayús+A` | física ↔ informacional · sistémica ↔ ambiental |
 | cosa | `Supr` · `Mayús+Supr` | quitar de este OPD · eliminar del modelo |
 | cosa | flechas · `Mayús`+flechas | mover 1 px · 10 px |
-| subproceso | `[` `]` · `Mayús+[` `Mayús+]` | banda anterior/siguiente · banda nueva antes/después |
+| subproceso o parte | `[` `]` · `Mayús+[` `Mayús+]` | banda anterior/siguiente (parte: posición) · banda nueva antes/después (sólo subprocesos) |
 | estado | `I` · `F` · `D` · `H` · `Mayús+H` · `←/→` · `F2` · `Supr` | inicial · final · por defecto · ocultar aquí · en todos · reordenar · renombrar · eliminar |
 | enlace | `E` · `C` · `M` · `Mayús+M` · `↵` · `Supr` | evento · condición · multiplicidad objeto/refinador · multiplicidad origen · cambiar tipo · eliminar |
 | ≥2 enlaces | `X` · `Mayús+X` | abanico XOR · OR |

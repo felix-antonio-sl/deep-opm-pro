@@ -20,7 +20,9 @@ export namespace azar {
         }
         for (const o of Object.values(m.opds)) {
             for (const id of Object.keys(o.apariciones)) {
-                if (m.cosas[id]!.tipo === 'proceso') acciones.push({ op: 'descomponer', args: { opd: o.id, cosa: id } }, { op: 'descomponer', args: { opd: o.id, cosa: id, bandas: [[`Recibir_${m.secuencia}`], [`Entregar_${m.secuencia}`]] } });
+                // In-zoom de proceso (subprocesos) y de objeto (partes en orden espacial o lógico).
+                const miembros = m.cosas[id]!.tipo === 'proceso' ? [`Recibir_${m.secuencia}`, `Entregar_${m.secuencia}`] : [`Cabecera_${m.secuencia}`, `Detalle_${m.secuencia}`];
+                acciones.push({ op: 'descomponer', args: { opd: o.id, cosa: id } }, { op: 'descomponer', args: { opd: o.id, cosa: id, bandas: miembros.map(n => [n]) } });
                 for (const modo of ['agregacion', 'exhibicion', 'generalizacion', 'clasificacion'] as const) acciones.push({ op: 'desplegar', args: { opd: o.id, cosa: id, modo } });
             }
             const objetos = Object.keys(o.apariciones).filter(id => m.cosas[id]!.tipo === 'objeto'), procesos = Object.keys(o.apariciones).filter(id => m.cosas[id]!.tipo === 'proceso');

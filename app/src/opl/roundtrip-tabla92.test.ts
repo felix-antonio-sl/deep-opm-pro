@@ -40,6 +40,7 @@ const filas92:readonly {nombre:string;texto:string;tipo?:string;plantilla:string
  {nombre:'triángulo generalización',texto:'**Especial_1** y **Especial_2** son **General**.',tipo:'generalizacion',plantilla:'RF3'},
  {nombre:'triángulo clasificación',texto:'**Instancia** es una instancia de **Clase**.',tipo:'clasificacion',plantilla:'RF4'},
  {nombre:'proceso inflado secuencial',texto:'## SD1\n*Gestionar* se descompone en *Preparar* y *Completar*, en esa secuencia.',plantilla:'CX1'},
+ {nombre:'objeto inflado en orden espacial',texto:'## SD1\n**Pedido** se descompone en **Cabecera** y **Detalle**, en esa secuencia.',plantilla:'CX13'},
  {nombre:'arco simple XOR',texto:'*Validar* consume exactamente uno de **Pedido** o **Registro**.',plantilla:'FAN-consumo-convergente-XOR'},
  {nombre:'arco doble OR',texto:'*Validar* consume al menos uno de **Pedido** o **Registro**.',plantilla:'FAN-consumo-convergente-OR'},
  {nombre:'marca excepción temporal',texto:'*Recuperar* ocurre si duración de *Gestionar* excede 5 minutos.',tipo:'excepcionSobretiempo',plantilla:'EX1'}

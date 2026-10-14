@@ -91,8 +91,8 @@ export function Lienzo(p: DatosRanura) {
     const nombreRef=(ref:Ref)=>ref.tipo==='estado'?m.cosas[idx.estadoDe.get(ref.id)!.objeto]!.tipo==='objeto'?e.nodos.flatMap(n=>n.estados).find(s=>s.ref.id===ref.id)?.nombre??'Estado':'Estado':m.cosas[ref.id]?.nombre??ref.id;
     function iniciarCreacion(tipo:'objeto'|'proceso',nombre='',desdeBarra=false) {
         const pos=colocar(m,opd,{ancho:135,alto:60},desdeBarra?centroVista():cursor.current.x||cursor.current.y?cursor.current:centroVista());
-        const bandas=contenedor.tipo==='descomposicion'&&tipo==='proceso'?banda(pos.y):undefined;
-        cambiar({k:'creando',tipo,en:pos,nombre,...(bandas&&'banda'in bandas?{banda:{indice:bandas.banda,paralelo:true}}:{})});
+        const miembro=contenedor.tipo==='descomposicion'&&tipo===m.cosas[contenedor.cosa]?.tipo,bandas=miembro?banda(pos.y):undefined;
+        cambiar({k:'creando',tipo,en:pos,nombre,...(bandas&&'banda'in bandas?{banda:{indice:bandas.banda,paralelo:true}}:bandas&&tipo==='objeto'?{banda:{indice:bandas.nuevaBandaAntesDe,paralelo:false}}:{})});
     }
     function aplicar(r:ReturnType<typeof reducirGesto>) {
         cambiar(r.gesto);if(r.camara)p.editor.fijarCamara(r.camara);
@@ -125,7 +125,8 @@ export function Lienzo(p: DatosRanura) {
     function banda(y:number):{banda:number}|{nuevaBandaAntesDe:number}|null {
         if(contenedor.tipo!=='descomposicion')return null;
         const filas=contenedor.bandas.map((b,i)=>({i,y:e.nodos.find(n=>b.includes(n.ref.id))?.caja.y??0}));
-        const cerca=filas.find(b=>Math.abs(y-(b.y+30))<40); if(cerca)return{banda:cerca.i};
+        // Las partes de un objeto no comparten banda: sólo se inserta entre posiciones (R-OPD-REF-2).
+        const cerca=m.cosas[contenedor.cosa]?.tipo==='proceso'&&filas.find(b=>Math.abs(y-(b.y+30))<40); if(cerca)return{banda:cerca.i};
         const i=filas.findIndex(b=>y<b.y+30);return{nuevaBandaAntesDe:i<0?filas.length:i};
     }
     useEffect(()=>{cambiar({k:'reposo'});editar(null);contextual(null);},[opd]);
@@ -140,7 +141,7 @@ export function Lienzo(p: DatosRanura) {
         else if(s.k==='renombrar'&&ref){const b=caja(ref);editar({ref,valor:nombreRef(ref),en:b?pantalla({x:b.x,y:b.y}):{x:24,y:60}});p.editor.solicitar(null);}
         else if(s.k==='enlace'&&s.opcion==='buscar-o-crear'){busqueda((buscar??'')+(s.texto??''));p.editor.solicitar(null);}
         else if(s.k==='enlace'&&ref){cambiar({k:'conectando',desde:extremo(ref),punto:cursor.current});p.editor.solicitar(null);}
-        else if(s.k==='encadenar'||s.k==='refinador'){tiposCadena.current=[];fijarTipoRefinador('objeto');cambiar({k:'encadenando',opd,bandas:[],actual:'',modo:contenedor.tipo==='despliegue'?'refinadores':'subprocesos',...(s.gesto?{id:s.gesto}:{})});p.editor.solicitar(null);}
+        else if(s.k==='encadenar'||s.k==='refinador'){tiposCadena.current=[];fijarTipoRefinador('objeto');cambiar({k:'encadenando',opd,bandas:[],actual:'',modo:contenedor.tipo==='despliegue'?'refinadores':contenedor.tipo==='descomposicion'&&m.cosas[contenedor.cosa]?.tipo==='objeto'?'partes':'subprocesos',...(s.gesto?{id:s.gesto}:{})});p.editor.solicitar(null);}
         else if(s.k==='desplegar'){desplegar(ref?.tipo==='cosa'?ref.id:null);p.editor.solicitar(null);}
         else if(s.k==='multiplicidad'){
             const acciones=p.estado.seleccion.enlaces.map(enlace=>accionMultiplicidad(m.enlaces[enlace]!,s.opcion==='origen'));
@@ -196,7 +197,7 @@ export function Lienzo(p: DatosRanura) {
     function arriba(ev:PointerEvent) {
         if(dedos.current.delete(ev.pointerId)&&pellizco.current){pellizco.current=null;captura.current=null;return;}
         const g=actual.current;if(g.k==='reposo'){captura.current=null;if(host.current?.hasPointerCapture(ev.pointerId))host.current.releasePointerCapture(ev.pointerId);return;}const target=document.elementFromPoint(ev.clientX,ev.clientY),ref=refCercana(target),pt=puntoModelo(local(ev),p.estado.camara);
-        if(g.k==='banda'&&bandaDrag.current&&g.destino){const origen=bandaDrag.current;p.editor.ejecutarVarias([{op:'moverEnDescomposicion',args:{opd,cosa:g.proceso,destino:g.destino}},{op:'moverApariciones',args:{opd,mover:[{cosa:g.proceso,x:origen.x+pt.x-origen.desde.x,y:contenedor.apariciones[g.proceso]!.y}]}}],'Mover subproceso');bandaDrag.current=null;cambiar({k:'reposo'});}
+        if(g.k==='banda'&&bandaDrag.current&&g.destino){const origen=bandaDrag.current;p.editor.ejecutarVarias([{op:'moverEnDescomposicion',args:{opd,cosa:g.proceso,destino:g.destino}},{op:'moverApariciones',args:{opd,mover:[{cosa:g.proceso,x:origen.x+pt.x-origen.desde.x,y:contenedor.apariciones[g.proceso]!.y}]}}],'Mover en la descomposición');bandaDrag.current=null;cambiar({k:'reposo'});}
         else if(g.k==='conectando'||g.k==='reanclando'||g.k==='arrastrando'||g.k==='banda'||g.k==='redimensionando'||g.k==='desplazando')evento({k:'arriba',punto:pt,mayus:ev.shiftKey,...(ref?{sobre:`${ref.tipo}:${ref.id}`}:{})});
         captura.current=null;if(host.current?.hasPointerCapture(ev.pointerId))host.current.releasePointerCapture(ev.pointerId);
     }

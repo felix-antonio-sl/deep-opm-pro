@@ -81,7 +81,7 @@ function claveHecho(h: HechoTexto): string | null {
         case 'valor': return `valor:${n(h.atributo)}`;
         case 'plural': return `plural:${n(h.objeto)}`;
         case 'cota': return `cota:${n(h.proceso)}:${h.campo}`;
-        case 'descomposicion': return `descomposicion:${n(h.proceso)}`;
+        case 'descomposicion': return `descomposicion:${n(h.cosa.nombre)}`;
         case 'enlace': {
             const e = h.enlace as EnlaceTexto & {control?:Control; ruta?:string; mult?:Multiplicidad};
             const {control,ruta,...base}=e; void control; void ruta;
@@ -349,11 +349,11 @@ function ensayar(m: Modelo, alcance: Id | 'modelo', texto: string, basePrivadaVa
         for (const t of [...activos].sort((a, b) => profundidad(a.etiqueta) - profundidad(b.etiqueta) || a.l.numero - b.l.numero)) for (const h of t.hechos) if (h.k === 'descomposicion' || h.k === 'despliegue') intentar(t, () => {
             const padreLabel = h.opdPadre ? h.opdPadre : t.etiqueta.includes('.') ? t.etiqueta.slice(0, t.etiqueta.lastIndexOf('.')) : 'SD';
             const padre = labels.get(padreLabel); if (!padre) throw new Fallo('unknown-symbol', `OPD padre ${padreLabel} inexistente.`);
-            const n = h.k === 'descomposicion' ? { nombre: h.proceso, tipo: 'proceso' as const } : h.cosa;
+            const n = h.cosa;
             const c = asegurar(t, n, padre);
             let d = Object.values(actual.opds).find(o => o.tipo !== 'raiz' && o.cosa === c && (h.k === 'descomposicion' ? o.tipo === 'descomposicion' : o.tipo === 'despliegue'));
             if (!d && h.k === 'descomposicion') {
-                for (const n of h.bandas.flat()) if (buscar({ nombre: n, tipo: 'proceso' })) throw new Fallo('ambiguous-symbol', `${n} no es subproceso de ${h.proceso}.`, 'R-IMPORT-7');
+                for (const n of h.bandas.flat()) if (buscar({ nombre: n, tipo: h.cosa.tipo })) throw new Fallo('ambiguous-symbol', `${n} no es ${h.cosa.tipo === 'proceso' ? 'subproceso' : 'parte'} de ${h.cosa.nombre}.`, 'R-IMPORT-7');
                 const ids = agregar(t, { op: 'descomponer', args: { opd: padre, cosa: c, bandas: h.bandas } }, 'crear-refinamiento', 1, c);
                 d = actual.opds[ids.find(id => actual.opds[id])!]!;
             } else if (!d && h.k === 'despliegue') {
@@ -382,15 +382,16 @@ function ensayar(m: Modelo, alcance: Id | 'modelo', texto: string, basePrivadaVa
             if (esperado !== 'SD' && esperado !== labelReal) throw new Fallo('unknown-symbol', `Etiqueta ${esperado} no corresponde a ${labelReal}.`);
             labels.set(labelReal, d.id);
             if (h.k === 'descomposicion' && d.tipo === 'descomposicion') {
-                const originales = new Set(d.bandas.flat());
-                for (const b of h.bandas) for (const n of b) { const p = buscar({ nombre: n, tipo: 'proceso' }); if (p && !originales.has(p.id)) throw new Fallo('ambiguous-symbol', `${n} no pertenece a ${h.proceso}.`); }
-                const nuevos = h.bandas.flat().filter(n => !buscar({ nombre: n, tipo: 'proceso' }));
+                // Miembros del tipo de la cosa (subprocesos o partes); internos del otro tipo.
+                const tipo = h.cosa.tipo, otro = tipo === 'proceso' ? 'objeto' : 'proceso', originales = new Set(d.bandas.flat());
+                for (const b of h.bandas) for (const n of b) { const p = buscar({ nombre: n, tipo }); if (p && !originales.has(p.id)) throw new Fallo('ambiguous-symbol', `${n} no pertenece a ${h.cosa.nombre}.`); }
+                const nuevos = h.bandas.flat().filter(n => !buscar({ nombre: n, tipo }));
                 if (nuevos.length) agregar(t, { op: 'agregarEnDescomposicion', args: { opd: d.id, bandas: nuevos.map(n => [n]), posicion: 'final' } }, 'crear-refinamiento', 1, c);
-                const bands = h.bandas.map(b => b.map(n => buscar({ nombre: n, tipo: 'proceso' })!.id));
-                if (bands.flat().length !== (actual.opds[d.id] as Extract<Opd, {tipo:'descomposicion'}>).bandas.flat().length) throw new Fallo('unsupported-canonical', 'La ausencia de subprocesos no los elimina.', 'R-§19-LENS-1');
+                const bands = h.bandas.map(b => b.map(n => buscar({ nombre: n, tipo })!.id));
+                if (bands.flat().length !== (actual.opds[d.id] as Extract<Opd, {tipo:'descomposicion'}>).bandas.flat().length) throw new Fallo('unsupported-canonical', 'La ausencia de subprocesos o partes no los elimina.', 'R-§19-LENS-1');
                 const particionCanonica = (bs: readonly (readonly string[])[]) => estable(bs.map(b => [...b].sort()));
                 if (particionCanonica((actual.opds[d.id] as Extract<Opd, {tipo:'descomposicion'}>).bandas) !== particionCanonica(bands)) agregar(t, { op: 'fijarBandas', args: { opd: d.id, bandas: bands } }, 'fijar-orden', 1, c);
-                for (const n of h.internos) if (!buscar({ nombre: n, tipo: 'objeto' })) agregar(t, { op: 'crearCosa', args: { opd: d.id, tipo: 'objeto', nombre: n, x: 0, y: 0, alcance: 'interno' } }, 'crear-entidad', 1, n);
+                for (const n of h.internos) if (!buscar({ nombre: n, tipo: otro })) agregar(t, { op: 'crearCosa', args: { opd: d.id, tipo: otro, nombre: n, x: 0, y: 0, alcance: 'interno' } }, 'crear-entidad', 1, n);
             }
         });
         for (const t of activos) intentar(t, () => {

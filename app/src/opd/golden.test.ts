@@ -12,7 +12,10 @@ import { importarV0 } from '../codec/importar';
 import { opdsEnPreorden, etiquetaOpd } from '../nucleo/proyeccion';
 import { validarForma } from '../nucleo/forma';
 import { erroresContexto } from '../nucleo/matriz';
-import { modeloArchivado } from '../pruebas/constructores';
+import { modeloArchivado, must } from '../pruebas/constructores';
+import { descomponer } from '../nucleo/refinamiento';
+import { crearCosa } from '../nucleo/cosas';
+import { crearEnlace } from '../nucleo/enlaces';
 const obj = (id: string, nombre = 'Pedido'): Objeto => ({ id, nombre, tipo: 'objeto', estados: [], esencia: 'informacional', afiliacion: 'sistemica' });
 const pro = (id: string, nombre = 'Procesar'): Proceso => ({ id, nombre, tipo: 'proceso', esencia: 'informacional', afiliacion: 'sistemica' });
 const a = (x: number, y: number, ancho = 135, alto = 60): Aparicion => ({ x, y, ancho, alto });
@@ -63,6 +66,14 @@ function hijo(): Modelo { const cs = [pro('p', 'Completar'), pro('q', 'Preparar'
 agregar('bandas-contorno-dr13', hijo(), 'T-221 B-19 bandas e interno; instrumento en contorno sin externo-externo', 'h');
 agregar('instancia-valor', modelo([obj('cl', 'Pedido'), obj('in', 'PedidoUno'), { ...obj('at', 'Cantidad'), tipo: 'objeto', valor: '12' }], [{ id: 'c', tipo: 'clasificacion', refinable: 'cl', refinador: 'in' }, { id: 'ex', tipo: 'exhibicion', refinable: 'in', refinador: 'at' }], { cl: a(0, 0), in: a(0, 240), at: a(350, 240) }), 'T-222 T-020 instancia derivada y valor en cápsula');
 agregar('refinamiento-y-monocromo', hijo(), 'T-202 T-203 contorno grueso, composición apta para escala gris');
+// B-02: el in-zoom de objeto agranda el rectángulo; sus partes bajan en su orden y el proceso interno queda dentro.
+function objetoDescompuesto(): Modelo {
+    const b = modelo([{ ...obj('o', 'Pedido'), estados: [{ id: 'sn', nombre: 'nuevo' }, { id: 'sl', nombre: 'listo' }] }, pro('p', 'Procesar')], [{ id: 'e', tipo: 'efecto', objeto: 'o', proceso: 'p' }], { o: a(0, 0), p: a(300, 0) });
+    const d = must(descomponer(b, { opd: 'sd', cosa: 'o', bandas: [['Cabecera'], ['Detalle']] })).modelo;
+    const c = must(crearCosa(d, { opd: 'opd-500', tipo: 'proceso', nombre: 'Validar Detalle', x: 0, y: 0, alcance: 'interno' })).modelo;
+    return must(crearEnlace(c, { opd: 'opd-500', candidato: { tipo: 'instrumento', objeto: 'o-502', proceso: 'p-503' } })).modelo;
+}
+agregar('descomposicion-objeto', objetoDescompuesto(), 'T-072 T-221 B-02 rectángulo agrandado, partes en orden y proceso interno', 'opd-500');
 agregar('estados-texto-largo', modelo([{ ...obj('o', 'Documento'), tipo: 'objeto', estados: [{ id: 's', nombre: 'extraordinariamenteextensoconservadointegro' }] }]), 'T-204 T-206 cápsula expandida y texto completo');
 agregar('nombres-sin-espacio', modelo([obj('o', 'A'.repeat(60)), pro('p', 'ExtraordinariamenteExtensoConservadoIntegroSinTruncamiento')]), 'T-204 palabra indivisible íntegra en rect y elipse');
 const dirs = { n: a(280, 0), s: a(280, 560), w: a(0, 280), e: a(560, 280), p: a(280, 280) };
@@ -126,8 +137,8 @@ function dibujoExportado(m: Modelo, opd: string, nombre: string): string {
     }
     return r.valor.svg.slice(inicio, inicio + dibujo.length);
 }
-test('T-223 inventario 42 construidos más vistas únicas de 12 selecciones reales', () => {
-    expect(casos.filter(c => c.construido)).toHaveLength(42);
+test('T-223 inventario 43 construidos más vistas únicas de 12 selecciones reales', () => {
+    expect(casos.filter(c => c.construido)).toHaveLength(43);
     expect(fixtureSelections).toHaveLength(6);
     expect(new Set(casos.map(c => c.nombre)).size).toBe(casos.length);
     for (const c of casos) {

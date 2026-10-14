@@ -56,7 +56,7 @@ export type Gesto = ( {
     readonly opd: Id;
     readonly bandas: readonly (readonly string[])[];
     readonly actual: string;
-    readonly modo: 'subprocesos' | 'refinadores';
+    readonly modo: 'subprocesos' | 'partes' | 'refinadores'; // partes: de un objeto descompuesto, sin paralelo
 } | {
     readonly k: 'estado';
     readonly objeto: Id;
@@ -176,7 +176,7 @@ export function reducirGesto(m: Modelo, opd: Id, g: Gesto, ev: EventoLienzo): {
             if (!g.actual) return terminarCadena(g);
             if (validarNombreCosa(g.actual)) return salida(g);
             const bandas = g.bandas.map(b => [...b]);
-            if (ev.k === 'tecla' && ev.mayus && bandas.length) bandas[bandas.length - 1]!.push(g.actual); else bandas.push([g.actual]);
+            if (ev.k === 'tecla' && ev.mayus && bandas.length && g.modo === 'subprocesos') bandas[bandas.length - 1]!.push(g.actual); else bandas.push([g.actual]);
             return salida({ ...g, bandas, actual: '' });
         }
     }
@@ -189,6 +189,6 @@ export function reducirGesto(m: Modelo, opd: Id, g: Gesto, ev: EventoLienzo): {
         const bandas = cadena.bandas.map(b => [...b]);
         if (cadena.actual && !validarNombreCosa(cadena.actual)) bandas.push([cadena.actual]);
         if (!bandas.length) return salida(reposo);
-        return cadena.modo === 'subprocesos' ? salida(reposo, [{ op: 'agregarEnDescomposicion', args: { opd: cadena.opd, bandas, posicion: 'final' } }]) : salida(reposo, [{ op: 'agregarRefinadores', args: { opd: cadena.opd, nombres: bandas.flat() } }]);
+        return cadena.modo !== 'refinadores' ? salida(reposo, [{ op: 'agregarEnDescomposicion', args: { opd: cadena.opd, bandas, posicion: 'final' } }]) : salida(reposo, [{ op: 'agregarRefinadores', args: { opd: cadena.opd, nombres: bandas.flat() } }]);
     }
 }

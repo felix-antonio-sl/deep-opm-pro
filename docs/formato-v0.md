@@ -122,16 +122,14 @@ vacío; un campo opcional irrepresentable va a `descartado` con su ruta y su val
    - `duracion` de estado va a `descartado`; `x/y/width/height`, a `ignorado`.
    - Un objeto con un solo estado es válido (R-OBJ-2).
 6. **OPDs.** La raíz es `opdRaizId`. Todo otro OPD se clasifica:
-   - **Refinamiento de proceso o de cosa por despliegue.** Una entidad lo apunta en
+   - **Refinamiento por descomposición (de proceso u objeto) o por despliegue.** Una entidad lo apunta en
      `refinamientos.descomposicion|despliegue`; la forma legacy `refinamiento:{tipo, opdId, modo?}`
      va a `normalizado`. Sin `despliegue.modo`, se usa `agregacion` (`normalizado`). Unos
      `refinamientos` que no son registro van a `descartado` (F-7).
-   - **Descomposición de objeto** (DS-18).
-     - Si el objeto no tiene despliegue, se convierte en `OpdDespliegue{modo:'agregacion'}` que
-       conserva todas las apariciones y posiciones. **No crea enlaces**. Va a `normalizado`, regla
-       DR-23, con la lista de objetos del OPD que no son partes por agregación («no se creó ningún
-       enlace; revisa si son partes»).
-     - Si ya tiene despliegue, el OPD va a `descartado` con sus apariciones.
+   - **Descomposición de objeto** (B-02). Se conserva como tal: los internos del tipo del contenedor
+     (objetos) son sus partes, en el orden de `ordenInzoom`, y los procesos internos, sus operaciones.
+     Las partes no van en paralelo: una banda de `ordenInzoom` con varias partes se separa en
+     posiciones, en su orden (`normalizado`, T-030). No crea enlaces.
    - **Boceto** (`padreId: null` sin ser raíz), **huérfano** (con padre, pero ninguna entidad lo
      refina) o **vista** (`vista` presente). El OPD va a `descartado`, con el conteo de apariciones.
      **Sus cosas, estados y enlaces siguen en el modelo** y pueden quedar sin aparición (DS-6,
@@ -148,10 +146,11 @@ vacío; un campo opcional irrepresentable va a `descartado` con su ruta y su val
    - Orden entre hermanos: `ordenLocal` si todos lo tienen y es único; si no, el orden natural de
      ids (`normalizado`).
    - **Bandas** (descomposición):
-     - Con `ordenInzoom`, se filtra a procesos internos y se completa con los internos faltantes
-       en bandas nuevas al final, ordenadas por Y (`normalizado`).
+     - Con `ordenInzoom`, se filtra a los internos del tipo del contenedor (subprocesos o partes) y
+       se completa con los faltantes en bandas nuevas al final, ordenadas por Y (`normalizado`).
      - Sin él, se derivan de la geometría (porte de `agruparSubprocesosParalelos`): internos por la
-       `y` del borde superior, misma banda si |Δy| ≤ 4 px (`normalizado`).
+       `y` del borde superior, misma banda si |Δy| ≤ 4 px (`normalizado`). Las partes de un objeto
+       ocupan siempre una banda cada una.
      - Las posiciones se conservan tal como llegan: no se recolocan ni se reordenan las bandas por
        la `y`. Si las alturas no realizan las bandas con esa tolerancia (`TOLERANCIA_ALTURA`),
        `diagnosticar` informa `orden-vertical-contradictorio` como error recuperable (B-45, DR-47).

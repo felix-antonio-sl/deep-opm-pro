@@ -8,7 +8,8 @@ const palabras = `a afecta afectado al ambiental así cambia caso cero como con 
 test('T-104 T-005 T-300 vocabulario es unión cerrada de literales de las plantillas G y P y sus macros finitos',()=>{
  // RF5 (B-37) agrega una fila sin palabras nuevas; D19 y su orden inverso D19i (R-ENT-3), dos más; ENT3a, otra.
  // CX10 (spec-OPL §7.2) agrega una fila y las relaciones «partes» y «rasgos» de su hueco cerrado.
- expect(PLANTILLAS).toHaveLength(148); expect(VOCABULARIO).toHaveLength(121);
+ // CX13 y su forma en diagrama nuevo (spec-OPL §7.1, B-02) agregan dos filas sin palabras nuevas.
+ expect(PLANTILLAS).toHaveLength(150); expect(VOCABULARIO).toHaveLength(121);
  expect(new Set(VOCABULARIO)).toEqual(new Set(palabras.split(' ')));
  expect(VOCABULARIO).not.toContain('consumen');
  for(const nombre of ['Pedido','Procesar','pendiente','urgente','centurias'])expect(VOCABULARIO).not.toContain(nombre.toLowerCase());

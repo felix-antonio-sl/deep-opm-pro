@@ -35,11 +35,11 @@ test('T-163 T-153 el sufijo «proceso» se reconoce fuera del span y nunca recor
     expect(caso('*Validar* proceso consume **Entrada**.').hechos).toEqual(consumo('Validar'));
     expect(caso('*Validar proceso* proceso consume **Entrada**.').hechos).toEqual(consumo('Validar proceso'));
     expect(caso('*Gestionar* se descompone en *Validar proceso* y *Archivar*, en esa secuencia.').hechos)
-        .toEqual([{ k: 'descomposicion', proceso: 'Gestionar', bandas: [['Validar proceso'], ['Archivar']], internos: [] }]);
+        .toEqual([{ k: 'descomposicion', cosa: { nombre: 'Gestionar', tipo: 'proceso' }, bandas: [['Validar proceso'], ['Archivar']], internos: [] }]);
 });
 test('T-155 CX mixto conserva bandas y nombres con y dentro del span', () => {
     expect(caso('*Gestionar* se descompone en paralelo *Cargar y Validar* e *Inspeccionar*, *Enviar*, y paralelo *Cobrar* y *Archivar*, en esa secuencia, así como **Registro**.').hechos)
-        .toEqual([{ k: 'descomposicion', proceso: 'Gestionar', bandas: [['Cargar y Validar', 'Inspeccionar'], ['Enviar'], ['Cobrar', 'Archivar']], internos: ['Registro'] }]);
+        .toEqual([{ k: 'descomposicion', cosa: { nombre: 'Gestionar', tipo: 'proceso' }, bandas: [['Cargar y Validar', 'Inspeccionar'], ['Enviar'], ['Cobrar', 'Archivar']], internos: ['Registro'] }]);
 });
 test('T-156 soporte declarado antes de SE1 residual y no canonizado bloqueante', () => {
     const u = caso('**Registro** es persistente.');
@@ -93,7 +93,6 @@ test('T-162 T-153 ENT3 rechaza sin hechos la clase declarada que contradice la t
 import { NO_SOPORTADAS, NO_CANONIZADAS } from './no-soportadas';
 const limites = [
  ['**A** puede ser **B** o **C**.','unsupported-canonical'],
- ['**A** se descompone en **B** y **C**, en esa secuencia.','unsupported-canonical'],
  ['**A** y **B** consumen **C**.','unsupported-canonical'],
  ['*Procesar* consume exactamente un **Pedido**.','unsupported-canonical'],
  ['Por ruta Uno, *Procesar* requiere **Pedido**.','unsupported-canonical'],
@@ -115,6 +114,14 @@ const limites = [
  ['**Proceso Físico** y **Objeto Físico** exhiben `física` **Esencia**.','non-canonical']
 ] as const;
 for(const [texto,codigo] of limites)test(`T-156 T-157 límite ${texto}`,()=>{const l=caso(texto);expect(l.hechos).toEqual([]);expect(l.diagnosticos[0]?.codigo).toBe(codigo);expect(l.diagnosticos[0]?.regla).toBeTruthy();});
+test('T-072 T-166 B-02 CX13 reconoce la descomposición de objeto: partes en orden y procesos internos',()=>{
+ const objeto={nombre:'A',tipo:'objeto'} as const;
+ expect(caso('**A** se descompone en **B** y **C**, en esa secuencia.').hechos).toEqual([{k:'descomposicion',cosa:objeto,bandas:[['B'],['C']],internos:[]}]);
+ expect(caso('**A** se descompone en **B**, **C** y **D**, en esa secuencia, así como *Validar* y *Contar*.').hechos).toEqual([{k:'descomposicion',cosa:objeto,bandas:[['B'],['C'],['D']],internos:['Validar','Contar']}]);
+ expect(caso('**A** desde SD se descompone en SD1 en **B** e **Índice**, en esa secuencia.').hechos).toEqual([{k:'descomposicion',cosa:objeto,bandas:[['B'],['Índice']],internos:[],opdPadre:'SD',opdHijo:'SD1'}]);
+ // Sin «en esa secuencia», con partes de otro tipo o en paralelo no hay CX13 ni lista etiquetada plausible.
+ for(const t of ['**A** se descompone en **B** y **C**.','**A** se descompone en **B** y *C*, en esa secuencia.','**A** se descompone en paralelo **B** y **C**.','**A** desde SD se descompone en SD1 en **B**.']){const l=caso(t);expect(l.hechos).toEqual([]);expect(l.diagnosticos[0]).toMatchObject({codigo:'non-canonical',regla:'R-CX-DESP-2'});}
+});
 test('T-003 R-ZNC-1 la grafía histórica de caracterización es no canonizada, registrada en B-37 y sin hechos',()=>{for(const t of ['**Objeto sin Estados** exhibe `cero` **Tamaño**.','**Proceso Físico** y **Objeto Físico** exhiben `física` **Esencia**.']){const l=caso(t);expect(l.hechos).toEqual([]);expect(l.diagnosticos[0]).toMatchObject({codigo:'non-canonical',regla:'R-ZNC-1'});}expect(NO_CANONIZADAS.find(x=>x.regla==='R-ZNC-1')?.registro).toBe('B-37');});
 import {planificar as planificarLimites} from './planificar';
 test('T-156 T-151 D14, D15, D16 y D17 son canónicas no ofrecidas: unsupported-canonical sin hechos ni acciones (B-61)',()=>{

@@ -179,8 +179,13 @@ test('T-040 excepción descartada por firma no inventa duración en la fuente',(
  const d=documento([entidad('p-1','proceso'),entidad('o-2')],[enlace('bad','excepcionSobretiempo','p-1','o-2',{tiempoMaximo:'2',unidadTiempoMaximo:'h'})]);
  const r=leer(d);expect(r.modelo.enlaces.bad).toBeUndefined();expect(r.modelo.cosas['p-1']).not.toHaveProperty('duracion');expect(r.informe.normalizado.some(e=>e.regla==='R-EXC-2/3')).toBe(false);
 });
-test('T-029 conversión de descomposición de objeto enumera apariciones sin parte agregada',()=>{
- const d=refinado();d.modelo.entidades['p-2'].tipo='objeto';d.modelo.entidades['p-4'].tipo='objeto';const r=leer(d);const n=r.informe.normalizado.find(e=>e.regla==='DR-23');expect(n?.mensaje).toContain('o-1');expect(n?.mensaje).toContain('p-4');expect(Object.keys(r.modelo.enlaces)).toEqual([]);
+test('T-029 T-072 descomposición de objeto: partes ordenadas una por banda, procesos internos y punto fijo',()=>{
+ const d=refinado();d.modelo.entidades['p-2'].tipo='objeto';d.modelo.entidades['p-4'].tipo='objeto';const r=leer(d);
+ expect(r.modelo.opds['opd-3']).toMatchObject({tipo:'descomposicion',cosa:'p-2',bandas:[['p-4']],internos:['p-5']});expect(Object.keys(r.modelo.enlaces)).toEqual([]);
+ expect(r.informe.normalizado.some(e=>e.regla==='DR-23')).toBe(false);expect(exportarV0(leer(JSON.parse(exportarV0(r.modelo))).modelo)).toBe(exportarV0(r.modelo));
+ // R-OPD-REF-2: una banda con dos partes se separa en posiciones, en su orden, y se informa.
+ const p=refinado();for(const id of ['p-2','p-4','p-5'])p.modelo.entidades[id].tipo='objeto';p.modelo.opds['opd-3'].ordenInzoom=[['p-5','p-4']];const q=leer(p);
+ expect(q.modelo.opds['opd-3']).toMatchObject({bandas:[['p-5'],['p-4']],internos:[]});expect(q.informe.normalizado.some(e=>e.regla==='T-030'&&e.ruta==='opds.opd-3.ordenInzoom')).toBe(true);
 });
 test('T-287 desconocidos anidados profundamente se informan sin excepción de pila',()=>{
  const d=documento([entidad('o-1')]);let tail='7';for(let i=0;i<12000;i++)tail='{"x":'+tail+'}';const text=JSON.stringify(d).replace('"modelo":{','"modelo":{"unknown":'+tail+',');const r=importarV0(text);expect(r.ok).toBe(true);expect(r.informe.descartado).toHaveLength(1);expect(r.informe.descartado[0]?.ruta).toBe('unknown'+'.x'.repeat(12000));

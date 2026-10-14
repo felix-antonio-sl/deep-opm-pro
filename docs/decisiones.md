@@ -23,14 +23,15 @@ El procedimiento vigente está en `docs/operacion.md` («Despliegue y recuperaci
 - Canon vendorizado en el repo (los 4 documentos, tal cual) como autoridad local; se retiran puentes/resolutor URN.
 - Idioma: UI, OPL y docs en español es-CL; el código de dominio usa el vocabulario del canon en español (como el formato v0 y los tipos de CANON.md §1.2), de forma consistente en todo el código.
 - El despliegue exige autorización explícita. Mantener `./deploy/deploy.sh` como único circuito, adaptado al nuevo servicio; el corte de fase B sin migración está autorizado por la decisión textual anterior.
-- Decisiones pendientes del canon (CANON.md §10.3) con default conforme: RX1/RX2 diferidos (`unsupported-canonical`), descomposición de objeto diferida y declarada, agente solo desde objeto físico (proxy declarado por el método).
+- Decisiones pendientes del canon (CANON.md §10.3) con default conforme: RX1/RX2 diferidos (`unsupported-canonical`), descomposición de objeto diferida y declarada (ofrecida desde el 2026-10-14, B-02), agente solo desde objeto físico (proxy declarado por el método).
 
 ## Material histórico de preparación (conservado en Git)
 `understand/SYNTHESIS.md` (1.212 líneas, en especial §3.9 casos límite, §7 dolores de UX en vivo y del histórico de bugs, §8 riesgos de sobresimplificación —21 ítems—, §10 correcciones del crítico con sondas ejecutables: estado real de cada ★), `understand/ux-en-vivo.md` y `understand/bugs-auditorias.md`. El diseño final DEBE resolver explícitamente cada riesgo de §8 y cada ítem de §10.2 marcado FALTA/CONTRADICE/PARCIAL.
 
 ## Respuestas a las preguntas abiertas (SYNTHESIS §9) — fijas
 1. RX1/RX2 (DR-10): diferidos; el parser responde `unsupported-canonical`; declarado en el registro.
-2. Descomposición de objeto (DR-23): diferida y declarada en el registro (no se ofrece en la UI; parser `unsupported-canonical`).
+2. Descomposición de objeto (DR-23): se ofrece desde el 2026-10-14 (B-02, «In-zoom de objeto y nombres OPM»).
+   Hasta entonces estuvo diferida y declarada, sin oferta en la UI y con el parser en `unsupported-canonical`.
 3. Agente (DR-5): proxy «objeto físico» del método; sin dato «humano» adicional.
 4. Unidades (DR-18): mapeo es-CL fijo singular/plural (ms→milisegundo(s), sec→segundo(s), min→minuto(s), hour→hora(s), day→día(s), week→semana(s), month→mes(es), year→año(s)).
 5. Deshacer/rehacer: SÍ, por instantáneas inmutables del modelo (barato); no es hecho OPM.
@@ -369,6 +370,26 @@ especificación, conformidad, decisiones y documentos de uso) y retirar la histo
 repositorio lo local no versionado (`~/archivo-proyectos/saneamiento-2026-10-13/deep-opm-pro/`), y retirar
 el migrador PostgreSQL, que queda en Git hasta `d5f77c7c`.
 
+**In-zoom de objeto y nombres OPM (2026-10-14).** Al revisar el refinamiento, Félix preguntó «por que no
+se puede hacer in-zoom en objetos?» y luego autorizó «sí, avanza con 1 y 2»: ofrecer la descomposición de
+objeto completa (B-02) y que la interfaz nombre los mecanismos de OPM. Decisiones de criterio:
+- El motivo de DR-23 caducó: el canon 2.3 (CX13, R-CX-DESP-2) da a «en esa secuencia» sentido espacial o
+  lógico. La oración es CX13 tal cual, también en su forma de diagrama nuevo. Su lista sigue la EBNF
+  (`lista_de_objetos`, sin coma ante «y»), aunque R-OPL-LISTA-1 cite esa coma de la producción inglesa.
+- Un mismo `OpdDescomposicion` sirve a procesos y objetos. En un objeto, las bandas guardan las partes, una
+  por banda y sin paralelo (R-OPD-REF-2), e `internos` guarda sus procesos internos (A3.3a). Las
+  operaciones de miembros pasan a llamarse `agregarEnDescomposicion` y `moverEnDescomposicion`.
+- No hay distribución ni vista abstraída: un enlace en el contorno del objeto queda allí (R-OPD-REF-11), y el
+  padre no abstrae los hechos de partes ni de procesos internos (sólo el in-zoom de proceso abstrae, DR-13).
+  El canon no define esa vista para objetos; rige la válvula de simplicidad.
+- El producto realiza el orden de las partes de arriba abajo, como el de los subprocesos. Los procesos
+  externos que transforman el objeto se colocan a su derecha.
+- Una oración «**A** se descompone en …» que no es CX13 se rechaza como no canónica (R-CX-DESP-2), en vez
+  de degradarse a una lista etiquetada.
+- La interfaz dice «Descomponer (in-zoom)» y «Desplegar (unfold)» y nombra los modos («Agregación: partes»,
+  etc.). Si no se puede descomponer, muestra el motivo de la operación ensayada; el diálogo de despliegue
+  busca su OPD de origen y explica sus propios rechazos (`28bd03c3`).
+
 ### 1.6 Decisiones de esta síntesis (DS-n)
 
 Estas son las resoluciones que CANON.md no fija, o que ajustan una DR por una exigencia más fuerte
@@ -393,7 +414,7 @@ del canon. Todas van a `docs/decisiones.md` y, si tocan un DEBE, también a «Br
 | DS-15 | **Frases de multiplicidad literales**: `un opcional` / `una opcional`, `opcional (cero o más)`, `al menos un` / `al menos una`. | C12. R-MULT-1. |
 | DS-16 | **Eliminar un refinamiento materializa en el padre la vista abstraída** de los enlaces con el exterior. | C14 = A P-8. DR-17. |
 | DS-17 | **RF2b sin coma**: se genera `{O} exhibe {Ly:O} así como {Ly:P}.` (reglas manda en plantillas) y se aceptan ambas formas al parsear. | A. |
-| DS-18 | **OPD no representable ⇒ se descarta el OPD, nunca los hechos.** Aplica a Boceto, vista, OPD suelto o descomposición de objeto que choca con un despliegue: sus cosas, estados y enlaces siguen en el modelo, y las cosas pueden quedar sin aparición. La **descomposición de objeto** sin despliegue previo se convierte en `despliegue` por agregación **sin crear enlaces**, conservando apariciones y posiciones. | A P-20 más la corrección de C4. No se inventan hechos y no se pierden datos del modelador. |
+| DS-18 | **OPD no representable ⇒ se descarta el OPD, nunca los hechos.** Aplica a Boceto, vista u OPD suelto: sus cosas, estados y enlaces siguen en el modelo, y las cosas pueden quedar sin aparición. Desde B-02 la **descomposición de objeto** se importa como tal; ya no se convierte en despliegue. | A P-20 más la corrección de C4. No se inventan hechos y no se pierden datos del modelador. |
 | DS-19 | **Negación v0 (`modificador: "no"`) ⇒ se descarta el enlace entero**, con informe. | A 4.7: conservarlo sin `no` invertiría el hecho. |
 | DS-20 | **Cierre de operaciones**: una operación se rechaza si el modelo resultante tiene un error de contexto de la matriz que el de entrada no tenía. Hay una excepción: `moverSubproceso` (T-269, AP-27: lo que surge por reordenar queda como error recuperable). | Uniforma el revalidar de `fijarEsencia`, `cambiarTipoCosa`, `eliminarEstado` y `reanclarExtremo` en una sola regla. |
 | DS-21 | **Fuente incrustada**: `canon-diagrama` y `canon-documento` llevan Inria Serif regular e itálica (subconjunto latino, woff2 en base64). Las métricas salen de una tabla generada en Chromium. | A, B. AP-23 y R-OPD-LAY-8 en cualquier visor. |
@@ -552,9 +573,9 @@ export const disolverAbanico:     Operacion<{ abanico: Id }>;
 export const fijarControlAbanico: Operacion<{ abanico: Id; control: Control | null }>;   // todas las ramas (R-FAN-3)
 
 // refinamiento.ts
-export const descomponer:        Operacion<{ opd: Id; cosa: Id; bandas?: readonly (readonly string[])[] }>;   // creados[0] = OPD hijo
+export const descomponer:        Operacion<{ opd: Id; cosa: Id; bandas?: readonly (readonly string[])[] }>;   // proceso u objeto (B-02); creados[0] = OPD hijo
 export const agregarEnDescomposicion: Operacion<{ opd: Id; bandas: readonly (readonly string[])[];
-                                             posicion: 'final' | { antesDeBanda: number } | { enBanda: number } }>;
+                                             posicion: 'final' | { antesDeBanda: number } | { enBanda: number } }>;   // subprocesos o partes (sin paralelo)
 export const moverEnDescomposicion:   Operacion<{ opd: Id; cosa: Id; destino: { banda: number } | { nuevaBandaAntesDe: number } }>;
 export const fijarBandas:        Operacion<{ opd: Id; bandas: readonly (readonly Id[])[] }>;   // partición del MISMO conjunto; sin migración
 export const desplegar:          Operacion<{ opd: Id; cosa: Id; modo: ModoDespliegue; refinadores?: readonly string[] }>;  // creados[0] = OPD hijo
@@ -615,7 +636,7 @@ export interface Indice {
   readonly preorden: readonly Id[];
   readonly etiqueta: ReadonlyMap<Id, string>;
   readonly internoDe: ReadonlyMap<Id, Id>;                     // cosa interna → OPD de descomposición
-  readonly bandaDe: ReadonlyMap<Id, { readonly opd: Id; readonly banda: number }>;   // subproceso → banda
+  readonly bandaDe: ReadonlyMap<Id, { readonly opd: Id; readonly banda: number }>;   // subproceso o parte → banda
   readonly porClaveNombre: ReadonlyMap<string, readonly Id[]>; // ≥2 ⇒ nombre duplicado
 }
 export function claveNombre(nombre: string): string;          // NFC, espacios colapsados, recorte, toLocaleLowerCase('es')

@@ -1,6 +1,6 @@
 import type { Id, Modelo, Ref } from './tipos';
 import { erroresContexto } from './matriz';
-export type CodigoRechazo = 'lexico' | 'unicidad-nominal' | 'no-visible' | 'interno-no-visible' | 'ya-aparece' | 'ya-existe' | 'es-interno' | 'es-contenedor' | 'tiene-refinamiento' | 'refinamiento-no-hoja' | 'ya-refinado' | 'ciclo' | 'externo-no-refinable' | 'descomposicion-objeto' | 'forma' | 'contexto' | 'no-ofrecido' | 'abanico' | 'estado-enlazado' | 'efecto-sin-estados' | 'tipo-incompatible' | 'duracion-invalida' | 'referencia-ambigua' | 'no-encontrado';
+export type CodigoRechazo = 'lexico' | 'unicidad-nominal' | 'no-visible' | 'interno-no-visible' | 'ya-aparece' | 'ya-existe' | 'es-interno' | 'es-contenedor' | 'tiene-refinamiento' | 'refinamiento-no-hoja' | 'ya-refinado' | 'ciclo' | 'externo-no-refinable' | 'forma' | 'contexto' | 'no-ofrecido' | 'abanico' | 'estado-enlazado' | 'efecto-sin-estados' | 'tipo-incompatible' | 'duracion-invalida' | 'referencia-ambigua' | 'no-encontrado';
 export interface Rechazo {
     readonly codigo: CodigoRechazo;
     readonly regla: string; // id canónico (R-…, AP-…, T-…) o 'producto'

@@ -15,7 +15,7 @@ test('T-105 hacia reconstruye consumo condicionado y agrupación de efecto sin c
 });
 test('T-105 hacia CX conserva bandas e internos y nunca transforma paralelos en secuencia',()=>{
  const ps=(tabla as typeof import('./plantillas')).PLANTILLAS;
- expect(ps.find(p=>p.id==='CX2')!.hacia({P:{texto:'Procesar',marca:'proceso'},Plista:[{texto:'Archivar',marca:'proceso'},{texto:'Validar',marca:'proceso'}],O:[{texto:'Cuenta',marca:'objeto'}]})).toEqual([{k:'descomposicion',proceso:'Procesar',bandas:[['Archivar','Validar']],internos:['Cuenta']}]);
+ expect(ps.find(p=>p.id==='CX2')!.hacia({P:{texto:'Procesar',marca:'proceso'},Plista:[{texto:'Archivar',marca:'proceso'},{texto:'Validar',marca:'proceso'}],O:[{texto:'Cuenta',marca:'objeto'}]})).toEqual([{k: 'descomposicion', cosa: { nombre: 'Procesar', tipo: 'proceso' },bandas:[['Archivar','Validar']],internos:['Cuenta']}]);
 });
 
 test('T-115 inversa de excepción recupera valor y unidad de la cota',()=>{
@@ -64,7 +64,7 @@ test('T-115 restricciones de cota rechazan unidad ajena y número no decimal',()
 test('T-105 inversa CXI separa proceso contenedor, secuencia e internos tipados',()=>{
  const h={P:{texto:'Procesar',marca:'proceso' as const},Plista:[{texto:'Validar',marca:'proceso' as const},{texto:'Archivar',marca:'proceso' as const}],O:[{texto:'Cuenta',marca:'objeto' as const},{texto:'Pedido',marca:'objeto' as const}]};
  const before=JSON.stringify(h),p=tabla.PLANTILLAS.find(p=>p.id==='CXI')!;
- expect(p.hacia(h)).toEqual([{k:'descomposicion',proceso:'Procesar',bandas:[['Validar'],['Archivar']],internos:['Cuenta','Pedido']}]);
+ expect(p.hacia(h)).toEqual([{k: 'descomposicion', cosa: { nombre: 'Procesar', tipo: 'proceso' },bandas:[['Validar'],['Archivar']],internos:['Cuenta','Pedido']}]);
  expect(tabla.tokensPlantilla('CXI',h).filter(t=>t.marca).map(t=>[t.texto,t.marca])).toEqual([['Procesar','proceso'],['Validar','proceso'],['Archivar','proceso'],['Cuenta','objeto'],['Pedido','objeto']]);
  expect(JSON.stringify(h)).toBe(before);
 });
@@ -109,7 +109,7 @@ test('T-127 CXM y/e lee la frase emitida, conserva comas, bandas y tokens',()=>{
  const d:import('../nucleo/tipos').OpdDescomposicion={id:'h',tipo:'descomposicion',cosa:'P',padre:'sd',orden:0,bandas:[['Alfa','Beta'],['Índice']],internos:[],apariciones:{}};
  const p=tabla.PLANTILLAS.find(p=>p.id==='CXM')!,h=tabla.datosContexto({...m,opds:{h:d}},'h')!.huecos;
  expect(tabla.tokensPlantilla('CXM',h).map(t=>t.texto).join('')).toBe('P se descompone en paralelo Alfa y Beta, e Índice, en esa secuencia.');
- expect(p.hacia(h)).toEqual([{k:'descomposicion',proceso:'P',bandas:[['Alfa','Beta'],['Índice']],internos:[]}]);
+ expect(p.hacia(h)).toEqual([{k: 'descomposicion', cosa: { nombre: 'P', tipo: 'proceso' },bandas:[['Alfa','Beta'],['Índice']],internos:[]}]);
 });
 
 test('T-191 T-300 compilación del patrón conserva opcionales género tokens y entradas intercaladas',()=>{
@@ -165,7 +165,7 @@ test('T-127 colación local nunca altera bandas, entradas ni conjunción observa
         cosas:Object.fromEntries([['p','Procesar'],['a','Índice'],['b','Arbol'],['c','Árbol'],['d','Isla']].map(([id,nombre]) => [id!,{id:id!,tipo:'proceso' as const,nombre:nombre!,esencia:'informacional' as const,afiliacion:'sistemica' as const}])), enlaces:{}, abanicos:{},
         opds:{sd:{id:'sd',tipo:'raiz',apariciones:{}},h:{id:'h',tipo:'descomposicion',cosa:'p',padre:'sd',orden:0,bandas:[['c','b'],['d','a']],internos:[],apariciones:{}}}};
     const antes=JSON.stringify(m), h=tabla.datosContexto(m,'h')!;
-    expect(h.plantilla).toBe('CXM'); expect(tabla.PLANTILLAS.find(p=>p.id==='CXM')!.hacia(h.huecos)).toEqual([{k:'descomposicion', proceso:'Procesar', bandas:[['Arbol','Árbol'],['Índice','Isla']], internos:[]}]);
+    expect(h.plantilla).toBe('CXM'); expect(tabla.PLANTILLAS.find(p=>p.id==='CXM')!.hacia(h.huecos)).toEqual([{k: 'descomposicion', cosa: { nombre: 'Procesar', tipo: 'proceso' }, bandas:[['Arbol','Árbol'],['Índice','Isla']], internos:[]}]);
     expect(tabla.tokensPlantilla(h.plantilla,h.huecos).map(t=>t.texto).join('')).toBe('Procesar se descompone en paralelo Arbol y Árbol, y paralelo Índice e Isla, en esa secuencia.');
     expect(JSON.stringify(m)).toBe(antes);
 });

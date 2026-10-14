@@ -178,25 +178,29 @@ export function validarForma(m: Modelo): readonly Violacion[] {
         existe(o.padre, 'opd');
         existe(o.cosa, 'cosa');
         const key = `${o.tipo}:${o.cosa}`, asc = ancestros(o);
-        if (refinamientos.has(key) || asc.cosas.has(o.cosa) || !asc.conectado || !aparece(o, o.cosa) || !aparece(opd(o.padre), o.cosa) || o.tipo === 'descomposicion' && m.cosas[o.cosa]?.tipo !== 'proceso')
+        if (refinamientos.has(key) || asc.cosas.has(o.cosa) || !asc.conectado || !aparece(o, o.cosa) || !aparece(opd(o.padre), o.cosa))
             fallo('F-7', 'El refinamiento viola identidad, árbol, categoría o apariciones.', [ref('opd', o.id)]);
         refinamientos.add(key);
         if (o.tipo === 'descomposicion') {
-            const miembros = new Set<Id>();
+            // Proceso: subprocesos por bandas y objetos internos. Objeto: partes, una por banda (R-OPD-REF-2), y
+            // procesos internos (A3.3a).
+            const miembros = new Set<Id>(), tipo = m.cosas[o.cosa]?.tipo, otro = tipo === 'objeto' ? 'proceso' : 'objeto';
             for (const b of o.bandas) {
                 if (!b.length)
                     fallo('F-8', 'Una banda no puede estar vacía.', [ref('opd', o.id)]);
+                if (tipo === 'objeto' && b.length > 1)
+                    fallo('F-8', 'Cada parte de un objeto descompuesto ocupa su propia banda.', [ref('opd', o.id)]);
                 for (const c of b) {
                     existe(c, 'cosa');
-                    if (miembros.has(c) || c === o.cosa || m.cosas[c]?.tipo !== 'proceso' || !aparece(o, c))
-                        fallo('F-8', 'Subproceso inválido, repetido o sin aparición.', [ref('opd', o.id), ref('cosa', c)]);
+                    if (miembros.has(c) || c === o.cosa || m.cosas[c]?.tipo !== tipo || !aparece(o, c))
+                        fallo('F-8', 'Subproceso o parte inválido, repetido o sin aparición.', [ref('opd', o.id), ref('cosa', c)]);
                     miembros.add(c);
                 }
             }
             for (const c of o.internos) {
                 existe(c, 'cosa');
-                if (miembros.has(c) || m.cosas[c]?.tipo !== 'objeto' || !aparece(o, c))
-                    fallo('F-8', 'Objeto interno inválido o sin aparición.', [ref('opd', o.id), ref('cosa', c)]);
+                if (miembros.has(c) || m.cosas[c]?.tipo !== otro || !aparece(o, c))
+                    fallo('F-8', 'Interno inválido o sin aparición.', [ref('opd', o.id), ref('cosa', c)]);
                 miembros.add(c);
             }
             for (const c of miembros) {

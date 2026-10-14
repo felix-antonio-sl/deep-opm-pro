@@ -18,7 +18,9 @@ export interface Indice {
     readonly preorden: readonly Id[];
     readonly etiqueta: ReadonlyMap<Id, string>;
     readonly internoDe: ReadonlyMap<Id, Id>; // cosa interna → OPD de descomposición
-    readonly bandaDe: ReadonlyMap<Id, { // subproceso → su banda
+    // Miembro ordenado de una descomposición → su banda: subproceso (banda = paralelo) o parte de un
+    // objeto descompuesto (una por banda, orden espacial o lógico, R-OPD-REF-2).
+    readonly bandaDe: ReadonlyMap<Id, {
         readonly opd: Id;
         readonly banda: number;
     }>;

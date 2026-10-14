@@ -11,6 +11,10 @@ export const NO_CANONIZADAS: readonly LimiteOpl[] = [
     { patron: /(?:exactamente uno de|al menos uno de).*\bPr=/u, codigo: 'unsupported-canonical', regla: 'R-FAN-PR-1', registro: 'B-16' },
     { patron: /\bPr=|\bFANLOCAL\b|\bfan local\b|\b(?:XOR|OR|AND)\b/u, codigo: 'non-canonical', regla: 'R-CONF-6', registro: 'B-16' },
     { patron: /\binicia .* (?:ocurre si|de lo contrario)|\bestá en .* afecta .* de lo contrario/u, codigo: 'non-canonical', regla: 'AP-28', registro: 'B-16' },
+    // CX13 (R-CX-DESP-2): la descomposición de objeto nombra sólo objetos y cierra con «, en esa secuencia», sin
+    // paralelo; otra lectura de «se descompone en» no se degrada a una lista etiquetada.
+    { patron: /^\*\*N\*\* (?:desde \S+ )?se descompone en (?!(?:\S+ en )?\*\*N\*\*(?:(?:, | [ye] )\*\*N\*\*)*, en esa secuencia(?:, así como \*N\*(?:(?:, | [ye] )\*N\*)*)?\.$)/u, codigo: 'non-canonical', regla: 'R-CX-DESP-2', registro: 'B-02', prosaCompuesta: true,
+        mensaje: 'La descomposición de un objeto enumera sus partes y cierra con «, en esa secuencia» (CX13).' },
     // Grafía histórica: el canon vigente escribe RF5 con el estado pospuesto al atributo.
     { patron: /\bexhiben? `s` \*\*N\*\*/u, codigo: 'non-canonical', regla: 'R-ZNC-1', registro: 'B-37' }
 ];
@@ -18,7 +22,6 @@ export const NO_SOPORTADAS: readonly LimiteOpl[] = [
     // Son metadatos sólo fuera del hueco de etiqueta de una lista cerrada reconocida.
     { patron: / [ye] más\.$|\bdonde\b|\bordenados por\b/u, codigo: 'unsupported-canonical', regla: 'R-OPL-SE-4', registro: 'B-54', enEtiqueta: true },
     { patron: /\bpuede ser\b/u, codigo: 'unsupported-canonical', regla: 'R-OPL-RF-5', registro: 'B-01' },
-    { patron: /\*\*[^*]+\*\* se descompone en\b/u, codigo: 'unsupported-canonical', regla: 'R-OPL-CX-4', registro: 'B-02' },
     { patron: /\b(?:consumen|generan|afectan|requieren|manejan|invocan)\b/u, codigo: 'unsupported-canonical', regla: 'DR-12', registro: 'B-09' },
     // DEC55 ofrece 0/1 y los rangos; «exactamente un» sigue sin literal canónico.
     { patron: /\bexactamente un(?:a)? \*\*/u, codigo: 'unsupported-canonical', regla: 'R-§18-PART-1', registro: 'B-10' },

@@ -20,8 +20,8 @@ export interface Vista {
 }
 export interface CosaVista {
     readonly cosa: Id;
-    readonly rol: 'libre' | 'contenedor' | 'subproceso' | 'interno' | 'externo' | 'refinable';
-    readonly banda?: number; // subprocesos
+    readonly rol: 'libre' | 'contenedor' | 'subproceso' | 'parte' | 'interno' | 'externo' | 'refinable';
+    readonly banda?: number; // subprocesos y partes de un objeto descompuesto
     readonly estadosVisibles: readonly Id[]; // en el orden del modelo
     readonly ocultos: number; // chip ⋯N y D6
 }
@@ -39,7 +39,7 @@ export interface AbanicoVisto {
 }
 const memo = new WeakMap<Modelo, Map<Id, Vista>>();
 
-/** La vista nunca se persiste: conserva ids/procedencia y solo abstrae procesos de in-zoom. */
+/** La vista nunca se persiste: conserva ids/procedencia y solo abstrae procesos del in-zoom de un proceso. */
 export function proyectar(m: Modelo, opd: Id): Vista {
     const previa = memo.get(m)?.get(opd);
     if (previa) return previa;
@@ -58,7 +58,8 @@ export function proyectar(m: Modelo, opd: Id): Vista {
             camino.push(actual); visitados.add(actual);
             const dueño: Id | undefined = m.cosas[actual]?.tipo === 'proceso' ? idx.internoDe.get(actual) : undefined;
             const d: Opd | undefined = dueño ? m.opds[dueño] : undefined;
-            actual = d?.tipo === 'descomposicion' ? d.cosa : undefined;
+            // Un proceso interno de un objeto descompuesto no se abstrae en el objeto (DR-23).
+            actual = d?.tipo === 'descomposicion' && m.cosas[d.cosa]?.tipo === 'proceso' ? d.cosa : undefined;
         }
         const resultado = actual === undefined ? undefined : vistos.has(actual) ? vistos.get(actual) : actual;
         for (const c of camino) vistos.set(c, resultado);
@@ -150,11 +151,11 @@ export function proyectar(m: Modelo, opd: Id): Vista {
         const c = m.cosas[id]!;
         const banda = o.tipo === 'descomposicion' ? idx.bandaDe.get(id) : undefined;
         const rol: CosaVista['rol'] = o.tipo === 'raiz' ? 'libre' : id === o.cosa ? (o.tipo === 'descomposicion' ? 'contenedor' : 'refinable')
-            : banda?.opd === opd ? 'subproceso' : internos.has(id) ? 'interno' : 'externo';
+            : banda?.opd === opd ? (c.tipo === 'proceso' ? 'subproceso' : 'parte') : internos.has(id) ? 'interno' : 'externo';
         const propios = c.tipo === 'objeto' ? c.estados : [];
         const ocultos = new Set(o.apariciones[id]!.ocultos ?? []);
         const estadosVisibles = propios.filter(s => anclados.has(s.id) || (!s.suprimido && !ocultos.has(s.id))).map(s => s.id);
-        return { cosa: id, rol, ...(rol === 'subproceso' ? { banda: banda!.banda } : {}), estadosVisibles, ocultos: propios.length - estadosVisibles.length };
+        return { cosa: id, rol, ...(rol === 'subproceso' || rol === 'parte' ? { banda: banda!.banda } : {}), estadosVisibles, ocultos: propios.length - estadosVisibles.length };
     });
     const incompletas = colecciones(m, o);
     const vista: Vista = { opd, clase: o.tipo, cosas, enlaces, abanicos, incompletas, conflictos };
@@ -311,7 +312,7 @@ function ordenarBandas(m: Modelo, idx: Indice): ReadonlyMap<Id, number> {
     // de sus subprocesos. Un mismo prefijo de bandas comparte nodo, incluso en paralelo.
     for (const id of idx.preorden) {
         const o = m.opds[id]!;
-        if (o.tipo !== 'descomposicion') continue;
+        if (o.tipo !== 'descomposicion' || m.cosas[o.cosa]?.tipo !== 'proceso') continue;
         const padre = porProceso.get(o.cosa) ?? raiz;
         o.bandas.forEach((banda, posicion) => {
             let tiempo = padre.hijos.get(posicion);
@@ -442,7 +443,7 @@ function ordenOriginal(m: Modelo, idx: Indice): OrdenOriginal {
         const bandas = new Map<Id, readonly (readonly Id[])[]>();
         for (const id of idx.preorden) {
             const o = m.opds[id]!;
-            if (o.tipo === 'descomposicion') bandas.set(o.cosa, o.bandas);
+            if (o.tipo === 'descomposicion' && m.cosas[o.cosa]?.tipo === 'proceso') bandas.set(o.cosa, o.bandas);
         }
         const raices = [...bandas.keys()].filter(id => !idx.bandaDe.has(id));
         const primero = new Map<Id, number>(), segundo = new Map<Id, number>(), fin = new Map<Id, number>(), componente = new Map<Id, Id>();

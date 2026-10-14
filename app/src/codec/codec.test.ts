@@ -110,10 +110,12 @@ test('T-059 etapa 5: estado de proceso perdido y anclaje retirado conserva enlac
   const d = basico(); d.modelo.estados.s = estado('s', 'p-2'); d.modelo.enlaces.e = enlace('e', 'invocacion', 'p-2', 'p-2', { origenId: extremo('s', 'estado') });
   const r = ok(d); expect(r.modelo.enlaces.e).toEqual({ id: 'e', tipo: 'invocacion', origen: 'p-2', destino: 'p-2' }); expect(r.informe.descartado.some(e => e.ruta.includes('origenId'))).toBe(true);
 });
-test('T-029 etapa 6: refinamiento legacy normalizado; descomposición objeto a despliegue sin crear enlaces', () => {
+test('T-029 T-072 etapa 6: refinamiento legacy normalizado; la descomposición de objeto se conserva sin crear enlaces', () => {
   const d = refinado(); d.modelo.entidades['p-2'].refinamiento = { tipo: 'descomposicion', opdId: 'opd-3' }; delete d.modelo.entidades['p-2'].refinamientos;
   expect(ok(d).modelo.opds['opd-3']).toMatchObject({ tipo: 'descomposicion', bandas: [['p-4'], ['p-5']] });
-  const e = refinado(); e.modelo.entidades['p-2'].tipo = 'objeto'; const r = ok(e); expect(r.modelo.opds['opd-3']).toMatchObject({ tipo: 'despliegue', modo: 'agregacion' }); expect(r.modelo.enlaces).toEqual({});
+  // Un objeto descompuesto cuyos internos son procesos: procesos internos, sin partes ni enlaces inventados (A3.3a).
+  const e = refinado(); e.modelo.entidades['p-2'].tipo = 'objeto'; const r = ok(e);
+  expect(r.modelo.opds['opd-3']).toMatchObject({ tipo: 'descomposicion', cosa: 'p-2', bandas: [], internos: ['p-4', 'p-5'] }); expect(r.modelo.enlaces).toEqual({});
 });
 test('T-029 etapa 6: boceto/vista/huérfano pierden OPD pero conservan cosas', () => {
   for (const extra of [{ padreId: null }, { vista: { tipo: 'otro' } }, { padreId: 'opd-1' }]) { const d = basico(); d.modelo.opds.draft = { id: 'draft', nombre: 'Boceto', apariencias: { a: apariencia('o-1', 'draft') }, enlaces: {}, ...extra }; const r = ok(d); expect(r.modelo.opds.draft).toBeUndefined(); expect(r.modelo.cosas['o-1']).toBeDefined(); expect(r.informe.descartado.some(e => e.ruta === 'opds.draft')).toBe(true); }

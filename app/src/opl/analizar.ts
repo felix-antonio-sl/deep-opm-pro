@@ -92,7 +92,7 @@ export type HechoTexto = { readonly k: 'plural'; readonly objeto: string; readon
     readonly relacion: RelacionIncompleta;
 } | {
     readonly k: 'descomposicion';
-    readonly proceso: string;
+    readonly cosa: NombreTipado; // proceso (CX1, CX2, mixta) u objeto (CX13)
     readonly bandas: readonly (readonly string[])[];
     readonly internos: readonly string[];
     readonly opdPadre?: string;

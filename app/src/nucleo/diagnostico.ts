@@ -71,7 +71,7 @@ export const CATALOGO = Object.freeze([
     fila('cosa-sin-aparicion', 'T-262, A8.2', 'warning', 'identidad', 'Buscar › Traer esta cosa a un OPD'),
     fila('enlace-sin-vista', 'A8.2', 'warning', 'identidad', 'Trae a un OPD el extremo faltante del enlace'),
     fila('forma-plural-faltante', 'DEC56/DR-12', 'warning', 'gramatical', 'Declara la forma plural del objeto en Propiedades'),
-    fila('orden-vertical-contradictorio', 'R-INV-2/2A, R-IDP-0A', 'error', 'contencion', 'Recoloca los subprocesos según sus bandas declaradas'),
+    fila('orden-vertical-contradictorio', 'R-INV-2/2A, R-IDP-0A', 'error', 'contencion', 'Recoloca los subprocesos o las partes según sus bandas declaradas'),
 ] as const);
 export type CodigoDiagnostico = (typeof CATALOGO)[number]['codigo'];
 const porCodigo = new Map<CodigoDiagnostico, FilaCatalogo>(CATALOGO.map(f => [f.codigo, f]));
@@ -148,10 +148,11 @@ export function diagnosticar(m: Modelo): readonly Diagnostico[] {
                 añadir('refinamiento-trivial', [ref('opd', id), ref('cosa', o.cosa)], 'El refinamiento no tiene hijos.', { opd: id });
         }
         // B-45: la disposición vertical denota el orden (R-INV-2/2A); las bandas declaradas lo representan (R-IDP-0A).
+        // En un objeto descompuesto el orden es espacial o lógico y el producto también lo realiza de arriba abajo (DR-23).
         if (o.tipo === 'descomposicion') {
             const contradictorios = alturasContradictorias(o);
             if (contradictorios.length)
-                añadir('orden-vertical-contradictorio', [ref('opd', id), ...contradictorios.map(c => ref('cosa', c))], 'La altura de los subprocesos no realiza el orden declarado: el OPD y su OPL expresarían órdenes distintos.', { opd: id, reparacion: { op: 'fijarBandas', args: { opd: id, bandas: o.bandas } } });
+                añadir('orden-vertical-contradictorio', [ref('opd', id), ...contradictorios.map(c => ref('cosa', c))], `La altura de ${m.cosas[o.cosa]?.tipo === 'objeto' ? 'las partes' : 'los subprocesos'} no realiza el orden declarado: el OPD y su OPL expresarían órdenes distintos.`, { opd: id, reparacion: { op: 'fijarBandas', args: { opd: id, bandas: o.bandas } } });
         }
         for (const c of vista.cosas) {
             const parcial = vista.incompletas.some(x => x.refinable === c.cosa && !x.declarada);
