@@ -99,3 +99,10 @@ for(const formulario of ['proceso','estado','cadena'] as const)test(`T-025 UI-12
  if(formulario==='proceso')await tecla(page,'p');else if(formulario==='estado'){await seleccionar(page,'Pedido');await tecla(page,'s');}else {await seleccionar(page,'Procesar');await tecla(page,'d');}
  await expect(lienzo(page)).toContainText('Ejemplo:');await expect(lienzo(page)).not.toContainText('no cumple el léxico');await page.keyboard.press('Escape');
 });
+
+test('T-011 UI-13 mensajes humanos y resumen de enlace presentan nombres sin Markdown literal',async({page,request})=>{
+ const id='e2e-ui13';await sembrar(request,'simple',id);await abrir(page,id);await seleccionar(page,'Pedido');
+ await expect(page.locator('.zona-propiedades')).not.toContainText('**Pedido**');await conectar(page,'Pedido','Procesar',/instrumento · directo/);await guardado(page);
+ const enlace=Object.keys(modelo(await leer(request,id)).modelo.enlaces)[0]!;await seleccionarEnlace(page,enlace);await expect(page.locator('.zona-propiedades h3')).not.toContainText('*');
+ await seleccionar(page,'Pedido');await expect(page.locator('.enlace-oracion').first()).not.toContainText('**');
+});
