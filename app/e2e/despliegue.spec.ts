@@ -24,6 +24,12 @@ for(const movil of [false,true])for(const [i,modo] of modos.entries())test(`T-07
  if(movil)await page.getByRole('navigation',{name:'Zonas del editor'}).getByRole('button',{name:'Propiedades',exact:true}).click();
  await page.getByRole('button',{name:'Volver al origen',exact:true}).click();
  await expect(page.getByRole('navigation',{name:'Ruta de OPD'})).not.toContainText('SD1');await guardado(page);
+ if(movil){
+  await expect(page.getByRole('navigation',{name:'Zonas del editor'}).getByRole('button',{name:'Lienzo',exact:true})).toHaveAttribute('aria-pressed','true');
+  await expect(cosa(page,'Pedido')).toBeInViewport({ratio:1});
+  const destino=(await cosa(page,'Pedido').boundingBox())!,barra=(await lienzo(page).locator('.paleta-lienzo').boundingBox())!;
+  expect(destino.y).toBeGreaterThan(barra.y+barra.height);
+ }
 });
 
 test('T-071 desplegar objeto interno conserva su OPD de origen',async({page,request})=>{
