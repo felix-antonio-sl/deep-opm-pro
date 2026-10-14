@@ -72,7 +72,25 @@ test('T-252 arrastre de paleta cancelado, soltado fuera o perdido no deja previe
 
 test('T-251 quitar el padre refinado explica cómo continuar y conserva jerarquía y documento',async({page,request})=>{
  const id='e2e-quitar-refinado';await sembrar(request,'refinado',id);await abrir(page,id);const antes=await leer(request,id);await seleccionar(page,'Procesar');await tecla(page,'Delete');
- await expect(lienzo(page)).toContainText('Conserva la aparición o elimina primero el refinamiento');await expect(cosa(page,'Procesar')).toBeVisible();await guardado(page);expect(await leer(request,id)).toEqual(antes);
+ await expect(page.getByRole('main',{name:'Lienzo',exact:true})).toContainText('Conserva la aparición o elimina primero el refinamiento');await expect(cosa(page,'Procesar')).toBeVisible();await guardado(page);expect(await leer(request,id)).toEqual(antes);
+});
+
+test('T-015 arrastrar estado reordena dentro de su objeto con enlaces vivos y un solo deshacer',async({page,request})=>{
+ const id='e2e-directo-estado-orden';await sembrar(request,'ts3',id);await abrir(page,id);const antes=await leer(request,id);
+ const origen=cosa(page,'Pedido').getByText('pendiente',{exact:true}),destino=cosa(page,'Pedido').getByText('pagado',{exact:true}),a=(await origen.boundingBox())!,b=(await destino.boundingBox())!,linea=await tinta(page,'enlace:e1');
+ await page.mouse.move(a.x+a.width/2,a.y+a.height/2);await page.mouse.down();await page.mouse.move(b.x+b.width/2,b.y+b.height/2,{steps:4});
+ expect((await origen.boundingBox())!.x).toBeGreaterThan(a.x+5);expect(await tinta(page,'enlace:e1')).not.toBe(linea);expect(await leer(request,id)).toEqual(antes);
+ await page.mouse.up();await guardado(page);expect(modelo(await leer(request,id)).modelo.estados['o-s1']!['orden']).toBe(1);
+ await tecla(page,'Control+z');await guardado(page);expect((await leer(request,id)).texto).toBe(antes.texto);
+});
+
+test('T-015 arrastrar estado al borde o fuera conserva dueño y muestra cómo reordenar sin jitter ni historial',async({page,request})=>{
+ const id='e2e-directo-estado-borde';await sembrar(request,'ts3',id);await abrir(page,id);const antes=await leer(request,id);
+ const estado=cosa(page,'Pedido').getByText('pendiente',{exact:true}),a=(await estado.boundingBox())!,objeto=(await cosa(page,'Pedido').boundingBox())!;
+ await page.mouse.move(a.x+a.width/2,a.y+a.height/2);await page.mouse.down();await page.mouse.move(objeto.x+objeto.width+30,objeto.y+objeto.height/2,{steps:4});
+ await expect(lienzo(page)).toContainText('Los estados permanecen dentro de su objeto');expect((await estado.boundingBox())!.x).toBeCloseTo(a.x,1);
+ await page.mouse.move(objeto.x+objeto.width+32,objeto.y+objeto.height/2-2);expect((await estado.boundingBox())!.x).toBeCloseTo(a.x,1);
+ await page.mouse.up();await guardado(page);expect(await leer(request,id)).toEqual(antes);await expect(lienzo(page).locator('.fantasma-ui')).toHaveCount(0);
 });
 
 test('T-251 Backspace elimina enlace con su marcador y un deshacer restaura el documento',async({page,request})=>{
