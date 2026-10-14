@@ -25,6 +25,16 @@ test('T-016 franja conserva traza nuclear al reemplazar designación por defecto
 });
 
 import {etiquetaAccion} from '../nucleo/operaciones';
+test('T-011 cámara y realce idénticos no notifican; cambios efectivos siguen siendo efímeros',async()=>{
+ const d=dependencias(),ed=crearEditor(configuracion(d));await ed.abrir(d.m.id);const original=ed.obtener().modelo,pasado=ed.obtener().pasado;let avisos=0;
+ const dejar=ed.suscribir(()=>avisos++),camara=ed.obtener().camara;
+ ed.fijarCamara({...camara});ed.realzar([]);expect(avisos).toBe(0);
+ ed.realzar([{tipo:'cosa',id:'o-2'}]);expect(avisos).toBe(1);ed.realzar([{tipo:'cosa',id:'o-2'}]);expect(avisos).toBe(1);
+ ed.realzar([{tipo:'estado',id:'s-3'}]);expect(avisos).toBe(2);ed.realzar([]);expect(avisos).toBe(3);
+ ed.fijarCamara({x:31,y:42,zoom:4});expect(ed.obtener().camara).toEqual({x:31,y:42,zoom:3});expect(avisos).toBe(4);
+ ed.fijarCamara({x:31,y:42,zoom:9});expect(avisos).toBe(4);expect(ed.obtener().modelo).toBe(original);expect(ed.obtener().pasado).toBe(pasado);
+ dejar();ed.cerrar();await ciclos();
+});
 test('T-011 franja usa registro humano previo y conserva gesto único y undo',async()=>{
  const d=dependencias(),ed=crearEditor(configuracion(d));await ed.abrir(d.m.id);const base=ed.obtener().modelo!,antes=exportarV0(base);
  const a={op:'renombrarCosa' as const,args:{cosa:'o-2',nombre:'Pedido nuevo'}};

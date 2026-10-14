@@ -84,6 +84,8 @@ export function Lienzo(p: DatosRanura) {
     const contenedor=m.opds[opd]!, host=useRef<HTMLDivElement>(null), svg=useRef<SVGSVGElement>(null);
     const [gesto,fijar]=useState<Gesto>({k:'reposo'}),actual=useRef<Gesto>(gesto),[hover,realzar]=useState<Ref|null>(null),[menu,contextual]=useState<Punto|null>(null);
     const base=useMemo(()=>escena(m,opd),[m,opd]),vista=useMemo(()=>canon?m:previsualizarGesto(m,opd,gesto),[m,opd,gesto,canon]),e=useMemo(()=>vista===m?base:escena(vista,opd),[vista,opd,base]);
+    const dibujo=useMemo(()=>dibujar(e,canon?'canon':'edicion'),[e,canon]);
+    const atributos=useMemo(()=>canon?undefined:(ref:string)=>{const r=refCercanaValor(ref);return r?.tipo==='cosa'?{tabIndex:0,role:'img','aria-label':`${m.cosas[r.id]?.tipo==='objeto'?'Objeto':'Proceso'} ${m.cosas[r.id]?.nombre}, ${m.cosas[r.id]?.esencia??'informacional'}`,onFocus:()=>p.editor.seleccionar(seleccionarRef(VACIA(),r,false))}:{ };},[canon,m,p.editor]);
     const [quitar,confirmarQuitar]=useState<readonly Ref[]|null>(null);
     const [ocultos,mostrarOcultos]=useState<string|null>(null);
     const [edicion,editar]=useState<{ref:Ref;valor:string;inversa?:string;en:Punto}|null>(null),[despliegue,desplegar]=useState<string|null>(null),[buscar,busqueda]=useState<string|null>(null),[eliminar,confirmarEliminar]=useState(false),[estadoBorrar,borrarEstado]=useState<string|null>(null),[cambiando,cambiarEnlace]=useState<string|null>(null);
@@ -92,7 +94,14 @@ export function Lienzo(p: DatosRanura) {
     const [tipoRefinador,fijarTipoRefinador]=useState<'objeto'|'proceso'>('objeto'),tiposCadena=useRef<Array<'objeto'|'proceso'>>([]);
     const cursor=useRef<Punto>({x:0,y:0}),espacio=useRef(false),captura=useRef<number|null>(null),origenResize=useRef<Rect|null>(null);
     const paletaDrag=useRef<{tipo:'objeto'|'proceso';desde:Punto;movido:boolean}|null>(null);
-    const cambiar=(g:Gesto)=>{actual.current=g;fijar(g);};
+    const fotograma=useRef<number|null>(null);
+    // El último puntero siempre está disponible para soltar/cancelar; la tinta se calcula una vez por frame.
+    const cambiar=(g:Gesto)=>{actual.current=g;
+        if(g.k==='arrastrando'||g.k==='reordenandoEstado'||g.k==='colocando'){
+            if(fotograma.current===null)fotograma.current=requestAnimationFrame(()=>{fotograma.current=null;fijar(actual.current);});
+        }else{if(fotograma.current!==null){cancelAnimationFrame(fotograma.current);fotograma.current=null;}fijar(g);}
+    };
+    useEffect(()=>()=>{if(fotograma.current!==null)cancelAnimationFrame(fotograma.current);},[]);
     const pantalla=(punto:Punto)=>({x:punto.x*p.estado.camara.zoom+p.estado.camara.x,y:punto.y*p.estado.camara.zoom+p.estado.camara.y});
     const local=(ev:{clientX:number;clientY:number})=>{const r=host.current!.getBoundingClientRect();return{x:ev.clientX-r.left,y:ev.clientY-r.top};};
     const centroVista=()=>puntoModelo({x:(host.current?.clientWidth??800)/2,y:(host.current?.clientHeight??600)/2},p.editor.obtener().camara);
@@ -219,9 +228,11 @@ export function Lienzo(p: DatosRanura) {
         const paleta=paletaDrag.current;
         if(paleta){if(paleta.movido||Math.hypot(pos.x-paleta.desde.x,pos.y-paleta.desde.y)>=3){paleta.movido=true;cambiar({k:'colocando',tipo:paleta.tipo,en:pt});}return;}
         if(dedos.current.has(ev.pointerId)){dedos.current.set(ev.pointerId,pos);if(pellizco.current&&dedos.current.size===2){const [a,b]=[...dedos.current.values()],q=pellizco.current,c=q.camara,z=Math.max(.2,Math.min(3,c.zoom*Math.hypot(b!.x-a!.x,b!.y-a!.y)/q.distancia));p.editor.fijarCamara({zoom:z,x:(a!.x+b!.x)/2-(q.centro.x-c.x)*z/c.zoom,y:(a!.y+b!.y)/2-(q.centro.y-c.y)*z/c.zoom});return;}}
-        const target=document.elementFromPoint(ev.clientX,ev.clientY),ref=refCercana(target);
-        realzar(ref);p.editor.realzar(ref?[ref,...(ref.tipo==='enlace'?e.aristas.find(a=>a.ref.id===ref.id)?.hechos.map(id=>({tipo:'enlace' as const,id}))??[]:[])]:[]);
         const g=actual.current;
+        const consultar=g.k!=='arrastrando'&&g.k!=='desplazando'&&g.k!=='redimensionando'&&g.k!=='reordenandoEstado'&&g.k!=='banda';
+        const ref=consultar?refCercana(document.elementFromPoint(ev.clientX,ev.clientY)):null;
+        realzar(previo=>previo?.tipo===ref?.tipo&&previo?.id===ref?.id?previo:ref);
+        p.editor.realzar(ref?[ref,...(ref.tipo==='enlace'?e.aristas.find(a=>a.ref.id===ref.id)?.hechos.map(id=>({tipo:'enlace' as const,id}))??[]:[])]:[]);
         if(g.k==='redimensionando'&&origenResize.current){const b=origenResize.current;cambiar({...g,caja:{...b,ancho:Math.max(40,Math.round(pt.x-b.x)),alto:Math.max(30,Math.round(pt.y-b.y))}});}
         else if(g.k==='banda'){const origen=bandaDrag.current;if(origen&&Math.hypot(pt.x-origen.desde.x,pt.y-origen.desde.y)*p.estado.camara.zoom>=3)cambiar({...g,destino:banda(pt.y)});}
         else if(g.k==='arrastrando'){const supera=Math.hypot(pt.x-g.desde.x,pt.y-g.desde.y)*p.estado.camara.zoom>=3;evento({k:'mover',punto:supera?pt:g.desde,mayus:ev.shiftKey});}
@@ -242,7 +253,7 @@ export function Lienzo(p: DatosRanura) {
     }
     function zoom(ratio:number){const c=p.editor.obtener().camara,z=Math.max(.2,Math.min(3,c.zoom*ratio)),x=(host.current?.clientWidth??800)/2,y=(host.current?.clientHeight??600)/2;p.editor.fijarCamara({zoom:z,x:x-(x-c.x)*z/c.zoom,y:y-(y-c.y)*z/c.zoom});}
     function doble(ev:MouseEvent) {if(p.estado.modo!=='edicion')return;const target=document.elementFromPoint(ev.clientX,ev.clientY);if(!target?.closest('.svg-lienzo'))return;const ref=refCercana(target);if(ref?.tipo==='enlace'){const z=m.enlaces[ref.id];if(z&&MATRIZ[z.tipo].etiquetas!=='ninguna')editar({ref,valor:'etiqueta'in z?z.etiqueta??'':'',...(MATRIZ[z.tipo].etiquetas==='doble'?{inversa:'inversa'in z?z.inversa:''}:{}),en:local(ev)});}else if(ref?.tipo==='estado'){editar({ref,valor:nombreRef(ref),en:local(ev)});}else if(ref?.tipo==='cosa'){p.editor.seleccionar(seleccionarRef(VACIA(),ref,false));despacharAtajo(p.editor,'cosa',{key:'Enter'});}else iniciarCreacion('objeto');}
-    const ordenFoco=e.nodos.map(n=>n.ref.id).sort((a,b)=>m.cosas[a]!.nombre.localeCompare(m.cosas[b]!.nombre,'es'));
+    const ordenFoco=useMemo(()=>base.nodos.map(n=>n.ref.id).sort((a,b)=>m.cosas[a]!.nombre.localeCompare(m.cosas[b]!.nombre,'es')),[base,m]);
     const g=gesto,nombre=g.k==='creando'?g.nombre:g.k==='estado'?g.nombre:g.k==='encadenando'?g.actual:null;
     const nombrePos=g.k==='creando'?g.en:g.k==='estado'?{x:caja({tipo:'cosa',id:g.objeto})?.x??0,y:(caja({tipo:'cosa',id:g.objeto})?.y??0)+70}:g.k==='encadenando'?{x:(e.nodos.find(n=>n.contenedor)?.caja.x??0)+30,y:(e.nodos.find(n=>n.contenedor)?.caja.y??0)+64+g.bandas.length*100}:null;
     const existente=g.k==='creando'?Object.values(m.cosas).find(c=>claveNombre(c.nombre)===claveNombre(g.nombre)):undefined;
@@ -256,7 +267,7 @@ export function Lienzo(p: DatosRanura) {
         {!canon&&<div class="zoom-lienzo" onPointerDown={ev=>ev.stopPropagation()}><button aria-label="Alejar diagrama" onClick={()=>zoom(.9)}>−</button><output>{Math.round(p.estado.camara.zoom*100)}%</output><button aria-label="Acercar diagrama" onClick={()=>zoom(1.1)}>+</button><button onClick={()=>p.editor.encuadrar()}>Encuadrar</button></div>}
         <svg ref={svg} class="svg-lienzo" width="100%" height="100%" aria-label={`Diagrama ${m.nombre}`} onWheel={ev=>{ev.preventDefault();evento({k:'rueda',punto:local(ev),dx:ev.deltaX,dy:ev.deltaY,ctrl:ev.ctrlKey,camara:p.editor.obtener().camara});}}>
             <g transform={`translate(${p.estado.camara.x} ${p.estado.camara.y}) scale(${p.estado.camara.zoom})`}>
-                <SvgPreact dibujo={dibujar(e,canon?'canon':'edicion')} {...(!canon?{atributos:(ref:string)=>{const r=refCercanaValor(ref);return r?.tipo==='cosa'?{tabIndex:0,role:'img','aria-label':`${m.cosas[r.id]?.tipo==='objeto'?'Objeto':'Proceso'} ${m.cosas[r.id]?.nombre}, ${m.cosas[r.id]?.esencia??'informacional'}`,onFocus:()=>p.editor.seleccionar(seleccionarRef(VACIA(),r,false))}:{ };}}:{})} />
+                <SvgPreact dibujo={dibujo} {...(atributos?{atributos}:{})} />
                 {p.estado.modo==='edicion'&&<CapaUi modelo={m} escena={e} seleccion={p.estado.seleccion} hover={hover} realce={p.estado.realce} gesto={g} zoom={p.estado.camara.zoom} legal={ref=>g.k!=='conectando'||tiposLegales(m,{opd,desde:g.desde,hacia:extremo(ref)}).some(o=>o.legal===true)} />}
             </g>
         </svg>

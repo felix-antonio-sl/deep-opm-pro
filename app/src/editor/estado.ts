@@ -261,7 +261,7 @@ export function crearEditor(dep: {
     const editor: Editor = {
         obtener: () => estado, suscribir(f) { oyentes.add(f); return () => { oyentes.delete(f); }; },
         solicitar: solicitud => publicar({ solicitud }),
-        fijarCamara: camara => publicar({ camara: { ...camara, zoom: Math.max(.2, Math.min(3, camara.zoom)) } }),
+        fijarCamara: camara => { const c={...camara,zoom:Math.max(.2,Math.min(3,camara.zoom))};if(c.x!==estado.camara.x||c.y!==estado.camara.y||c.zoom!==estado.camara.zoom)publicar({camara:c}); },
         fijarPaneles: p => publicar({ paneles: { ...estado.paneles, ...p } }),
         fijarVista: v => publicar({ vista: { ...estado.vista, ...v } }), encuadrar,
         ejecutar(a, o) {
@@ -275,7 +275,7 @@ export function crearEditor(dep: {
         rehacer() { const p = estado.futuro.at(-1); if (!p || !puede()) return; const actual = snapshot(p.etiqueta), anteriorOpd=estado.opd; publicar({ modelo: p.modelo, opd: p.opd, seleccion: p.seleccion, pasado: [...estado.pasado, actual].slice(-200), futuro: estado.futuro.slice(0, -1), lineasNuevas: [] }); ultimoGesto = undefined; if (anteriorOpd !== p.opd) encuadrar(); editar(); },
         navegar(opd, o) { if (!estado.modelo?.opds[opd]) return; publicar({ opd, seleccion: o?.seleccionar ? { cosas: o.seleccionar.filter(r => r.tipo === 'cosa').map(r => r.id), estados: o.seleccionar.filter(r => r.tipo === 'estado').map(r => r.id), enlaces: o.seleccionar.filter(r => r.tipo === 'enlace').map(r => r.id), abanicos: o.seleccionar.filter(r => r.tipo === 'abanico').map(r => r.id) } : vacia() }); encuadrar(); },
         seleccionar: s => publicar({ seleccion: typeof s === 'function' ? s(estado.seleccion) : s }),
-        realzar: realce => publicar({ realce }), fijarModo: modo => publicar({ modo }),
+        realzar: realce => {if(realce.length!==estado.realce.length||realce.some((r,i)=>r.tipo!==estado.realce[i]!.tipo||r.id!==estado.realce[i]!.id))publicar({realce});}, fijarModo: modo => publicar({ modo }),
         async abrir(id) { if (estado.modelo && !(await salir(() => {}))) return; generacion++; await cargar(id); },
         cerrar() { void salir(() => editor.salirIgualmente()); },
         salirIgualmente() { void escribirBorrador(); limpiarTimers(); generacion++; pendiente = false; pausa = false; publicar({ pantalla: 'biblioteca', modelo: null, rev: null, opd: '', pasado: [], futuro: [], seleccion: vacia(), solicitud: null }); },

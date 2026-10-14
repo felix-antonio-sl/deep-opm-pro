@@ -24,6 +24,19 @@ test('T-010 adaptador conserva árbol canónico, atributos y texto sin overlays'
     const texto = convertirSvg({t:'text',a:{'font-kerning':'none',x:3},h:['<&"']});
     expect(texto.props['font-kerning']).toBe('none'); expect(texto.props.children).toEqual(['<&"']);
 });
+test('T-010 adaptación incremental conserva texto, geometría y callbacks vigentes en dibujos sucesivos',async()=>{
+ const {crearAdaptadorSvg,convertirSvg}=await import('./SvgPreact'),adaptar=crearAdaptadorSvg();
+ const nodo=(x:number,texto:string)=>({t:'g',k:'cosa:o',a:{'data-ref':'cosa:o'},h:[{t:'text',a:{x},h:[texto]}]}),atributos=()=>({'aria-label':'Pedido'});
+ const expresar=(v:ReturnType<typeof convertirSvg>):unknown=>{const {children,...a}=v.props;return {t:v.type,a,h:(children as Array<ReturnType<typeof convertirSvg>|string>).map(x=>typeof x==='string'?x:expresar(x))};};
+ const primero=adaptar(nodo(10,'Pedido'),atributos),igual=adaptar(nodo(10,'Pedido'),atributos);
+ expect(igual).toBe(primero);
+ for(const n of [nodo(30,'Pedido'),nodo(30,'<&"'),{t:'g',a:{},h:[]}]){
+  const incremental=adaptar(n,atributos),completo=convertirSvg(n,atributos);
+  expect(expresar(incremental)).toEqual(expresar(completo));
+ }
+ const a=()=>({'aria-label':'Nombre vigente',onClick:()=>42}),nuevo=adaptar(nodo(30,'<&"'),a);
+ expect(nuevo.props['aria-label']).toBe('Nombre vigente');expect((nuevo.props.onClick as ()=>number)()).toBe(42);
+});
 test('T-011 selección alternada conserva otras clases y limpia en vacío', async () => {
     const { seleccionarRef } = await import('./Lienzo');
     const s = {cosas:['o1'], estados:['s1'],enlaces:[],abanicos:[]};

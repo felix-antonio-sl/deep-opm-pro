@@ -210,9 +210,13 @@ export function escena(m: Modelo, opd: Id): Escena {
     if (previa)
         return previa;
     const vista = proyectar(m, opd), o = m.opds[opd]!, idx = indice(m);
+    // Mantiene el primer enlace, como find(), sin recorrer el modelo por cada nodo/arista.
+    const clasificaciones = new Map<Id, Enlace>(), enlacesVisibles = new Map<Id, Enlace>();
+    for (const e of Object.values(m.enlaces)) if (e.tipo === 'clasificacion' && !clasificaciones.has(e.refinador)) clasificaciones.set(e.refinador, e);
+    for (const v of vista.enlaces) if (!enlacesVisibles.has(v.enlace.id)) enlacesVisibles.set(v.enlace.id, v.enlace);
     const medirNodo = (v: typeof vista.cosas[number], ancla?: Punto): NodoCosa => {
         const c = m.cosas[v.cosa]!, a = o.apariciones[c.id]!, italica = c.tipo === 'proceso';
-        const clasificacion = Object.values(m.enlaces).find(e => e.tipo === 'clasificacion' && e.refinador === c.id);
+        const clasificacion = clasificaciones.get(c.id);
         const rotuloInstancia = clasificacion && 'refinable' in clasificacion ? `${c.nombre} : ${m.cosas[clasificacion.refinable]!.nombre}` : undefined;
         const duracion = c.tipo === 'proceso' && c.duracion ? `[${c.duracion.unidad ?? m.unidadTiempo}] {${[c.duracion.min, c.duracion.esperada, c.duracion.max].map(n => n === undefined ? '–' : String(n)).join(', ')}}` : undefined;
         const propios = c.tipo === 'objeto' ? c.estados.filter(s => v.estadosVisibles.includes(s.id)) : [];
@@ -434,7 +438,7 @@ export function escena(m: Modelo, opd: Id): Escena {
     for (const f of vista.abanicos) {
         const ramas = f.ramas.map(id => aristas.find(a => a.ref.id === id)).filter((a): a is Arista => !!a);
         if (ramas.length < 2) continue;
-        const enlaces = f.ramas.map(id => vista.enlaces.find(v => v.enlace.id === id)!.enlace);
+        const enlaces = f.ramas.map(id => enlacesVisibles.get(id)!);
         const entradasVariables = new Set(enlaces.map(e => e.tipo === 'efecto' ? e.entrada : undefined)).size > 1;
         const otros = enlaces.map(e => {
             if (esProcedimental(e) && e.proceso === f.comun)
@@ -460,7 +464,7 @@ export function escena(m: Modelo, opd: Id): Escena {
     }
     const cantidadesPropias = new Map<Id, Rect[]>();
     for (let i = 0; i < aristas.length; i++) {
-        const a = aristas[i]!, e = vista.enlaces.find(v => v.enlace.id === a.ref.id)!.enlace;
+        const a = aristas[i]!, e = enlacesVisibles.get(a.ref.id)!;
         if (a.etiquetas.some(q => q.clave.startsWith('mult')))
             aristas[i] = { ...a, ...anotaciones(e, a.tramos, cantidadesPropias) };
     }

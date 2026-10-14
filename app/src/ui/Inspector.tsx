@@ -1,5 +1,6 @@
 import {textoUi,textoPlano} from './TextoUi';
 import {useState} from 'preact/hooks';
+import {memo} from 'preact/compat';
 import type {Modelo,Ref,Enlace,Multiplicidad,UnidadTiempo,Designacion} from '../nucleo/tipos';
 import {extremos,esCaracterizacionConEstado} from '../nucleo/tipos';
 import {indice,describirEnlace} from '../nucleo/indice';
@@ -14,7 +15,7 @@ import type {DatosRanura} from './Editor';
 import {irRefs,contieneRef,perdidasAccion} from './ArbolOpd';
 import {Dialogo} from './Dialogo';
 export {perdidasAccion} from './ArbolOpd';
-export function Inspector(p:DatosRanura){
+export const Inspector=memo(function Inspector(p:DatosRanura){
  const m=p.estado.modelo!,s=p.estado.seleccion,idx=indice(m),[decision,decidir]=useState<Accion|null>(null),[error,fallar]=useState('');
  const ejecutar=(a:Accion)=>{const r=p.editor.ejecutar(a);if(!r.ok)fallar(`${r.rechazo.regla}: ${r.rechazo.mensaje}`);else {fallar('');if(a.op==='eliminarRefinamiento'){const o=m.opds[a.args.opd];if(o&&o.tipo!=='raiz')p.editor.navegar(o.padre);}}return r.ok;};
  const boton=(texto:string,a:Accion,peligrosa=false)=>{const r=aplicarAccion(m,a),razon=p.estado.modo!=='edicion'?'El modelo está en modo navegación.':!r.ok?r.rechazo.mensaje:null;return <button disabled={!!razon} title={textoPlano(razon??'')} onClick={()=>{if(peligrosa)decidir(a);else ejecutar(a);}}>{texto}</button>;};
@@ -54,4 +55,4 @@ export function Inspector(p:DatosRanura){
  {z&&<><h3>{z.relacion} de {m.cosas[z.refinable]?.nombre}</h3>{z.relacion!=='clasificacion'&&!z.ramas.some(id=>{const x=m.enlaces[id];return !!x&&esCaracterizacionConEstado(x);})&&boton(z.incompleta?'Marcar completa':'Marcar incompleta',{op:'fijarIncompleta',args:{cosa:z.refinable,relacion:z.relacion,activa:!z.incompleta}})}<ul>{z.ramas.map(id=><li><button onClick={()=>irRefs(p.editor,[{tipo:'enlace',id}],p.estado.opd)}>{textoUi(describirEnlace(m,m.enlaces[id]!))}</button></li>)}</ul></>}
  {enlaces.length>0&&<details open><summary>Enlaces ({enlaces.length})</summary><ul>{enlaces.map(id=><li key={id} onKeyDown={ev=>{if(ev.key==='Delete'&&p.estado.modo==='edicion'){ev.preventDefault();decidir({op:'eliminarEnlaces',args:{enlaces:[id]}});}}}><button onClick={()=>irRefs(p.editor,[{tipo:'enlace',id}],contieneRef(m,p.estado.opd,{tipo:'enlace',id})?p.estado.opd:undefined)}>{textoUi(describirEnlace(m,m.enlaces[id]!))}</button><p class="enlace-oracion">{textoUi(Object.keys(m.opds).flatMap(opd=>generarBloque(m,opd).filter(l=>l.hechos.includes(id))).map(l=>l.texto).filter((x,i,a)=>a.indexOf(x)===i).join(' · '))}</p><small>{Object.keys(m.opds).filter(opd=>proyectar(m,opd).enlaces.some(x=>x.hechos.includes(id))).map(id=>idx.etiqueta.get(id)).join(', ')} · {id}</small>{boton('Eliminar',{op:'eliminarEnlaces',args:{enlaces:[id]}},true)}</li>)}</ul></details>}
  {error&&<p role="alert">{textoUi(error)}</p>}{decision&&previo&&<Dialogo titulo="Confirmar pérdidas" cerrar={()=>decidir(null)} acciones={[{texto:'Cancelar',hacer:()=>decidir(null)},{texto:'Confirmar',peligrosa:true,deshabilitada:!previo.r.ok,hacer:()=>{if(ejecutar(decision))decidir(null);}}]}>{previo.r.ok?<><p>Esta operación elimina:</p><ul>{previo.perdidas.map(x=><li>{x}</li>)}</ul>{!previo.perdidas.length&&<p>Los demás hechos conservan su identidad.</p>}{previo.conservados.length>0&&<><p>Se conservan:</p><ul>{previo.conservados.map(x=><li>{x}</li>)}</ul></>}</>:<p role="alert">{previo.r.rechazo.mensaje}</p>}</Dialogo>}</div>;
-}
+},(a,b)=>a.editor===b.editor&&a.mostrarDestino===b.mostrarDestino&&a.estado.modelo===b.estado.modelo&&a.estado.opd===b.estado.opd&&a.estado.seleccion===b.estado.seleccion&&a.estado.modo===b.estado.modo);

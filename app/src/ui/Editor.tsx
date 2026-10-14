@@ -1,5 +1,5 @@
 import type { ComponentType } from 'preact';
-import { useEffect, useLayoutEffect, useRef, useState } from 'preact/hooks';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'preact/hooks';
 import type { Editor as Controlador, EstadoEditor } from '../editor/estado';
 import { COMANDOS } from '../editor/comandos';
 import type { Comando } from '../editor/comandos';
@@ -24,7 +24,7 @@ export function botonComando(c: Comando, estado: EstadoEditor, editor: Controlad
 export function Editor(p: { editor: Controlador; estado: EstadoEditor; salir: () => void; ranuras?: RanurasEditor }) {
     const [zona, cambiar] = useState<keyof typeof titulos>('lienzo'), [menu, exportacion] = useState(false), [rutaAbierta,abrirRuta]=useState(false), [renombre, renombrar] = useState(false), [nombre, nombrar] = useState('');
     const [encuadreDestino, pedirEncuadreDestino] = useState(0);
-    function mostrarDestino() { cambiar('lienzo'); pedirEncuadreDestino(n => n + 1); }
+    const mostrarDestino = useCallback(() => { cambiar('lienzo'); pedirEncuadreDestino(n => n + 1); }, []);
     // En móvil el lienzo oculto mide cero; encuadrar después de mostrar su zona.
     useLayoutEffect(() => { if (encuadreDestino) p.editor.encuadrar(); }, [encuadreDestino, p.editor]);
     const [ancho, anchura] = useState(() => { try { return Math.max(280, Math.min(700, Number(localStorage.getItem('opforja.columna')) || 400)); } catch { return 400; } }), derecha = useRef<HTMLElement>(null);
