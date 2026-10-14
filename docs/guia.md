@@ -291,6 +291,18 @@ canónica (P7), y toda acción se deshace en un paso.
        - `[` y `]` suben o bajan una parte una posición; el arrastre vertical la lleva entre otras dos.
        - El OPL del hijo dice: «**Pedido** se descompone en **Cabecera** y **Detalle**, en esa
          secuencia, así como *Validar Detalle*.» Esa oración también crea o reordena las partes.
+    10. **Agrupar en un proceso (out-zoom)** (T-325, método A4.5). Para aligerar un OPD
+       sobrecargado, se eligen varios procesos (o subprocesos) con ⇧+clic y se pulsa `G` (o
+       «Agrupar en un proceso (out-zoom)» en el menú o en Propiedades). Se escribe el nombre del
+       proceso nuevo y ↵:
+       - el proceso nuevo ocupa su lugar y queda descompuesto en un OPD hijo con lo agrupado como
+         subprocesos; el OPD de origen muestra sus enlaces abstraídos en él;
+       - no se crea ni se pierde ningún hecho, y se deshace en un paso;
+       - en una descomposición se agrupan bandas contiguas completas o parte de una banda, para no
+         cambiar el orden temporal; en el SD, el orden del hijo sale de la altura que se ve;
+       - un objeto elegido pasa a interno del grupo si ningún otro OPD lo muestra;
+       - si no se puede (un externo, un orden que cambiaría, un evento que cruzaría el contorno
+         nuevo, una precedencia inválida), el menú y Propiedades dicen por qué.
 12. **Desplegar (unfold) por modo.**
     1. `U` (o «Desplegar (unfold)» en el menú o en Propiedades; el diálogo ofrece «Agregación: partes ·
        Exhibición: rasgos · Generalización: especializaciones · Clasificación: instancias», con las
@@ -434,7 +446,7 @@ desplaza; `Ctrl`+rueda o pellizcar hace zoom multiplicativo de 10 %, anclado al 
 | lienzo | `O` · `P` | crear objeto · proceso (en el cursor) |
 | cosa | `F2` · `↵` / doble clic | renombrar · entrar al refinamiento (si no tiene, renombrar) |
 | cosa | `R` · `S` (objeto) | modo enlace · nuevo estado |
-| cosa | `D` · `U` · `N` (contenedor o refinable) | descomponer (in-zoom) · desplegar (unfold) · nombres encadenados |
+| cosa | `D` · `U` · `G` · `N` (contenedor o refinable) | descomponer (in-zoom) · desplegar (unfold) · agrupar en un proceso (out-zoom) · nombres encadenados |
 | cosa | `Mayús+F` · `Mayús+A` | física ↔ informacional · sistémica ↔ ambiental |
 | cosa | `Supr` · `Mayús+Supr` | quitar de este OPD · eliminar del modelo |
 | cosa | flechas · `Mayús`+flechas | mover 1 px · 10 px |

@@ -251,6 +251,7 @@ Requisitos ★ de CANON §9, con evidencia por superficie. Un título o inventar
 | T-301 | R-§19-SIM-3, R-BI-TAB-1 | parcial | G·P | roundtrip-tabla 92:26 filas con hechos esperados manuales; no segundo parser/oráculo automático. |
 | T-302 | perfil opl-opforja §22, R-§19-LENS-1..3 | parcial | G·P | lente: conservación aditiva/pureza/no-op y once parciales; roundtrip-proyeccion: editar el bloque del padre no declara la colección parcial de su vista; no nueva capacidad textual. |
 | T-303 | R-ANEXO-CHECK-1 | parcial | U·N·I·G·P·X | B-35: los 12 gates de AGENTS rigen la revisión manual de modelado/parser/render/import/export, sin callback ficticio. |
+| T-325 | R-SIMP-1/2, método A4.5, R-INV-2/2A, A3.3 | enforzado | N/U/G/P/X | agrupar.test (SD por altura, bandas contiguas o parte de una banda, refinamientos trasladados, objetos internos, rechazos A3.3/R-INV-2/R-PREC-1/R-CX-DIST-2 sin reservar IDs, documento OPL estricto); secuencias y roundtrip-secuencias con agrupar aleatorio; e2e/agrupar.spec.ts. Sin oración propia: el resultado se expresa con CX1/CX2 y la vista abstraída (B-48 sigue sin CX7). |
 
 ## Bisimetrías parciales
 
