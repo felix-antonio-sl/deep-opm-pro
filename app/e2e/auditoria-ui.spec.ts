@@ -106,3 +106,10 @@ test('T-011 UI-13 mensajes humanos y resumen de enlace presentan nombres sin Mar
  const enlace=Object.keys(modelo(await leer(request,id)).modelo.enlaces)[0]!;await seleccionarEnlace(page,enlace);await expect(page.locator('.zona-propiedades h3')).not.toContainText('*');
  await seleccionar(page,'Pedido');await expect(page.locator('.enlace-oracion').first()).not.toContainText('**');
 });
+
+test('T-022 UI-14 Biblioteca busca sin tildes y permite limpiar un filtro vacío',async({page,request})=>{
+ const id='e2e-ui14';const d=await sembrar(request,'vacio',id),v=modelo(d);v.modelo.nombre='Auditoría sintética';await guardar(request,id,JSON.stringify(v),d.rev);await entrar(page);
+ const filtro=page.getByRole('searchbox',{name:'Buscar modelo'});await filtro.fill('Auditoria');await expect(page.getByRole('button',{name:'Auditoría sintética',exact:true})).toBeVisible();
+ await filtro.fill('ninguna-coincidencia-sintetica');await expect(page.getByText('No hay modelos que coincidan con la búsqueda.')).toBeVisible();await page.getByRole('button',{name:'Limpiar búsqueda'}).click();
+ await expect(filtro).toHaveValue('');await expect(page.getByRole('button',{name:'Auditoría sintética',exact:true})).toBeVisible();
+});

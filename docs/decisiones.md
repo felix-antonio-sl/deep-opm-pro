@@ -403,10 +403,17 @@ del canon. Todas van a `docs/decisiones.md` y, si tocan un DEBE, también a «Br
 | DS-25 | **Colocación en el núcleo** (`nucleo/colocacion.ts`), porque las operaciones y el OPL deben dejar apariciones con posición. | C §6.5. |
 | DS-26 | **D1 y D4 concuerdan en género**: `**Bodeguero** es físico.` · `**Caja** es física.`, con el género de la cosa (masculino por defecto, femenino si `genero: 'f'`). El parser acepta ambas formas para cualquier cosa. | Decisión del dueño (DECISIONS 25, 2026-10-02). R-OPL-1 fija el género gramatical; las plantillas de reglas §4.4 usan «Cosa», femenino. |
 
-**Interacción UI.** Resoluciones de producto para los hallazgos UI-01 a UI-14 de la auditoría del 13 de octubre de 2026; no añaden semántica OPM. La selección sin desplazamiento entero no muta ni ocupa el historial, y el arrastre exige al menos 3 px de pantalla. El doble clic se resuelve sobre la figura bajo el puntero; sobre la cosa refinada dentro del hijo vuelve al padre, y sobre una cosa sin refinamiento abre su nombre. Crear desde la barra propone el centro del lienzo.
-Los avisos conservan el OPD de su aparición y muestran el lienzo de destino en móvil.
-El editor OPL abre con el cursor al inicio y sin desplazamiento horizontal. Su cierre con texto editado exige continuar o descartar expresamente; el texto pendiente se conserva mientras se decide.
-Los nombres de modelo son metadatos de producto: creación y renombrado quitan espacios exteriores, y UI y servidor rechazan un título vacío.
+**Interacción UI.** Resoluciones de producto para los hallazgos UI-01 a UI-14 de la auditoría
+del 13 de octubre de 2026; no añaden semántica OPM. La selección sin desplazamiento entero no
+muta ni ocupa el historial, y el arrastre exige al menos 3 px de pantalla. El doble clic se
+resuelve sobre la figura bajo el puntero; sobre la cosa refinada dentro del hijo vuelve al
+padre, y sobre una cosa sin refinamiento abre su nombre. Crear desde la barra propone el centro
+del lienzo. Los avisos conservan el OPD de su aparición y muestran el lienzo de destino en móvil.
+El editor OPL abre con el cursor al inicio y sin desplazamiento horizontal. Su cierre con texto
+editado exige continuar o descartar expresamente; el texto pendiente
+se conserva mientras se decide. Los nombres de modelo son metadatos de producto: creación y
+renombrado quitan espacios exteriores, y UI y servidor rechazan un título vacío. La biblioteca
+busca sin distinguir tildes; esto no cambia la identidad ni la unicidad nominal del núcleo.
 
 ---
 
