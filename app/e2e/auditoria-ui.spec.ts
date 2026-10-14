@@ -36,10 +36,17 @@ for(const movil of [false,true])test(`T-243 UI-05 aviso de solape conserva su OP
 });
 
 test('T-243 UI-06 Ir desde diagnóstico móvil muestra el destino',async({page,request},info)=>{
- await page.setViewportSize({width:390,height:844});const id='e2e-ui06';await sembrar(request,'refinado',id);await abrir(page,id);
+ await page.setViewportSize({width:390,height:844});const id='e2e-ui06';await sembrar(request,'refinado',id);await abrir(page,id);const antes=await leer(request,id);
  await page.getByRole('navigation',{name:'Zonas del editor'}).getByRole('button',{name:/^Diagnóstico/}).click();
  const articulo=page.locator('.panel-diagnostico article').filter({hasText:'Preparar'}).first();await articulo.getByRole('button',{name:'Ir',exact:true}).click();
  await expect(lienzo(page)).toBeVisible();await expect(cosa(page,'Preparar')).toBeVisible();await expect(page.getByRole('navigation',{name:'Ruta de OPD'})).toContainText('SD1');
+ await expect(cosa(page,'Preparar')).toBeInViewport({ratio:1});
+ const destino=(await cosa(page,'Preparar').boundingBox())!,host=(await lienzo(page).boundingBox())!,barra=(await lienzo(page).locator('.paleta-lienzo').boundingBox())!;
+ expect(destino.x).toBeGreaterThanOrEqual(host.x);expect(destino.y).toBeGreaterThan(barra.y+barra.height);
+ expect(destino.x+destino.width).toBeLessThanOrEqual(host.x+host.width);expect(destino.y+destino.height).toBeLessThanOrEqual(host.y+host.height);
+ await page.getByRole('navigation',{name:'Zonas del editor'}).getByRole('button',{name:/^Diagnóstico/}).click();await articulo.getByRole('button',{name:'Ir',exact:true}).click();
+ await expect(cosa(page,'Preparar')).toBeInViewport({ratio:1});await guardado(page);expect(await leer(request,id)).toEqual(antes);
+ await page.getByLabel('Más acciones').click();await expect(page.getByRole('button',{name:'Deshacer',exact:true})).toBeDisabled();await page.getByLabel('Más acciones').click();
  await page.screenshot({path:info.outputPath('diagnostico-destino.png')});
 });
 
@@ -104,6 +111,11 @@ test('T-011 UI-13 mensajes humanos y resumen de enlace presentan nombres sin Mar
  const id='e2e-ui13';await sembrar(request,'simple',id);await abrir(page,id);await seleccionar(page,'Pedido');
  await expect(page.locator('.zona-propiedades')).not.toContainText('**Pedido**');await conectar(page,'Pedido','Procesar',/instrumento · directo/);await guardado(page);
  const enlace=Object.keys(modelo(await leer(request,id)).modelo.enlaces)[0]!;await seleccionarEnlace(page,enlace);await expect(page.locator('.zona-propiedades h3')).not.toContainText('*');
+ const resumen=page.locator('.zona-propiedades .vista-opl');await expect(resumen).toHaveText('Procesar requiere Pedido.');
+ await expect(resumen.locator('strong')).toHaveText('Pedido');await expect(resumen.locator('em')).toHaveText('Procesar');
+ await seleccionar(page,'Pedido');await tecla(page,'s');const estado=page.getByRole('textbox',{name:'Nombre del estado',exact:true});await estado.fill('pendiente');await estado.press('Enter');
+ await seleccionarEnlace(page,enlace);await page.locator('.zona-propiedades').getByRole('combobox',{name:'Estado',exact:true}).selectOption({label:'pendiente'});
+ await expect(resumen).toHaveText('Procesar requiere Pedido en pendiente.');await expect(resumen.locator('code')).toHaveText('pendiente');
  await seleccionar(page,'Pedido');await expect(page.locator('.enlace-oracion').first()).not.toContainText('**');
 });
 

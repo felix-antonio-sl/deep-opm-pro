@@ -1,5 +1,5 @@
 import type { ComponentType } from 'preact';
-import { useEffect, useRef, useState } from 'preact/hooks';
+import { useEffect, useLayoutEffect, useRef, useState } from 'preact/hooks';
 import type { Editor as Controlador, EstadoEditor } from '../editor/estado';
 import { COMANDOS } from '../editor/comandos';
 import type { Comando } from '../editor/comandos';
@@ -23,6 +23,10 @@ export function botonComando(c: Comando, estado: EstadoEditor, editor: Controlad
 }
 export function Editor(p: { editor: Controlador; estado: EstadoEditor; salir: () => void; ranuras?: RanurasEditor }) {
     const [zona, cambiar] = useState<keyof typeof titulos>('lienzo'), [menu, exportacion] = useState(false), [rutaAbierta,abrirRuta]=useState(false), [renombre, renombrar] = useState(false), [nombre, nombrar] = useState('');
+    const [encuadreDestino, pedirEncuadreDestino] = useState(0);
+    function mostrarDestino() { cambiar('lienzo'); pedirEncuadreDestino(n => n + 1); }
+    // En móvil el lienzo oculto mide cero; encuadrar después de mostrar su zona.
+    useLayoutEffect(() => { if (encuadreDestino) p.editor.encuadrar(); }, [encuadreDestino, p.editor]);
     const [ancho, anchura] = useState(() => { try { return Math.max(280, Math.min(700, Number(localStorage.getItem('opforja.columna')) || 400)); } catch { return 400; } }), derecha = useRef<HTMLElement>(null);
     const m = p.estado.modelo!, ds = diagnosticar(m), bloqueos = ds.filter(d => d.severidad === 'error').length, avisos = ds.filter(d => d.severidad === 'warning').length;
     const comando = (id: string) => COMANDOS.find(c => c.id === id)!;
@@ -37,7 +41,7 @@ export function Editor(p: { editor: Controlador; estado: EstadoEditor; salir: ()
         window.addEventListener('keydown', tecla); return () => window.removeEventListener('keydown', tecla);
     }, [p.editor]);
     useEffect(() => { const f = (e: BeforeUnloadEvent) => { if (p.estado.guardado !== 'guardado' && p.estado.guardado !== 'version-nueva') { e.preventDefault(); e.returnValue = ''; } }; window.addEventListener('beforeunload', f); return () => window.removeEventListener('beforeunload', f); }, [p.estado.guardado]);
-    function ranura(k: keyof typeof titulos) { const R = p.ranuras?.[k]; return R ? <LimitePanel key={`${k}-${p.estado.opd}`} nombre={titulos[k]} opd={p.estado.opd}><R editor={p.editor} estado={p.estado} mostrarDestino={()=>cambiar('lienzo')} /></LimitePanel> : <div class="ranura-pendiente"><h2>{titulos[k]}</h2>{k === 'lienzo' && !Object.keys(m.cosas).length && <p>El modelo está vacío.</p>}</div>; }
+    function ranura(k: keyof typeof titulos) { const R = p.ranuras?.[k]; return R ? <LimitePanel key={`${k}-${p.estado.opd}`} nombre={titulos[k]} opd={p.estado.opd}><R editor={p.editor} estado={p.estado} mostrarDestino={mostrarDestino} /></LimitePanel> : <div class="ranura-pendiente"><h2>{titulos[k]}</h2>{k === 'lienzo' && !Object.keys(m.cosas).length && <p>El modelo está vacío.</p>}</div>; }
     const ruta: string[] = []; let actual = p.estado.opd;
     while (m.opds[actual]) { ruta.unshift(actual); const o = m.opds[actual]!; if (o.tipo === 'raiz') break; actual = o.padre; }
     const nombreOpd = (id: string) => { const o = m.opds[id]!; return o.tipo === 'raiz' ? m.nombre : m.cosas[o.cosa]?.nombre ?? ''; };
@@ -64,6 +68,6 @@ export function Editor(p: { editor: Controlador; estado: EstadoEditor; salir: ()
         <nav class="navegacion-estrecha" aria-label="Zonas del editor">{Object.entries(titulos).map(([id, texto]) => <button aria-pressed={zona === id} onClick={() => { cambiar(id as keyof typeof titulos); p.editor.fijarPaneles({ arbol: true, derecha: true }); }}>{texto}{id === 'diagnostico' ? ` ${ds.length}` : ''}</button>)}</nav>
         {renombre && <Dialogo titulo="Renombrar modelo" cerrar={() => renombrar(false)}><form onSubmit={e => { e.preventDefault(); const r = p.editor.ejecutarVarias([{ op: 'renombrarModelo', args: { nombre } }], 'Modelo renombrado'); if (r.ok) renombrar(false); }}><label>Nombre del modelo<input autoFocus required value={nombre} onInput={e => nombrar(e.currentTarget.value)} /></label><button>Guardar nombre</button></form></Dialogo>}
         {rutaAbierta&&<Dialogo titulo="Diagramas del modelo" cerrar={()=>abrirRuta(false)}><ArbolOpd editor={p.editor} estado={p.estado} elegido={()=>abrirRuta(false)}/></Dialogo>}
-        {menu&&<MenuExportar editor={p.editor} estado={p.estado} mostrarDestino={()=>cambiar('lienzo')} cerrar={()=>exportacion(false)}/>}
+        {menu&&<MenuExportar editor={p.editor} estado={p.estado} mostrarDestino={mostrarDestino} cerrar={()=>exportacion(false)}/>}
     </div>;
 }
