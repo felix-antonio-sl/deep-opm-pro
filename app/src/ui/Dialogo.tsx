@@ -6,7 +6,7 @@ export interface AccionDialogo { readonly texto: string; readonly hacer: () => v
 export function Dialogo(p: { titulo: string; children: ComponentChildren; acciones?: readonly AccionDialogo[]; cerrar?: () => void; ocupado?: boolean }) {
     const ref = useRef<HTMLDialogElement>(null);
     useEffect(() => { const d = ref.current!, anterior = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-        d.showModal(); const campo = d.querySelector<HTMLElement>('[autofocus],input,button'); campo?.focus();
+        d.showModal(); const campo = d.querySelector<HTMLElement>('[autofocus]') ?? d.querySelector<HTMLElement>('input,textarea,select') ?? d.querySelector<HTMLElement>('button'); campo?.focus();
         return () => { d.close(); anterior?.focus(); };
     }, []);
     return <dialog ref={ref} aria-label={p.titulo} onCancel={e => { e.preventDefault(); if (!p.ocupado) p.cerrar?.(); }}>

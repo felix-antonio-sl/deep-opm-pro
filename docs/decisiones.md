@@ -405,6 +405,7 @@ del canon. Todas van a `docs/decisiones.md` y, si tocan un DEBE, también a «Br
 
 **Interacción UI.** Resoluciones de producto para los hallazgos UI-01 a UI-14 de la auditoría del 13 de octubre de 2026; no añaden semántica OPM. La selección sin desplazamiento entero no muta ni ocupa el historial, y el arrastre exige al menos 3 px de pantalla. El doble clic se resuelve sobre la figura bajo el puntero; sobre la cosa refinada dentro del hijo vuelve al padre, y sobre una cosa sin refinamiento abre su nombre. Crear desde la barra propone el centro del lienzo.
 Los avisos conservan el OPD de su aparición y muestran el lienzo de destino en móvil.
+Los nombres de modelo son metadatos de producto: creación y renombrado quitan espacios exteriores, y UI y servidor rechazan un título vacío.
 
 ---
 

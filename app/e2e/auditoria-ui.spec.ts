@@ -50,3 +50,27 @@ for(const movil of [false,true])test(`T-011 UI-08 crear desde barra queda fuera 
  expect(b.y).toBeGreaterThan(paleta.y+paleta.height);expect(b.x).toBeGreaterThanOrEqual(host.x);expect(b.y+b.height).toBeLessThanOrEqual(host.y+host.height);
  await page.screenshot({path:info.outputPath('creacion-visible.png')});
 });
+
+test('T-011 UI-09 búsquedas OPL y renombrado abren con foco en su campo',async({page,request})=>{
+ const id='e2e-ui09';await sembrar(request,'simple',id);await abrir(page,id);await page.keyboard.press('Control+k');const q=page.getByRole('textbox',{name:'Nombre o diagrama'});await expect(q).toBeFocused();
+ await page.keyboard.type('Pedido');await expect(q).toHaveValue('Pedido');await q.press('Escape');const area=await editarOpl(page);await expect(area).toBeFocused();await area.press('Escape');
+ await page.locator('.nombre-modelo').click();await expect(page.getByRole('textbox',{name:'Nombre del modelo'})).toBeFocused();await page.keyboard.press('Escape');
+});
+
+test('T-022 UI-10 Nuevo rechaza espacios y normaliza el nombre antes de guardar',async({page,request})=>{
+ await entrar(page);await page.getByRole('button',{name:'Nuevo',exact:true}).click();const input=page.getByRole('textbox',{name:'Nombre del modelo'});await expect(input).toBeFocused();
+ await input.fill('   ');await page.getByRole('button',{name:'Crear modelo',exact:true}).click();await expect(input).toBeVisible();await expect(page.getByRole('alert')).toContainText('Escribe un nombre de modelo');
+ await input.fill('  Modelo identificable  ');await page.getByRole('button',{name:'Crear modelo',exact:true}).click();await expect(lienzo(page)).toBeVisible();await expect(page.locator('.nombre-modelo')).toHaveText('Modelo identificable ✎');
+ await page.getByRole('button',{name:'Volver a la Biblioteca'}).click();await page.getByLabel('Acciones de Modelo identificable').click();await page.getByRole('button',{name:'Renombrar',exact:true}).click();await expect(page.getByRole('textbox',{name:'Renombrar modelo',exact:true})).toBeFocused();
+});
+
+test('T-025 UI-12 nombre vacío inicial orienta y confirmar muestra el error',async({page,request})=>{
+ const id='e2e-ui12';await sembrar(request,'vacio',id);await abrir(page,id);await tecla(page,'o');const input=page.getByRole('textbox',{name:'Nombre del objeto'});
+ await expect(lienzo(page)).not.toContainText('no cumple el léxico');await expect(lienzo(page)).toContainText('Ejemplo:');await input.press('Enter');await expect(lienzo(page)).toContainText('no cumple el léxico');
+ await input.fill('pedido');await expect(lienzo(page)).toContainText('no cumple el léxico');await input.press('Escape');
+});
+for(const formulario of ['proceso','estado','cadena'] as const)test(`T-025 UI-12 formulario inicial ${formulario} orienta sin error prematuro`,async({page,request})=>{
+ const id=`e2e-ui12-${formulario}`;await sembrar(request,'simple',id);await abrir(page,id);
+ if(formulario==='proceso')await tecla(page,'p');else if(formulario==='estado'){await seleccionar(page,'Pedido');await tecla(page,'s');}else {await seleccionar(page,'Procesar');await tecla(page,'d');}
+ await expect(lienzo(page)).toContainText('Ejemplo:');await expect(lienzo(page)).not.toContainText('no cumple el léxico');await page.keyboard.press('Escape');
+});

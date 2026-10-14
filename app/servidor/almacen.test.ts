@@ -8,6 +8,10 @@ afterEach(async()=>{await Promise.all(dirs.splice(0).map(d=>rm(d,{recursive:true
 export function documento(id='m-alfa',nombre='Modelo de prueba'){return exportarV0({...modeloCon(),id,nombre});}
 const sha=(s:string)=>createHash('sha256').update(s).digest('hex');
 async function preparar(io?:NonNullable<ConstructorParameters<typeof Almacen>[0]['io']>){const datos=await mkdtemp(join(tmpdir(),'opforja-almacen-prueba-'));dirs.push(datos);let ahora=Date.UTC(2026,0,1);const a=new Almacen({datos,canon,ahora:()=>ahora,...(io?{io}:{})});await a.iniciar();return {a,datos,avanzar:(ms:number)=>ahora+=ms};}
+test('T-286 UI-10 el almacén rechaza nombres blancos en POST y PUT sin cambiar bytes ni revisión',async()=>{
+ const {a}=await preparar();for(const nombre of ['','   ','\t\n'])await expect(a.guardar(documento('m-blanco',nombre),{crear:true})).rejects.toMatchObject({estado:400});expect(a.listar()).toEqual([]);
+ const inicial=await a.guardar(documento(),{crear:true});await expect(a.guardar(documento('m-alfa','   '),{id:'m-alfa',rev:inicial.rev})).rejects.toMatchObject({estado:400});expect((await a.leer('m-alfa')).texto).toBe(documento());expect((await a.leer('m-alfa')).rev).toBe(inicial.rev);
+});
 test('T-286 almacén guarda bytes canónicos, sha independiente e índice reconstruido',async()=>{
  const p=await preparar(),texto=documento();const r=await p.a.guardar(texto,{crear:true});expect(r).toMatchObject({id:'m-alfa',rev:sha(texto)});expect(r.canonicalizado).toBeUndefined();
  expect((await p.a.leer('m-alfa')).texto).toBe(texto);expect(await readFile(join(p.datos,'modelos/m-alfa.json'),'utf8')).toBe(texto);expect(p.a.listar()).toMatchObject([{id:'m-alfa',nombre:'Modelo de prueba',bytes:Buffer.byteLength(texto),cosas:0,opds:1}]);

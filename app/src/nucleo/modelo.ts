@@ -4,10 +4,10 @@ import { transaccion } from './resultado';
 export function crearModelo(a: {
     readonly id: Id;
     readonly nombre: string;
-}): Modelo { return { id: a.id, nombre: a.nombre, unidadTiempo: 'min', raiz: 'opd-1', cosas: {}, enlaces: {}, abanicos: {}, opds: { 'opd-1': { id: 'opd-1', tipo: 'raiz', apariciones: {} } }, secuencia: 2 }; }
+}): Modelo { return { id: a.id, nombre: a.nombre.trim(), unidadTiempo: 'min', raiz: 'opd-1', cosas: {}, enlaces: {}, abanicos: {}, opds: { 'opd-1': { id: 'opd-1', tipo: 'raiz', apariciones: {} } }, secuencia: 2 }; }
 export const renombrarModelo: Operacion<{
     nombre: string;
-}> = (m, a) => transaccion(m, tx => tx.modelo({ nombre: a.nombre }));
+}> = (m, a) => transaccion(m, tx => {const nombre=a.nombre.trim();if(!nombre)tx.rechazar({codigo:'lexico',regla:'producto',mensaje:'Escribe un nombre de modelo que no esté vacío.',refs:[]});if(nombre!==m.nombre)tx.modelo({nombre});});
 export const fijarUnidadTiempo: Operacion<{
     unidad: UnidadTiempo;
 }> = (m, a) => transaccion(m, tx => tx.modelo({ unidadTiempo: a.unidad }));

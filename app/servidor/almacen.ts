@@ -255,6 +255,8 @@ export class Almacen {
             throw new ErrorAlmacen(400, {
                 error: 'Id de modelo inválido'
             });
+        if (!modelo.nombre.trim())
+            throw new ErrorAlmacen(400, {error:'Escribe un nombre de modelo que no esté vacío.'});
         if (Array.from(modelo.nombre).length > 200)
             throw new ErrorAlmacen(400, {
                 error: 'Nombre de modelo demasiado largo'
