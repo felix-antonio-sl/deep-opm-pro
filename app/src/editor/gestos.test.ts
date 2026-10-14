@@ -7,6 +7,19 @@ test('T-011 drag múltiple emite una operación y gesto distinto conserva separa
 test('T-011 UI-04 soltar sin movimiento entero no produce mutación ni paso de historial',()=>{
  const m=modelo();for(const delta of [{x:0,y:0},{x:.1,y:-.1}]){const r=reducirGesto(m,m.raiz,{k:'arrastrando',cosas:['o-2'],desde:{x:0,y:0},delta},{k:'arriba',punto:delta,mayus:false});expect(r.acciones).toEqual([]);expect(r.gestoId).toBeUndefined();expect(r.gesto).toEqual({k:'reposo'});}
 });
+test('T-011 soltar conexión en vacío cancela incluso con un destino previo bajo el puntero',()=>{
+ const m=modelo(),antes=JSON.stringify(m);
+ for(const sobre of [undefined,{cosa:'p-5'}]){
+  const r=reducirGesto(m,m.raiz,{k:'conectando',desde:{cosa:'o-2'},punto:{x:900,y:800},...(sobre?{sobre}:{})},{k:'arriba',punto:{x:900,y:800},mayus:false});
+  expect(r.gesto).toEqual({k:'reposo'});expect(r.acciones).toEqual([]);expect(r.gestoId).toBeUndefined();
+ }
+ expect(JSON.stringify(m)).toBe(antes);
+});
+test('T-250 soltar reanclaje en vacío cancela sin retirar el enlace existente',()=>{
+ const base=modelo(),m={...base,enlaces:{e:{id:'e',tipo:'consumo' as const,objeto:'o-2',proceso:'p-5'}}},antes=JSON.stringify(m);
+ const r=reducirGesto(m,m.raiz,{k:'reanclando',enlace:'e',extremo:'destino',punto:{x:900,y:800}},{k:'arriba',punto:{x:900,y:800},mayus:false});
+ expect(r.gesto).toEqual({k:'reposo'});expect(r.acciones).toEqual([]);expect(JSON.stringify(m)).toBe(antes);
+});
 import {descomponer} from '../nucleo/refinamiento';
 import {tiposLegales} from '../nucleo/matriz';
 import {validarForma} from '../nucleo/forma';
