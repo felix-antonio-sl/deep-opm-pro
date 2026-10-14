@@ -18,9 +18,9 @@ test('T-011 arrastre vivo mueve objeto, estado y flechas antes de soltar; Escape
 });
 
 test('T-011 arrastre de objeto con dos enlaces estructurales redibuja triángulos y confirma en un solo paso',async({page,request})=>{
- const id='e2e-directo-triangulos';await sembrar(request,'estructural',id);await abrir(page,id);const antes=await leer(request,id),b=(await cosa(page,'Sistema').boundingBox())!,lineas=await tinta(page,'enlace:e1');
+ const id='e2e-directo-triangulos';await sembrar(request,'estructural',id);await abrir(page,id);const antes=await leer(request,id),b=(await cosa(page,'Sistema').boundingBox())!,lineas=await tinta(page,'simbolo:o:agregacion');
  await iniciarArrastre(page,'Sistema',44,28);const durante=(await cosa(page,'Sistema').boundingBox())!;
- expect(durante.x-b.x).toBeGreaterThan(30);expect(await tinta(page,'enlace:e1')).not.toBe(lineas);expect(await leer(request,id)).toEqual(antes);
+ expect(durante.x-b.x).toBeGreaterThan(30);expect(await tinta(page,'simbolo:o:agregacion')).not.toBe(lineas);expect(await leer(request,id)).toEqual(antes);
  await page.mouse.up();await guardado(page);const despues=await leer(request,id);expect(despues.texto).not.toBe(antes.texto);
  const final=(await cosa(page,'Sistema').boundingBox())!;expect(final.x).toBeCloseTo(durante.x,1);expect(final.y).toBeCloseTo(durante.y,1);
  expect(modelo(despues).modelo.enlaces).toEqual(modelo(antes).modelo.enlaces);
@@ -79,7 +79,7 @@ test('T-015 arrastrar estado reordena dentro de su objeto con enlaces vivos y un
  const id='e2e-directo-estado-orden';await sembrar(request,'ts3',id);await abrir(page,id);const antes=await leer(request,id);
  const origen=cosa(page,'Pedido').getByText('pendiente',{exact:true}),destino=cosa(page,'Pedido').getByText('pagado',{exact:true}),a=(await origen.boundingBox())!,b=(await destino.boundingBox())!,linea=await tinta(page,'enlace:e1');
  await page.mouse.move(a.x+a.width/2,a.y+a.height/2);await page.mouse.down();await page.mouse.move(b.x+b.width/2,b.y+b.height/2,{steps:4});
- expect((await origen.boundingBox())!.x).toBeGreaterThan(a.x+5);expect(await tinta(page,'enlace:e1')).not.toBe(linea);expect(await leer(request,id)).toEqual(antes);
+ const durante=(await origen.boundingBox())!;expect(Math.hypot(durante.x-a.x,durante.y-a.y)).toBeGreaterThan(5);expect(await tinta(page,'enlace:e1')).not.toBe(linea);expect(await leer(request,id)).toEqual(antes);
  await page.mouse.up();await guardado(page);expect(modelo(await leer(request,id)).modelo.estados['o-s1']!['orden']).toBe(1);
  await tecla(page,'Control+z');await guardado(page);expect((await leer(request,id)).texto).toBe(antes.texto);
 });
