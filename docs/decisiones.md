@@ -390,6 +390,27 @@ objeto completa (B-02) y que la interfaz nombre los mecanismos de OPM. Decisione
   etc.). Si no se puede descomponer, muestra el motivo de la operación ensayada; el diálogo de despliegue
   busca su OPD de origen y explica sus propios rechazos (`28bd03c3`).
 
+**Agrupar en un proceso: out-zoom no destructivo (2026-10-14).** «avanza con el punto 3, el out-zoom no
+destructivo». Se ofrece el mecanismo A4.5 del método (R-SIMP-1): recomponer en el mismo OPD los procesos
+elegidos bajo un proceso intermedio nuevo y descomponerlo en un OPD hijo con ellos (T-325, especificación
+§3.2b). Decisiones de criterio:
+- Es una sola operación (`agrupar`) que no crea, mueve ni borra hechos; el origen los muestra abstraídos
+  (DR-13), así que R-SIMP-2 se cumple por construcción. «Eliminar refinamiento» sigue siendo la única
+  inversa destructiva (DR-17); deshacer revierte el agrupamiento completo.
+- Se agrupan procesos del SD o subprocesos de la descomposición de un proceso. Para no cambiar el tiempo,
+  en una descomposición se exigen bandas contiguas completas o parte de una banda (R-INV-2/2A); en el SD,
+  donde no hay orden declarado, la altura visible da las bandas del hijo con la tolerancia de T-030.
+- Lo agrupado queda interno del hijo (A3.3): se rechaza si se ve fuera del grupo o se enlaza con algo que
+  el origen no muestra (T-066). Un objeto elegido pasa a interno sólo si ningún otro OPD lo muestra. Los
+  refinamientos de lo agrupado pasan bajo el grupo con su subárbol y sus identidades.
+- Se rechaza si la vista abstraída de algún OPD ganaría una precedencia inválida (R-PREC-1, AP-30) o si un
+  evento sistémico cruzaría el contorno nuevo (R-CX-DIST-2).
+- No hay oración OPL propia: el resultado se expresa con CX1/CX2 en el hijo y la vista abstraída en el
+  origen; CX7 («se recompone desde») sigue fuera (B-48).
+- Interfaz: ⇧+clic para elegir, `G` o «Agrupar en un proceso (out-zoom)» en el menú o en Propiedades; el
+  nombre se escribe sobre lo elegido y el proceso nuevo queda seleccionado. Si no se puede, se muestra el
+  motivo de la operación ensayada.
+
 ### 1.6 Decisiones de esta síntesis (DS-n)
 
 Estas son las resoluciones que CANON.md no fija, o que ajustan una DR por una exigencia más fuerte
@@ -590,6 +611,7 @@ export const fijarBandas:        Operacion<{ opd: Id; bandas: readonly (readonly
 export const desplegar:          Operacion<{ opd: Id; cosa: Id; modo: ModoDespliegue; refinadores?: readonly string[] }>;  // creados[0] = OPD hijo
 export const agregarRefinadores: Operacion<{ opd: Id; nombres: readonly string[]; tipo?: TipoCosa }>;
 export const eliminarRefinamiento: Operacion<{ opd: Id }>;                   // solo hoja (DS-16)
+export const agrupar:            Operacion<{ opd: Id; cosas: readonly Id[]; nombre: string; x?: number; y?: number }>;  // out-zoom (T-325); creados = [proceso, OPD hijo]
 
 // consultas puras (memoizadas por identidad de Modelo)
 export function indice(m: Modelo): Indice;
@@ -622,7 +644,7 @@ export const OPERACIONES = { renombrarModelo, fijarUnidadTiempo, fijarDescripcio
   eliminarEstado, designar, suprimirEstado, crearEnlace, cambiarTipoEnlace, fijarEstados, fijarControl, fijarEtiqueta,
   fijarRuta, fijarMultiplicidad, reanclarExtremo, distribuirEnlace, eliminarEnlaces, formarAbanico, fijarOperador,
   agregarRama, quitarRama, disolverAbanico, fijarControlAbanico, descomponer, agregarEnDescomposicion, moverEnDescomposicion,
-  fijarBandas, desplegar, agregarRefinadores, eliminarRefinamiento } as const;
+  fijarBandas, desplegar, agregarRefinadores, eliminarRefinamiento, agrupar } as const;
 export type NombreOperacion = keyof typeof OPERACIONES;
 export type ArgsDe<K extends NombreOperacion> = Parameters<(typeof OPERACIONES)[K]>[1];
 export type Accion = { [K in NombreOperacion]: { readonly op: K; readonly args: ArgsDe<K> } }[NombreOperacion];

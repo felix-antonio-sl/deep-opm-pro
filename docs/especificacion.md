@@ -84,7 +84,7 @@ Regla de no sobrebloqueo (R-AP-0C, R-APP-5, R-OPD-VAL-4, R-ZNC-1/2): solo se **b
 | Cosa duplicada en el mismo OPD (silueta) | Indicador condicionado a permitir el duplicado; no se exige permitirlo | reglas §3.10, GAP-OPD-DUPLICADO |
 | Previsualización raster | No canónica (PUEDE) | R-OPD-EXP-1 |
 | Principios y contenido del modelo (propósito declarado, alcance, función como proceso, SD con interesados/beneficiario, importancia proporcional, reclasificación por desgaste, tasa de consumo) | Obligan al **modelo/modelador**, no son verificables mecánicamente; R-PRIN-9 (vista = mismo modelo) se cumple por kernel único | R-PRIN-1..9, R-SD-1..3, R-IMP-1/2, R-AG-3/4, R-CONS-2/3, R-PROC-5..7 |
-| Simplificación de OPD sobrecargado | PUEDE; R-SIMP-2 (prohibido crear enlaces proc↔proc sin semántica) solo rige si se ofrece; la vista padre derivada (§3.5) no crea enlaces entre pares | R-SIMP-1/2, método A4.5 |
+| Simplificación de OPD sobrecargado | PUEDE; se ofrece como «Agrupar en un proceso (out-zoom)» (§3.2b, T-325); R-SIMP-2 rige: la vista padre derivada (§3.5) no crea enlaces entre pares | R-SIMP-1/2, método A4.5 |
 | Marca `ordered` junto al triángulo; etiquetados bifurcados (`ordenados por`, `más`) | Extensión declarada / PUEDE | R-OPD-STR-5, R-OPL-SE-4, R-OPL-LISTA-2 |
 | «La app no acepta un único estado (≥2)» | Limitación circunstancial de v0 descrita en el bundle; contradice R-OBJ-2 (`s ≥ 1`). No se exige ni se advierte | método Apéndice F |
 | Gobierno documental: R-DOC-*, R-APP-0/1/6/7, R-§2x-PRESC/ENF/MIG/DEP, R-OPD-AUD-1, R-§20-AUD-1, tablas de trazabilidad a código v0, commits, sha256, «bestia», pneuma, HITL | No son funciones de la app | varios |
@@ -416,6 +416,20 @@ La misma operación y el mismo OPD hijo que en §3.2, con el objeto como contene
 | R-OPD-REF-11 | Sin distribución: un enlace en el contorno del objeto queda allí. | — |
 | DR-13, válvula §0.5 | Sin vista abstraída: el padre no muestra los hechos de partes ni de procesos internos (el canon no la define para objetos). | — |
 | CX13, R-CX-DESP-2 | `**Objeto** se descompone en **O1** y **O2**, en esa secuencia[, así como *P*].`, emitida en el bloque del hijo; P acepta también la forma de diagrama nuevo (`desde SD … en SD1 en …`). Otra lectura de «**A** se descompone en …» es no canónica. | DEBE |
+
+### 3.2b Agrupar en un proceso (out-zoom, método A4.5)
+
+Recomposición en el mismo diagrama seguida de descomposición en un OPD nuevo (R-SIMP-1, método A4.5): los procesos
+elegidos pasan a ser subprocesos de un proceso intermedio nuevo, que los sustituye en el OPD de origen.
+
+| ID | Regla | Oblig. |
+|---|---|---|
+| R-SIMP-1, A4.5 | Se agrupan procesos del SD o subprocesos de la descomposición de un proceso (no de un despliegue), con un nombre nuevo para el proceso intermedio. | PUEDE |
+| R-SIMP-2, DR-13 | No crea, mueve ni borra hechos: el origen los muestra abstraídos en el proceso nuevo; ningún enlace procedimental nuevo une procesos. | DEBE |
+| R-INV-2/2A | El grupo conserva el orden temporal: bandas contiguas completas o parte de una sola banda; en el SD, sin orden declarado, la altura visible da las bandas del hijo (tolerancia T-030). | DEBE |
+| A3.3, T-066 | Lo agrupado queda interno del hijo: no puede verse fuera del grupo ni enlazarse con cosas que el origen no muestra. Un objeto elegido pasa a interno sólo si nada fuera del grupo lo muestra. Los refinamientos de lo agrupado pasan al grupo con su subárbol. | DEBE |
+| R-HIJO-3 | El hijo trae como externos las cosas del origen unidas a lo agrupado. | DEBE |
+| R-PREC-1, AP-30, R-CX-DIST-2 | Se rechaza si la vista abstraída ganaría una precedencia inválida o un evento sistémico cruzaría el contorno nuevo. | DEBE |
 
 ### 3.3 Despliegue (unfold) de cosa
 
@@ -2369,6 +2383,7 @@ Los ★ con obligación PUEDE o inferida son soportes necesarios de un DEBE ★ 
 | T-322 | Durante el arrastre, marca transitoria de enlace inválido (fuera de canon). | PUEDE | ren | R-OPD-VAL-3 | |
 | T-323 | Simulación: si existe, R-EJEC-7..10, R-OPD-SIM-1..7 y F.2 son DEBE, en canal propio no persistente. | DEBE si existe | ope | reglas §2.8, spec-OPD §20, método F.2 | |
 | T-324 | Extensiones de §0.4 (Pr, m-de-f, negación, demora, tipos, rangos, estereotipos, sub-modelos, vistas, semi-plegado, composición eje a): si se implementan, rigen sus reglas y su generador + parser juntos (nunca emisión-only). | PUEDE | gob | §0.4, R-§19-ROT-1 | |
+| T-325 | Agrupar procesos en un proceso intermedio (out-zoom, §3.2b): operación atómica que crea el proceso y su descomposición con lo agrupado, sin cambiar hechos ni orden temporal. | PUEDE | ope | R-SIMP-1/2, método A4.5, R-INV-2/2A, A3.3 | ★ |
 
 ---
 
