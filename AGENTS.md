@@ -67,5 +67,6 @@ mismo commit. Cada fila de esas tablas lleva su `registro: 'B-nn'`.
 - Revisa el diff y conserva trabajo ajeno.
 - Despliega solo con `./deploy/deploy.sh` y solo cuando la solicitud lo autorice.
 - Documenta límites reales: una suite verde no equivale a validación humana del modelado.
-- Trabajo material inconcluso: un único `HANDOFF.md` en la raíz, estable y sin fecha; elimínalo
-  al cerrar. No crees `MEMORY.md`, continuidades fechadas ni archivos de sesión.
+- Trabajo material inconcluso: un único `HANDOFF.md` en la raíz, estable y sin fecha; retira
+  solo el tramo resuelto de tu intervención. Elimina el archivo únicamente si no quedan
+  pendientes ni aportes ajenos. No crees `MEMORY.md`, continuidades fechadas ni archivos de sesión.
