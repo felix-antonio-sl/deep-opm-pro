@@ -124,7 +124,8 @@ export function reducirGesto(m: Modelo, opd: Id, g: Gesto, ev: EventoLienzo): {
         if (ev.k === 'mover') return salida({ ...g, delta: { x: ev.punto.x - g.desde.x, y: ev.punto.y - g.desde.y } });
         if (ev.k === 'arriba') {
             const o = m.opds[opd]!;
-            return salida(reposo, [{ op: 'moverApariciones', args: { opd, mover: g.cosas.flatMap(cosa => { const a = o.apariciones[cosa]; if (!a) return []; const subproceso = indice(m).subprocesoDe.has(cosa); return [{ cosa, x: a.x + g.delta.x, y: a.y + (subproceso ? 0 : g.delta.y) }]; }) } }]);
+            const mover = g.cosas.flatMap(cosa => { const a = o.apariciones[cosa]; if (!a) return []; const subproceso = indice(m).subprocesoDe.has(cosa),x=Math.round(a.x+g.delta.x),y=Math.round(a.y+(subproceso?0:g.delta.y)); return x===a.x&&y===a.y?[]:[{cosa,x,y}]; });
+            return salida(reposo, mover.length ? [{ op: 'moverApariciones', args: { opd, mover } }] : []);
         }
     }
     if (g.k === 'redimensionando' && ev.k === 'arriba') return salida(reposo, [{ op: 'redimensionar', args: { opd, cosa: g.cosa, ancho: g.caja.ancho, alto: g.caja.alto } }]);

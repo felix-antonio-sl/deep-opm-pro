@@ -4,6 +4,9 @@ import {modelo} from './pruebas.test';
 import {aplicarAcciones} from '../nucleo/operaciones';
 test('T-011 crear por gesto produce operación real y cancelación no muta',()=>{const m=modelo(),entrada=JSON.stringify(m),g={k:'creando' as const,tipo:'objeto' as const,en:{x:34,y:56},nombre:'Registro'};const r=reducirGesto(m,m.raiz,g,{k:'tecla',tecla:'Enter',mayus:false,ctrl:false,alt:false});expect(r.acciones).toEqual([{op:'crearCosa',args:{opd:m.raiz,tipo:'objeto',nombre:'Registro',x:34,y:56}}]);const n=aplicarAcciones(m,r.acciones);expect(n.ok).toBe(true);expect(reducirGesto(m,m.raiz,g,{k:'tecla',tecla:'Escape',mayus:false,ctrl:false,alt:false}).acciones).toEqual([]);expect(JSON.stringify(m)).toBe(entrada);});
 test('T-011 drag múltiple emite una operación y gesto distinto conserva separación',()=>{const m=modelo(),g={k:'arrastrando' as const,cosas:['o-2'],desde:{x:0,y:0},delta:{x:11,y:9}};const r=reducirGesto(m,m.raiz,g,{k:'arriba',punto:{x:11,y:9},mayus:false});expect(r.acciones).toHaveLength(1);expect(r.acciones[0]!.op).toBe('moverApariciones');expect(r.gestoId).toBeDefined();});
+test('T-011 UI-04 soltar sin movimiento entero no produce mutación ni paso de historial',()=>{
+ const m=modelo();for(const delta of [{x:0,y:0},{x:.1,y:-.1}]){const r=reducirGesto(m,m.raiz,{k:'arrastrando',cosas:['o-2'],desde:{x:0,y:0},delta},{k:'arriba',punto:delta,mayus:false});expect(r.acciones).toEqual([]);expect(r.gestoId).toBeUndefined();expect(r.gesto).toEqual({k:'reposo'});}
+});
 import {descomponer} from '../nucleo/refinamiento';
 import {tiposLegales} from '../nucleo/matriz';
 import {validarForma} from '../nucleo/forma';
