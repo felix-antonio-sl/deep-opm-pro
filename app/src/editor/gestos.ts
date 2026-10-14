@@ -19,10 +19,19 @@ export type Gesto = ( {
     readonly en: Punto;
     readonly nombre: string;
 } | {
+    readonly k: 'colocando';
+    readonly tipo: TipoCosa;
+    readonly en: Punto;
+} | {
     readonly k: 'arrastrando';
     readonly cosas: readonly Id[];
     readonly desde: Punto;
     readonly delta: Punto;
+} | {
+    readonly k: 'reordenandoEstado';
+    readonly estado: Id;
+    readonly desde: Punto;
+    readonly indice: number | null;
 } | {
     readonly k: 'redimensionando';
     readonly cosa: Id;
@@ -127,6 +136,10 @@ export function reducirGesto(m: Modelo, opd: Id, g: Gesto, ev: EventoLienzo): {
             const mover = g.cosas.flatMap(cosa => { const a = o.apariciones[cosa]; if (!a) return []; const subproceso = indice(m).bandaDe.has(cosa),x=Math.round(a.x+g.delta.x),y=Math.round(a.y+(subproceso?0:g.delta.y)); return x===a.x&&y===a.y?[]:[{cosa,x,y}]; });
             return salida(reposo, mover.length ? [{ op: 'moverApariciones', args: { opd, mover } }] : []);
         }
+    }
+    if (g.k === 'reordenandoEstado' && ev.k === 'arriba') {
+        const posicion=indice(m).estadoDe.get(g.estado)?.posicion;
+        return salida(reposo,g.indice===null||g.indice===posicion?[]:[{op:'moverEstado',args:{estado:g.estado,indice:g.indice}}]);
     }
     if (g.k === 'redimensionando' && ev.k === 'arriba') return salida(reposo, [{ op: 'redimensionar', args: { opd, cosa: g.cosa, ancho: g.caja.ancho, alto: g.caja.alto } }]);
     if (g.k === 'conectando') {

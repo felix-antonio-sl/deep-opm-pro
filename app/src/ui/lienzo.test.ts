@@ -5,6 +5,15 @@ import { aplicarAcciones } from '../nucleo/operaciones';
 import { escena } from '../opd/escena';
 import { dibujar } from '../opd/dibujo';
 
+test('T-011 preview desplaza tinta y conexiones sin cambiar el modelo congelado',async()=>{
+ const {previsualizarGesto}=await import('./Lienzo');
+ const m=congelar(modeloCon({objetos:[['Pedido',['nuevo']]],procesos:['Preparar'],enlaces:[['consumo','Pedido','Preparar']]})),o=porNombre(m,'Pedido').id,antes=JSON.stringify(m),s=escena(m,m.raiz);
+ const n=previsualizarGesto(m,m.raiz,{k:'arrastrando',cosas:[o],desde:{x:0,y:0},delta:{x:43,y:27}}),vista=escena(n,n.raiz);
+ expect(vista.nodos.find(x=>x.ref.id===o)!.caja.x-s.nodos.find(x=>x.ref.id===o)!.caja.x).toBe(43);
+ expect(vista.aristas[0]!.tramos).not.toEqual(s.aristas[0]!.tramos);expect(n.cosas).toBe(m.cosas);expect(n.enlaces).toBe(m.enlaces);expect(JSON.stringify(m)).toBe(antes);
+ expect(previsualizarGesto(m,m.raiz,{k:'reposo'})).toBe(m);
+});
+
 test('T-010 adaptador conserva árbol canónico, atributos y texto sin overlays', async () => {
     const { convertirSvg } = await import('./SvgPreact');
     const m = modeloCon({ objetos: [['Pedido', ['nuevo']]], procesos: ['Preparar'] });

@@ -26,6 +26,7 @@ import { MenuContextual } from './MenuContextual';
 import { Dialogo } from './Dialogo';
 import { DialogoDespliegue } from './DialogoDespliegue';
 import type { Accion } from '../nucleo/operaciones';
+import { aplicarAccion } from '../nucleo/operaciones';
 const VACIA = (): Seleccion => ({ cosas: [], estados: [], enlaces: [], abanicos: [] });
 export function puntoModelo(p: Punto, c: Camara): Punto { return { x: (p.x-c.x)/c.zoom, y: (p.y-c.y)/c.zoom }; }
 export function seleccionarRef(s: Seleccion, ref: Ref | null, alternar: boolean): Seleccion {
@@ -71,10 +72,18 @@ export function accionMultiplicidad(z: Enlace, origen: boolean): Accion {
     return {op:'fijarMultiplicidad',args:{enlace:z.id,extremo:ex,valor:vals[(vals.indexOf(valor??null)+1)%4]!}};
 }
 export function accionQuitar(refs:readonly Ref[]): Accion | null {const opd=refs.find(r=>r.tipo==='opd')?.id,cosas=refs.filter(r=>r.tipo==='cosa').map(r=>r.id);return opd&&cosas.length>=2?{op:'quitarDeOpd',args:{opd,cosas}}:null;}
+/** Vista transitoria: ensaya exactamente el movimiento que se confirmará, sin tocar el editor. */
+export function previsualizarGesto(m:Modelo,opd:string,g:Gesto):Modelo {
+    if(g.k!=='arrastrando'&&g.k!=='reordenandoEstado')return m;
+    const accion=reducirGesto(m,opd,g,{k:'arriba',punto:g.desde,mayus:false}).acciones[0];
+    if(!accion)return m;
+    const r=aplicarAccion(m,accion);return r.ok?r.valor.modelo:m;
+}
 export function Lienzo(p: DatosRanura) {
-    const m=p.estado.modelo!,opd=p.estado.opd,idx=indice(m),e=useMemo(()=>escena(m,opd),[m,opd]),canon=p.estado.modo==='estatico';
+    const m=p.estado.modelo!,opd=p.estado.opd,idx=indice(m),canon=p.estado.modo==='estatico';
     const contenedor=m.opds[opd]!, host=useRef<HTMLDivElement>(null), svg=useRef<SVGSVGElement>(null);
     const [gesto,fijar]=useState<Gesto>({k:'reposo'}),actual=useRef<Gesto>(gesto),[hover,realzar]=useState<Ref|null>(null),[menu,contextual]=useState<Punto|null>(null);
+    const base=useMemo(()=>escena(m,opd),[m,opd]),vista=useMemo(()=>canon?m:previsualizarGesto(m,opd,gesto),[m,opd,gesto,canon]),e=useMemo(()=>vista===m?base:escena(vista,opd),[vista,opd,base]);
     const [quitar,confirmarQuitar]=useState<readonly Ref[]|null>(null);
     const [ocultos,mostrarOcultos]=useState<string|null>(null);
     const [edicion,editar]=useState<{ref:Ref;valor:string;inversa?:string;en:Punto}|null>(null),[despliegue,desplegar]=useState<string|null>(null),[buscar,busqueda]=useState<string|null>(null),[eliminar,confirmarEliminar]=useState(false),[estadoBorrar,borrarEstado]=useState<string|null>(null),[cambiando,cambiarEnlace]=useState<string|null>(null);
@@ -82,6 +91,7 @@ export function Lienzo(p: DatosRanura) {
     const bandaDrag=useRef<{desde:Punto;x:number}|null>(null);
     const [tipoRefinador,fijarTipoRefinador]=useState<'objeto'|'proceso'>('objeto'),tiposCadena=useRef<Array<'objeto'|'proceso'>>([]);
     const cursor=useRef<Punto>({x:0,y:0}),espacio=useRef(false),captura=useRef<number|null>(null),origenResize=useRef<Rect|null>(null);
+    const paletaDrag=useRef<{tipo:'objeto'|'proceso';desde:Punto;movido:boolean}|null>(null);
     const cambiar=(g:Gesto)=>{actual.current=g;fijar(g);};
     const pantalla=(punto:Punto)=>({x:punto.x*p.estado.camara.zoom+p.estado.camara.x,y:punto.y*p.estado.camara.zoom+p.estado.camara.y});
     const local=(ev:{clientX:number;clientY:number})=>{const r=host.current!.getBoundingClientRect();return{x:ev.clientX-r.left,y:ev.clientY-r.top};};
@@ -89,8 +99,8 @@ export function Lienzo(p: DatosRanura) {
     const caja=(ref:Ref):Rect|undefined=>ref.tipo==='estado'?e.nodos.flatMap(n=>n.estados).find(s=>s.ref.id===ref.id)?.caja:e.nodos.find(n=>n.ref.id===ref.id)?.caja;
     const extremo=(ref:Ref)=>ref.tipo==='estado'?{cosa:idx.estadoDe.get(ref.id)!.objeto,estado:ref.id}:{cosa:ref.id};
     const nombreRef=(ref:Ref)=>ref.tipo==='estado'?m.cosas[idx.estadoDe.get(ref.id)!.objeto]!.tipo==='objeto'?e.nodos.flatMap(n=>n.estados).find(s=>s.ref.id===ref.id)?.nombre??'Estado':'Estado':m.cosas[ref.id]?.nombre??ref.id;
-    function iniciarCreacion(tipo:'objeto'|'proceso',nombre='',desdeBarra=false) {
-        const pos=colocar(m,opd,{ancho:135,alto:60},desdeBarra?centroVista():cursor.current.x||cursor.current.y?cursor.current:centroVista());
+    function iniciarCreacion(tipo:'objeto'|'proceso',nombre='',desdeBarra=false,en?:Punto) {
+        const pos=colocar(m,opd,{ancho:135,alto:60},en??(desdeBarra?centroVista():cursor.current.x||cursor.current.y?cursor.current:centroVista()));
         const miembro=contenedor.tipo==='descomposicion'&&tipo===m.cosas[contenedor.cosa]?.tipo,bandas=miembro?banda(pos.y):undefined;
         cambiar({k:'creando',tipo,en:pos,nombre,...(bandas&&'banda'in bandas?{banda:{indice:bandas.banda,paralelo:true}}:bandas&&tipo==='objeto'?{banda:{indice:bandas.nuevaBandaAntesDe,paralelo:false}}:{})});
     }
@@ -120,7 +130,7 @@ export function Lienzo(p: DatosRanura) {
         }
         aplicar(r);
     }
-    function cancelar() {cambiar({k:'reposo'});editar(null);busqueda(null);contextual(null);desplegar(null);confirmarEliminar(false);borrarEstado(null);cambiarEnlace(null);mostrarOcultos(null);p.editor.solicitar(null);if(p.editor.obtener().modo==='gestion-modal')p.editor.fijarModo('edicion');host.current?.focus();}
+    function cancelar() {paletaDrag.current=null;cambiar({k:'reposo'});editar(null);busqueda(null);contextual(null);desplegar(null);confirmarEliminar(false);borrarEstado(null);cambiarEnlace(null);mostrarOcultos(null);p.editor.solicitar(null);if(p.editor.obtener().modo==='gestion-modal')p.editor.fijarModo('edicion');host.current?.focus();}
     function confirmarEdicion(): boolean {
         if(!edicion)return true;
         const r=edicion.ref.tipo==='estado'?p.editor.ejecutar({op:'renombrarEstado',args:{estado:edicion.ref.id,nombre:edicion.valor}}):edicion.ref.tipo==='enlace'?p.editor.ejecutar({op:'fijarEtiqueta',args:{enlace:edicion.ref.id,etiqueta:edicion.valor||null,...(edicion.inversa!==undefined?{inversa:edicion.inversa}:{})}}):p.editor.ejecutar({op:'renombrarCosa',args:{cosa:edicion.ref.id,nombre:edicion.valor}});
@@ -161,6 +171,7 @@ export function Lienzo(p: DatosRanura) {
     useEffect(()=>{const modal=menu!==null||quitar!==null||despliegue!==null||eliminar||estadoBorrar!==null||ocultos!==null||buscar!==null;if(modal&&p.editor.obtener().modo==='edicion')p.editor.fijarModo('gestion-modal');return()=>{if(modal&&p.editor.obtener().modo==='gestion-modal')p.editor.fijarModo('edicion');};},[menu,quitar,despliegue,eliminar,estadoBorrar,ocultos,buscar]);
     function teclado(ev:KeyboardEvent,enMenu=false) {
         if(ev.defaultPrevented||ev.isComposing)return;const target=ev.target instanceof Element?ev.target:null;if(target?.closest('dialog')&&!enMenu)return;const g=actual.current;
+        if(paletaDrag.current&&ev.key==='Escape'){ev.preventDefault();ev.stopPropagation();cancelar();return;}
         if(edicion&&ev.key==='Escape'){ev.preventDefault();ev.stopPropagation();editar(null);host.current?.focus();return;}
         if(menu!==null&&ev.key==='Escape'){ev.preventDefault();ev.stopPropagation();contextual(null);p.editor.fijarModo('edicion');host.current?.focus();return;}
         if(g.k!=='reposo'&&['Escape','Enter','Tab','ArrowUp','ArrowDown'].includes(ev.key)||g.k==='menuTipo'&&/^[1-9]$/.test(ev.key)) {ev.preventDefault();ev.stopPropagation();evento({k:'tecla',tecla:ev.key,mayus:ev.shiftKey,ctrl:ev.ctrlKey,alt:ev.altKey});return;}
@@ -173,6 +184,18 @@ export function Lienzo(p: DatosRanura) {
         if((g.k==='reposo'?despacharLienzo:despacharAtajo)(p.editor,ctx,{key:ev.key,ctrlKey:ev.ctrlKey,metaKey:ev.metaKey,shiftKey:ev.shiftKey,altKey:ev.altKey,isComposing:ev.isComposing})){ev.preventDefault();ev.stopPropagation();}
     }
     useEffect(() => { const up = (ev: KeyboardEvent) => { if (ev.key === ' ') espacio.current = false; }; window.addEventListener('keyup', up); return () => window.removeEventListener('keyup', up); }, []);
+    function tomarPaleta(ev:PointerEvent,tipo:'objeto'|'proceso') {
+        ev.stopPropagation();if(ev.button!==0||p.estado.modo!=='edicion'||canon)return;
+        if(edicion&&!confirmarEdicion()){ev.preventDefault();return;}
+        paletaDrag.current={tipo,desde:local(ev),movido:false};captura.current=ev.pointerId;host.current?.setPointerCapture(ev.pointerId);
+    }
+    function destinoEstado(g:Extract<Gesto,{k:'reordenandoEstado'}>,pt:Punto):number|null {
+        // Destinos de la escena inicial: el preview no cambia el objetivo bajo el puntero.
+        const n=base.nodos.find(n=>n.estados.some(s=>s.ref.id===g.estado)),b=n?.caja;
+        const dentro=b&&pt.x>=b.x&&pt.x<=b.x+b.ancho&&pt.y>=b.y&&pt.y<=b.y+b.alto;
+        const destino=dentro&&Math.hypot(pt.x-g.desde.x,pt.y-g.desde.y)*p.estado.camara.zoom>=3?n?.estados.find(s=>s.ref.tipo==='estado'&&pt.x>=s.caja.x&&pt.x<=s.caja.x+s.caja.ancho&&pt.y>=s.caja.y&&pt.y<=s.caja.y+s.caja.alto):undefined;
+        return destino?idx.estadoDe.get(destino.ref.id)!.posicion:null;
+    }
     function abajo(ev:PointerEvent) {
         if(menu!==null&&ev.button!==2){cancelar();ev.preventDefault();return;}
         if(ev.button===2||p.estado.modo==='gestion-modal'||canon||(ev.target instanceof Element&&ev.target.closest('dialog')))return;host.current?.focus();const pos=local(ev),pt=puntoModelo(pos,p.estado.camara);cursor.current=pt;
@@ -187,11 +210,14 @@ export function Lienzo(p: DatosRanura) {
         else if(target?.closest('[data-ref]')?.getAttribute('data-ref')?.startsWith('simbolo:')){p.editor.seleccionar({...VACIA(),simbolo:target.closest('[data-ref]')!.getAttribute('data-ref')!});}
         else if(p.estado.modo==='edicion'&&ref?.tipo==='cosa'&&e.nodos.some(n=>n.ref.id===ref.id&&n.chipOcultos&&pt.x>=n.chipOcultos.caja.x&&pt.x<=n.chipOcultos.caja.x+n.chipOcultos.caja.ancho&&pt.y>=n.chipOcultos.caja.y&&pt.y<=n.chipOcultos.caja.y+n.chipOcultos.caja.alto)){mostrarOcultos(ref.id);return;}
         else {const s=p.editor.obtener().seleccion;const conservar=ref?.tipo==='cosa'&&s.cosas.includes(ref.id)&&!ev.shiftKey;p.editor.seleccionar(conservar?s:seleccionarRef(s,ref,ev.shiftKey));
-            if(ref?.tipo==='cosa'&&p.estado.modo==='edicion'&&!ev.shiftKey){if(idx.bandaDe.has(ref.id)){bandaDrag.current={desde:pt,x:contenedor.apariciones[ref.id]!.x};cambiar({k:'banda',proceso:ref.id,destino:null});}else cambiar({k:'arrastrando',cosas:conservar?s.cosas:[ref.id],desde:pt,delta:{x:0,y:0}});}}
+            if(ref?.tipo==='cosa'&&p.estado.modo==='edicion'&&!ev.shiftKey){if(idx.bandaDe.has(ref.id)){bandaDrag.current={desde:pt,x:contenedor.apariciones[ref.id]!.x};cambiar({k:'banda',proceso:ref.id,destino:null});}else cambiar({k:'arrastrando',cosas:conservar?s.cosas:[ref.id],desde:pt,delta:{x:0,y:0}});}
+            else if(ref?.tipo==='estado'&&p.estado.modo==='edicion'&&!ev.shiftKey)cambiar({k:'reordenandoEstado',estado:ref.id,desde:pt,indice:null});}
         if(ev.button===0||ev.button===1){captura.current=ev.pointerId;host.current?.setPointerCapture(ev.pointerId);}ev.preventDefault();
     }
     function mover(ev:PointerEvent) {
         const pos=local(ev),pt=puntoModelo(pos,p.estado.camara);cursor.current=pt;
+        const paleta=paletaDrag.current;
+        if(paleta){if(paleta.movido||Math.hypot(pos.x-paleta.desde.x,pos.y-paleta.desde.y)>=3){paleta.movido=true;cambiar({k:'colocando',tipo:paleta.tipo,en:pt});}return;}
         if(dedos.current.has(ev.pointerId)){dedos.current.set(ev.pointerId,pos);if(pellizco.current&&dedos.current.size===2){const [a,b]=[...dedos.current.values()],q=pellizco.current,c=q.camara,z=Math.max(.2,Math.min(3,c.zoom*Math.hypot(b!.x-a!.x,b!.y-a!.y)/q.distancia));p.editor.fijarCamara({zoom:z,x:(a!.x+b!.x)/2-(q.centro.x-c.x)*z/c.zoom,y:(a!.y+b!.y)/2-(q.centro.y-c.y)*z/c.zoom});return;}}
         const target=document.elementFromPoint(ev.clientX,ev.clientY),ref=refCercana(target);
         realzar(ref);p.editor.realzar(ref?[ref,...(ref.tipo==='enlace'?e.aristas.find(a=>a.ref.id===ref.id)?.hechos.map(id=>({tipo:'enlace' as const,id}))??[]:[])]:[]);
@@ -199,12 +225,18 @@ export function Lienzo(p: DatosRanura) {
         if(g.k==='redimensionando'&&origenResize.current){const b=origenResize.current;cambiar({...g,caja:{...b,ancho:Math.max(40,Math.round(pt.x-b.x)),alto:Math.max(30,Math.round(pt.y-b.y))}});}
         else if(g.k==='banda'){const origen=bandaDrag.current;if(origen&&Math.hypot(pt.x-origen.desde.x,pt.y-origen.desde.y)*p.estado.camara.zoom>=3)cambiar({...g,destino:banda(pt.y)});}
         else if(g.k==='arrastrando'){const supera=Math.hypot(pt.x-g.desde.x,pt.y-g.desde.y)*p.estado.camara.zoom>=3;evento({k:'mover',punto:supera?pt:g.desde,mayus:ev.shiftKey});}
+        else if(g.k==='reordenandoEstado')cambiar({...g,indice:destinoEstado(g,pt)});
         else if(g.k!=='reposo')evento({k:'mover',punto:g.k==='desplazando'?pos:pt,mayus:ev.shiftKey,...(ref?{sobre:`${ref.tipo}:${ref.id}`}:{})});
     }
     function arriba(ev:PointerEvent) {
+        const paleta=paletaDrag.current;
+        if(paleta){if(ev.button!==0)return;paletaDrag.current=null;const target=document.elementFromPoint(ev.clientX,ev.clientY),pt=puntoModelo(local(ev),p.estado.camara);
+            captura.current=null;if(host.current?.hasPointerCapture(ev.pointerId))host.current.releasePointerCapture(ev.pointerId);
+            if(!paleta.movido)iniciarCreacion(paleta.tipo,'',true);else if(target?.closest('.svg-lienzo')===svg.current)iniciarCreacion(paleta.tipo,'',false,pt);else cancelar();ev.preventDefault();return;}
         if(dedos.current.delete(ev.pointerId)&&pellizco.current){pellizco.current=null;captura.current=null;return;}
         const g=actual.current;if(g.k==='reposo'){captura.current=null;if(host.current?.hasPointerCapture(ev.pointerId))host.current.releasePointerCapture(ev.pointerId);return;}const target=document.elementFromPoint(ev.clientX,ev.clientY),ref=refCercana(target),pt=puntoModelo(local(ev),p.estado.camara);
         if(g.k==='banda'&&bandaDrag.current&&g.destino){const origen=bandaDrag.current;p.editor.ejecutarVarias([{op:'moverEnDescomposicion',args:{opd,cosa:g.proceso,destino:g.destino}},{op:'moverApariciones',args:{opd,mover:[{cosa:g.proceso,x:origen.x+pt.x-origen.desde.x,y:contenedor.apariciones[g.proceso]!.y}]}}],'Mover en la descomposición');bandaDrag.current=null;cambiar({k:'reposo'});}
+        else if(g.k==='reordenandoEstado'){cambiar({...g,indice:destinoEstado(g,pt)});evento({k:'arriba',punto:pt,mayus:ev.shiftKey});}
         else if(g.k==='conectando'||g.k==='reanclando'||g.k==='arrastrando'||g.k==='banda'||g.k==='redimensionando'||g.k==='desplazando')evento({k:'arriba',punto:pt,mayus:ev.shiftKey,...(ref?{sobre:`${ref.tipo}:${ref.id}`}:{})});
         captura.current=null;if(host.current?.hasPointerCapture(ev.pointerId))host.current.releasePointerCapture(ev.pointerId);
     }
@@ -219,8 +251,8 @@ export function Lienzo(p: DatosRanura) {
     function confirmarNombre(mayus=false){if(g.k==='creando'&&existente){if(existente.tipo===g.tipo){const r=p.editor.ejecutar({op:'traerCosa',args:{cosa:existente.id,opd,x:g.en.x,y:g.en.y}});if(r.ok)cancelar();}return;}evento({k:'tecla',tecla:'Enter',mayus,ctrl:false,alt:false});}
     function elegir(i:number,operador?:'XOR'|'OR'){const z=actual.current;if(z.k!=='menuTipo')return;const o=z.opciones[i];if(o?.legal==='pendiente')return;try{if(o)localStorage.setItem(`opforja.enlace.${m.cosas[z.desde.cosa]?.tipo}.${m.cosas[z.hacia.cosa]?.tipo}`,JSON.stringify({tipo:o.tipo,sentido:o.sentido}));}catch{}p.editor.fijarModo('edicion');if(cambiando&&o){const r=p.editor.ejecutar({op:'cambiarTipoEnlace',args:{enlace:cambiando,tipo:o.tipo,sentido:o.sentido}});if(r.ok)cancelar();return;}evento({k:'elegir',indice:i,...(operador?{operador}:{})});if(actual.current.k==='reposo')host.current?.focus();}
     useEffect(()=>{if(g.k==='menuTipo'){p.editor.fijarModo('gestion-modal');try{const ultimo=JSON.parse(localStorage.getItem(`opforja.enlace.${m.cosas[g.desde.cosa]?.tipo}.${m.cosas[g.hacia.cosa]?.tipo}`)??'null');const i=g.opciones.findIndex(o=>o.tipo===ultimo?.tipo&&o.sentido===ultimo?.sentido&&o.legal===true);if(i>=0&&g.elegida===undefined)cambiar({...g,elegida:i});}catch{}}},[g.k]);
-    return <div class={`lienzo-interactivo modo-${p.estado.modo}`} ref={host} tabIndex={0} role="region" aria-label="Edición del diagrama" onKeyDown={teclado} onPointerDown={abajo} onPointerMove={mover} onPointerUp={arriba} onPointerCancel={()=>{dedos.current.clear();pellizco.current=null;bandaDrag.current=null;captura.current=null;cambiar({k:'reposo'});}} onLostPointerCapture={()=>{if(captura.current!==null){captura.current=null;cambiar({k:'reposo'});}}} onDblClick={doble} onContextMenu={ev=>{ev.preventDefault();if(p.estado.modo!=='edicion'||edicion&&!confirmarEdicion())return;const ref=refCercana(ev.target instanceof Element?ev.target:null);if(ref)p.editor.seleccionar(seleccionarRef(VACIA(),ref,false));cambiar({k:'reposo'});contextual(local(ev));p.editor.fijarModo('gestion-modal');}}>
-        {!canon&&<div class="paleta-lienzo" onPointerDown={ev=>ev.stopPropagation()} onPointerMove={ev=>ev.stopPropagation()}><button disabled={p.estado.modo!=='edicion'} onClick={()=>cancelar()}>Seleccionar</button><button disabled={p.estado.modo!=='edicion'||!p.estado.seleccion.cosas.length&&!p.estado.seleccion.estados.length} onClick={()=>{const id=p.estado.seleccion.estados[0]??p.estado.seleccion.cosas[0];if(id)cambiar({k:'conectando',desde:extremo({tipo:p.estado.seleccion.estados.length?'estado':'cosa',id}),punto:cursor.current});}}>Conectar <kbd>R</kbd></button><button disabled={p.estado.modo!=='edicion'} onClick={()=>iniciarCreacion('objeto','',true)}>Objeto <kbd>O</kbd></button><button disabled={p.estado.modo!=='edicion'} onClick={()=>iniciarCreacion('proceso','',true)}>Proceso <kbd>P</kbd></button></div>}
+    return <div class={`lienzo-interactivo modo-${p.estado.modo}`} ref={host} tabIndex={0} role="region" aria-label="Edición del diagrama" onKeyDown={teclado} onPointerDown={abajo} onPointerMove={mover} onPointerUp={arriba} onPointerCancel={()=>{paletaDrag.current=null;dedos.current.clear();pellizco.current=null;bandaDrag.current=null;captura.current=null;cambiar({k:'reposo'});}} onLostPointerCapture={()=>{if(captura.current!==null){paletaDrag.current=null;captura.current=null;cambiar({k:'reposo'});}}} onDblClick={doble} onContextMenu={ev=>{ev.preventDefault();if(p.estado.modo!=='edicion'||edicion&&!confirmarEdicion())return;const ref=refCercana(ev.target instanceof Element?ev.target:null);if(ref)p.editor.seleccionar(seleccionarRef(VACIA(),ref,false));cambiar({k:'reposo'});contextual(local(ev));p.editor.fijarModo('gestion-modal');}}>
+        {!canon&&<div class="paleta-lienzo" onPointerDown={ev=>ev.stopPropagation()} onPointerMove={ev=>ev.stopPropagation()}><button disabled={p.estado.modo!=='edicion'} onClick={()=>cancelar()}>Seleccionar</button><button disabled={p.estado.modo!=='edicion'||!p.estado.seleccion.cosas.length&&!p.estado.seleccion.estados.length} onClick={()=>{const id=p.estado.seleccion.estados[0]??p.estado.seleccion.cosas[0];if(id)cambiar({k:'conectando',desde:extremo({tipo:p.estado.seleccion.estados.length?'estado':'cosa',id}),punto:cursor.current});}}>Conectar <kbd>R</kbd></button><button disabled={p.estado.modo!=='edicion'} onPointerDown={ev=>tomarPaleta(ev,'objeto')} onClick={ev=>{if(ev.detail===0)iniciarCreacion('objeto','',true);}}>Objeto <kbd>O</kbd></button><button disabled={p.estado.modo!=='edicion'} onPointerDown={ev=>tomarPaleta(ev,'proceso')} onClick={ev=>{if(ev.detail===0)iniciarCreacion('proceso','',true);}}>Proceso <kbd>P</kbd></button></div>}
         {!canon&&<div class="zoom-lienzo" onPointerDown={ev=>ev.stopPropagation()}><button aria-label="Alejar diagrama" onClick={()=>zoom(.9)}>−</button><output>{Math.round(p.estado.camara.zoom*100)}%</output><button aria-label="Acercar diagrama" onClick={()=>zoom(1.1)}>+</button><button onClick={()=>p.editor.encuadrar()}>Encuadrar</button></div>}
         <svg ref={svg} class="svg-lienzo" width="100%" height="100%" aria-label={`Diagrama ${m.nombre}`} onWheel={ev=>{ev.preventDefault();evento({k:'rueda',punto:local(ev),dx:ev.deltaX,dy:ev.deltaY,ctrl:ev.ctrlKey,camara:p.editor.obtener().camara});}}>
             <g transform={`translate(${p.estado.camara.x} ${p.estado.camara.y}) scale(${p.estado.camara.zoom})`}>
@@ -240,6 +272,8 @@ export function Lienzo(p: DatosRanura) {
         {eliminar&&<Dialogo titulo="Eliminar del modelo" cerrar={()=>confirmarEliminar(false)}><p>Se eliminarán {cuenta(p.estado.seleccion.cosas.length,'cosa','cosas')}, {cuenta(p.estado.seleccion.cosas.reduce((n,id)=>{const c=m.cosas[id];return n+(c?.tipo==='objeto'?c.estados.length:0);},0),'estado','estados')} y {cuenta(Object.values(m.enlaces).filter(z=>p.estado.seleccion.cosas.some(id=>Object.values(z).includes(id))).length,'enlace','enlaces')}; {p.estado.seleccion.cosas.length===1?'aparece':'aparecen'} en {cuenta(Object.values(m.opds).filter(o=>p.estado.seleccion.cosas.some(id=>o.apariciones[id])).length,'OPD','OPDs')}. Quitar de este OPD conserva la cosa.</p><button class="peligro" onClick={()=>{p.editor.fijarModo('edicion');const r=p.editor.ejecutar({op:'eliminarCosas',args:{cosas:p.estado.seleccion.cosas}});if(r.ok)confirmarEliminar(false);}}>Eliminar definitivamente</button></Dialogo>}
         {buscar!==null&&g.k==='conectando'&&<Dialogo titulo="Destino del enlace" cerrar={()=>busqueda(null)}><input aria-label="Buscar destino" autoFocus value={buscar} onInput={ev=>busqueda(ev.currentTarget.value)} />{Object.values(m.cosas).filter(c=>contenedor.apariciones[c.id]&&claveNombre(c.nombre).includes(claveNombre(buscar))).map(c=><button onClick={()=>{p.editor.fijarModo('edicion');busqueda(null);evento({k:'arriba',punto:cursor.current,sobre:`cosa:${c.id}`,mayus:false});}}>{c.nombre}</button>)}{(['objeto','proceso'] as const).map(tipo=><button disabled={!!validarNombreCosa(buscar)} onClick={()=>{p.editor.fijarModo('edicion');const en=colocar(m,opd,{ancho:135,alto:60},{x:cursor.current.x,y:cursor.current.y+(tipo==='objeto'?-100:100)}),r=p.editor.ejecutar({op:'crearCosa',args:{opd,tipo,nombre:buscar,x:en.x,y:en.y}});if(r.ok){const cosa=r.valor.creados.find(id=>r.valor.modelo.cosas[id]);busqueda(null);if(cosa)evento({k:'arriba',punto:en,sobre:`cosa:${cosa}`,mayus:false});}}}>Crear {tipo} «{buscar}»</button>)}</Dialogo>}
         {g.k==='conectando'&&<p class="estado-gesto" role="status">Enlace: Tab recorre destinos · escribe nombre · ↵ tipo · ⎋</p>}
+        {g.k==='colocando'&&<p class="estado-gesto" role="status">Suelta en el lienzo para nombrar el {g.tipo} · ⎋ cancela</p>}
+        {p.estado.modo==='edicion'&&(g.k==='reordenandoEstado'||g.k==='reposo'&&p.estado.seleccion.estados.length===1)&&<p class="estado-gesto" role="status">Los estados permanecen dentro de su objeto. Arrastra sobre otro estado del mismo objeto o usa ←/→ para reordenar.</p>}
     </div>;
 }
 function refCercanaValor(v:string):Ref|null{const i=v.indexOf(':'),tipo=v.slice(0,i);return ['cosa','estado','enlace','abanico'].includes(tipo)?{tipo:tipo as Ref['tipo'],id:v.slice(i+1)}:null;}

@@ -282,7 +282,7 @@ export const quitarDeOpd: Operacion<{
     const apariciones = { ...o.apariciones }; for (const id of ids) delete apariciones[id];
     tx.poner('opds', { ...o, apariciones });
     const v = validarForma(tx.m).find(v => v.regla === 'F-7' && v.refs.some(r => r.tipo === 'opd' && indice(m).hijosDe.get(o.id)?.includes(r.id)));
-    if (v) negar(tx, 'forma', v.regla, v.mensaje, [...v.refs, ...[...ids].map(ref)]);
+    if (v) negar(tx, 'forma', v.regla, 'No se puede quitar la selección: sostiene un refinamiento. Conserva la aparición o elimina primero el refinamiento, de las hojas hacia arriba.', [...v.refs, ...[...ids].map(ref)]);
     for (const id of ids) if (!(indice(tx.m).aparicionesDe.get(id)?.length)) tx.traza({ regla: 'R-VIS-APP-1', mensaje: `**${m.cosas[id]!.nombre}** ya no aparece en ningún OPD (sigue en el modelo).`, refs: [ref(id)] });
 });
 export const eliminarCosas: Operacion<{

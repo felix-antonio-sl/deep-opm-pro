@@ -30,9 +30,8 @@ export function CapaUi(p:{modelo:Modelo;escena:Escena;seleccion:Seleccion;hover:
         {extremos.map(x=><rect data-ui="reanclar" data-enlace={x.enlace} data-extremo={x.extremo} x={x.p.x-4} y={x.p.y-4} width={8} height={8} class="asa-ui" />)}
         {p.escena.simbolos.filter(s=>p.seleccion.simbolo===s.clave).flatMap(s=>s.peine.slice(3,3+s.ramas.length).map((rama,i)=><rect class="asa-ui" data-ui="reanclar" data-enlace={s.ramas[i]} data-extremo="destino" x={rama.at(-1)!.x-4} y={rama.at(-1)!.y-4} width={8} height={8} />))}
         {a&&g.k==='conectando'&&recta(a,g.punto)}{g.k==='reanclando'&&<circle cx={g.punto.x} cy={g.punto.y} r={6} class="seleccion-ui" pointer-events="none" />}
-        {g.k==='arrastrando'&&p.escena.nodos.filter(n=>g.cosas.includes(n.ref.id)).map(n=><rect x={n.caja.x+g.delta.x} y={n.caja.y+g.delta.y} width={n.caja.ancho} height={n.caja.alto} class="fantasma-ui" pointer-events="none" />)}
         {g.k==='redimensionando'&&<rect x={g.caja.x} y={g.caja.y} width={g.caja.ancho} height={g.caja.alto} class="fantasma-ui" pointer-events="none" />}
-        {g.k==='creando'&&<g pointer-events="none">{g.tipo==='objeto'?<rect x={g.en.x} y={g.en.y} width={135} height={60} class="fantasma-ui" />:<ellipse cx={g.en.x+67.5} cy={g.en.y+30} rx={67.5} ry={30} class="fantasma-ui" />}</g>}
+        {(g.k==='creando'||g.k==='colocando')&&<g pointer-events="none">{g.tipo==='objeto'?<rect x={g.en.x} y={g.en.y} width={135} height={60} class="fantasma-ui" />:<ellipse cx={g.en.x+67.5} cy={g.en.y+30} rx={67.5} ry={30} class="fantasma-ui" />}</g>}
         {g.k==='encadenando'&&g.bandas.flatMap((b,i)=>b.map((nombre,j)=>{const n=p.escena.nodos.find(n=>n.contenedor),x=(n?.caja.x??0)+50+j*170,y=(n?.caja.y??0)+64+i*100;return <g pointer-events="none"><ellipse cx={x+67.5} cy={y+30} rx={67.5} ry={30} class="fantasma-ui"/><text x={x+67.5} y={y+34} text-anchor="middle" class="nombre-fantasma">{nombre}</text></g>;}))}
         {g.k==='banda'&&p.escena.nodos.filter(n=>!n.contenedor&&n.tipo==='proceso').map(n=>recta({x:p.escena.caja.x,y:n.caja.y},{x:p.escena.caja.x+p.escena.caja.ancho,y:n.caja.y}))}
     </g>;

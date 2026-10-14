@@ -2,6 +2,13 @@ import {expect,test} from 'bun:test';
 import {reducirGesto} from './gestos';
 import {modelo} from './pruebas.test';
 import {aplicarAcciones} from '../nucleo/operaciones';
+test('T-015 reordenar estado confirma una operación y salir sin destino o cancelar no muta',()=>{
+ const m=modelo(),g={k:'reordenandoEstado' as const,estado:'s-3',desde:{x:0,y:0},indice:1},antes=JSON.stringify(m),ev={k:'arriba' as const,punto:{x:20,y:30},mayus:false};
+ const r=reducirGesto(m,m.raiz,g,ev);expect(r.acciones).toEqual([{op:'moverEstado',args:{estado:'s-3',indice:1}}]);
+ const n=aplicarAcciones(m,r.acciones);expect(n.ok).toBe(true);if(n.ok){const c=n.valor.modelo.cosas['o-2'];expect(c?.tipo==='objeto'&&c.estados[1]!.id).toBe('s-3');}
+ for(const indice of [null,0])expect(reducirGesto(m,m.raiz,{...g,indice},ev).acciones).toEqual([]);
+ expect(reducirGesto(m,m.raiz,g,{k:'tecla',tecla:'Escape',mayus:false,ctrl:false,alt:false}).acciones).toEqual([]);expect(JSON.stringify(m)).toBe(antes);
+});
 test('T-011 crear por gesto produce operación real y cancelación no muta',()=>{const m=modelo(),entrada=JSON.stringify(m),g={k:'creando' as const,tipo:'objeto' as const,en:{x:34,y:56},nombre:'Registro'};const r=reducirGesto(m,m.raiz,g,{k:'tecla',tecla:'Enter',mayus:false,ctrl:false,alt:false});expect(r.acciones).toEqual([{op:'crearCosa',args:{opd:m.raiz,tipo:'objeto',nombre:'Registro',x:34,y:56}}]);const n=aplicarAcciones(m,r.acciones);expect(n.ok).toBe(true);expect(reducirGesto(m,m.raiz,g,{k:'tecla',tecla:'Escape',mayus:false,ctrl:false,alt:false}).acciones).toEqual([]);expect(JSON.stringify(m)).toBe(entrada);});
 test('T-011 drag múltiple emite una operación y gesto distinto conserva separación',()=>{const m=modelo(),g={k:'arrastrando' as const,cosas:['o-2'],desde:{x:0,y:0},delta:{x:11,y:9}};const r=reducirGesto(m,m.raiz,g,{k:'arriba',punto:{x:11,y:9},mayus:false});expect(r.acciones).toHaveLength(1);expect(r.acciones[0]!.op).toBe('moverApariciones');expect(r.gestoId).toBeDefined();});
 test('T-011 UI-04 soltar sin movimiento entero no produce mutación ni paso de historial',()=>{

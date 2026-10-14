@@ -6,6 +6,13 @@ test('WP-13 DES§7.4 registro único tiene motivos acciones reales y atajos sin 
 import {despacharAtajo} from './atajos';
 import {configuracion,ciclos} from './pruebas.test';
 async function abierto(){const d=dependencias(),ed=crearEditor(configuracion(d));await ed.abrir(d.m.id);return {d,ed};}
+test('T-251 Backspace sólo elimina el enlace seleccionado fuera de campos y sin modificadores',async()=>{
+ const {ed}=await abierto(),r=ed.ejecutar({op:'crearEnlace',args:{opd:ed.obtener().opd,candidato:{tipo:'consumo',objeto:'o-2',proceso:'p-5'}}});if(!r.ok)throw Error('enlace');
+ const id=r.valor.creados[0]!;ed.seleccionar({cosas:[],estados:[],enlaces:[id],abanicos:[]});const m=ed.obtener().modelo;
+ for(const ev of [{editable:true},{ctrlKey:true},{altKey:true},{shiftKey:true}])expect(despacharAtajo(ed,'enlace',{key:'Backspace',...ev})).toBe(false);
+ expect(despacharAtajo(ed,'global',{key:'Backspace'})).toBe(false);expect(ed.obtener().modelo).toBe(m);
+ expect(despacharAtajo(ed,'enlace',{key:'Backspace'})).toBe(true);expect(ed.obtener().modelo!.enlaces[id]).toBeUndefined();ed.deshacer();expect(ed.obtener().modelo).toBe(m);ed.cerrar();await ciclos();
+});
 test('WP-13 DES§7.4 subcontextoobjeto hereda F2 de cosa pero S es acción propia',async()=>{const {ed}=await abierto();ed.seleccionar({cosas:['o-2'],estados:[],enlaces:[],abanicos:[]});expect(despacharAtajo(ed,'objeto',{key:'F2'})).toBe(true);expect(ed.obtener().solicitud?.k).toBe('renombrar');expect(despacharAtajo(ed,'objeto',{key:'s'})).toBe(true);expect(ed.obtener().solicitud?.k).toBe('estado');ed.cerrar();await ciclos();});
 for(const key of ['w','t','n','Tab','1','9'])test(`WP-13 DES§7.4 reservado navegadorCtrl+${key} nunca interceptado`,async()=>{const {ed}=await abierto();expect(despacharAtajo(ed,'global',{key,ctrlKey:true})).toBe(false);expect(ed.obtener().solicitud).toBeNull();ed.cerrar();await ciclos();});
 test('WP-13 DES§7.4 letras en campos no crean; nombre/OPL conservan atajo propio',async()=>{const {ed}=await abierto();expect(despacharAtajo(ed,'lienzo',{key:'o',editable:true})).toBe(false);expect(despacharAtajo(ed,'nombre',{key:'Enter',editable:true})).toBe(true);expect(ed.obtener().solicitud).toMatchObject({k:'renombrar',opcion:'confirmar'});expect(despacharAtajo(ed,'editor-opl',{key:'Enter',ctrlKey:true,editable:true})).toBe(true);expect(ed.obtener().solicitud).toMatchObject({k:'opl',opcion:'aplicar'});expect(despacharAtajo(ed,'lienzo',{key:'p',isComposing:true})).toBe(false);ed.cerrar();await ciclos();});
