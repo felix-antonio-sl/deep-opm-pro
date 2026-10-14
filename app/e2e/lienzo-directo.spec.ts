@@ -58,10 +58,14 @@ for(const tipo of ['objeto','proceso'] as const)test(`T-252 arrastrar ${tipo} de
 test('T-252 arrastre de paleta cancelado, soltado fuera o perdido no deja preview ni editor; clic sigue funcionando',async({page,request})=>{
  const id='e2e-paleta-cancelar';await sembrar(request,'vacio',id);await abrir(page,id);const antes=await leer(request,id),b=(await lienzo(page).boundingBox())!;
  const boton=page.getByRole('button',{name:'Objeto O',exact:true}),r=(await boton.boundingBox())!;
- for(const salida of ['Escape','fuera','cancelacion']){
+ for(const salida of ['Escape','fuera','cancelacion','secundario','modo']){
   await page.mouse.move(r.x+r.width/2,r.y+r.height/2);await page.mouse.down();await page.mouse.move(b.x+200,b.y+180,{steps:4});
   await expect(lienzo(page).locator('.fantasma-ui')).toHaveCount(1);
-  if(salida==='Escape')await page.keyboard.press('Escape');else if(salida==='fuera')await page.mouse.move(30,b.y+100);else await lienzo(page).dispatchEvent('pointercancel');
+  if(salida==='Escape')await page.keyboard.press('Escape');
+  else if(salida==='fuera')await page.mouse.move(30,b.y+100);
+  else if(salida==='cancelacion')await lienzo(page).dispatchEvent('pointercancel');
+  else if(salida==='secundario'){await page.mouse.click(b.x+250,b.y+220,{button:'right'});await expect(page.getByRole('menu',{name:'Acciones de selección'})).toBeVisible();await page.keyboard.press('Escape');}
+  else{await page.keyboard.press('F9');await expect(boton).toHaveCount(0);await page.keyboard.press('F9');await expect(boton).toBeVisible();}
   await page.mouse.up();await expect(lienzo(page).locator('.fantasma-ui')).toHaveCount(0);await expect(page.getByRole('textbox',{name:'Nombre del objeto',exact:true})).toHaveCount(0);
   await guardado(page);expect(await leer(request,id)).toEqual(antes);
  }
